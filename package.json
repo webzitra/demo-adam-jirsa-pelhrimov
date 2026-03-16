@@ -1,0 +1,9 @@
+{
+  "name": "adam-jirsa-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Adam Jirsa — Osobní trenér & výživový poradce",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

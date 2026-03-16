@@ -1,0 +1,15 @@
+{
+  "name": "Adam Jirsa — Klientská zóna",
+  "short_name": "Moje zóna",
+  "start_url": "/zona/",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#56C8E0",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💪</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

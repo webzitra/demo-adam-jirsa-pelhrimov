@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Adam Jirsa</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+  <link rel="stylesheet" href="/zona/style.css?v=5">
+  <link rel="stylesheet" href="admin.css?v=5">
+  <script>
+    (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
+  </script>
+</head>
+<body>
+
+  <!-- ===== LOGIN ===== -->
+  <div id="login-screen" class="screen active">
+    <button class="theme-toggle login-theme-toggle" id="login-theme-toggle" title="Přepnout motiv">🌙</button>
+    <div class="login-container">
+      <div class="login-logo">
+        <span class="login-logo-icon">⚙️</span>
+        <h1>Admin<span>Panel</span></h1>
+        <p class="login-subtitle">Adam Jirsa — Správa klientů</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="admin-password">Heslo</label>
+          <input type="password" id="admin-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary">Přihlásit</button>
+        <p id="login-error" class="form-error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN DASHBOARD ===== -->
+  <div id="admin-screen" class="screen">
+
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <span class="dash-logo">Admin<span>Panel</span></span>
+      </div>
+      <div class="dash-header-right">
+        <a href="/" class="btn-ghost btn-sm">← Web</a>
+        <button class="theme-toggle" id="theme-toggle" title="Přepnout motiv">🌙</button>
+        <button class="btn-ghost btn-sm" id="logout-btn">Odhlásit</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="overview">📊 Přehled</button>
+      <button class="admin-tab" data-tab="clients">👥 Klienti</button>
+      <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
+      <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
+    </div>
+
+    <!-- ===== TAB: Overview ===== -->
+    <div class="admin-content" id="tab-overview">
+      <section class="admin-card">
+        <h3>📊 Přehled</h3>
+        <div class="overview-stats" id="overview-stats">
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="stat-total">—</span>
+            <span class="overview-stat-label">Celkem klientů</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="stat-active">—</span>
+            <span class="overview-stat-label">Aktivních</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="stat-onboarded">—</span>
+            <span class="overview-stat-label">Má dotazník</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="stat-inactive">—</span>
+            <span class="overview-stat-label">Netrénovali 3+ dní</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card" id="overview-alerts">
+        <h3>⚠️ Upozornění</h3>
+        <div id="alerts-list"><p class="text-muted">Načítám...</p></div>
+      </section>
+
+      <section class="admin-card" id="overview-weights">
+        <h3>⚖️ Poslední váhy</h3>
+        <div id="weights-list"><p class="text-muted">Načítám...</p></div>
+      </section>
+    </div>
+
+    <!-- ===== TAB: Clients ===== -->
+    <div class="admin-content" id="tab-clients" hidden>
+
+      <!-- Add client form -->
+      <section class="admin-card">
+        <h3>➕ Nový klient</h3>
+        <form id="add-client-form" class="admin-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Jméno</label>
+              <input type="text" id="new-name" required placeholder="Jan Novák">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="new-email" required placeholder="jan@email.cz">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Heslo</label>
+              <input type="text" id="new-password" required placeholder="Vygeneruj heslo">
+            </div>
+            <div class="form-group">
+              <label>Telefon</label>
+              <input type="tel" id="new-phone" placeholder="+420 ...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Poznámky</label>
+            <input type="text" id="new-notes" placeholder="Cíl, zdravotní omezení...">
+          </div>
+          <button type="submit" class="btn-primary">Vytvořit klienta</button>
+        </form>
+      </section>
+
+      <!-- Client list -->
+      <section class="admin-card">
+        <h3>👥 Aktivní klienti</h3>
+        <div id="clients-list" class="clients-list">
+          <p class="text-muted">Načítám...</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== TAB: Plan Editor ===== -->
+    <div class="admin-content" id="tab-plan-editor" hidden>
+
+      <!-- Client selector -->
+      <section class="admin-card">
+        <div class="form-row" style="align-items: flex-end;">
+          <div class="form-group" style="flex: 2;">
+            <label>Vyber klienta</label>
+            <select id="plan-client-select" class="form-select">
+              <option value="">— Vyber klienta —</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="load-plan-btn" style="margin-bottom: 0;">Načíst plán</button>
+        </div>
+      </section>
+
+      <!-- Plan editor -->
+      <section class="admin-card" id="plan-editor-section" hidden>
+        <h3>📋 Tréninkový plán pro: <span id="plan-client-name" style="color: var(--accent);"></span></h3>
+
+        <!-- Template buttons -->
+        <div class="template-buttons" style="margin-bottom: 1rem;">
+          <button class="btn-ghost btn-sm" id="save-as-template-btn">💾 Uložit jako šablonu</button>
+          <button class="btn-ghost btn-sm" id="load-template-btn">📂 Načíst šablonu</button>
+        </div>
+
+        <!-- Message to client -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label>💬 Zpráva pro klienta (zobrazí se v dashboardu)</label>
+          <textarea id="plan-message" class="form-textarea" rows="2" placeholder="Např.: Tento týden přidáváme objem. Drž se!"></textarea>
+        </div>
+
+        <!-- Day tabs -->
+        <div class="day-tabs" id="plan-day-tabs" style="margin-bottom: 1rem;">
+          <button class="day-tab active" data-day="monday">Po</button>
+          <button class="day-tab" data-day="tuesday">Út</button>
+          <button class="day-tab" data-day="wednesday">St</button>
+          <button class="day-tab" data-day="thursday">Čt</button>
+          <button class="day-tab" data-day="friday">Pá</button>
+          <button class="day-tab" data-day="saturday">So</button>
+          <button class="day-tab" data-day="sunday">Ne</button>
+        </div>
+
+        <!-- Day editor -->
+        <div id="day-editor">
+          <div class="day-editor-header">
+            <div class="form-row" style="align-items: flex-end;">
+              <div class="form-group" style="flex: 2;">
+                <label>Název tréninku</label>
+                <input type="text" id="day-name" placeholder="Např.: Hrudník + triceps">
+              </div>
+              <label class="checkbox-label">
+                <input type="checkbox" id="day-rest"> Odpočinkový den
+              </label>
+            </div>
+          </div>
+
+          <!-- Exercises list -->
+          <div id="exercises-editor" class="exercises-editor"></div>
+
+          <button class="btn-ghost" id="add-exercise-btn" style="width: 100%; margin-top: 0.5rem;">
+            + Přidat cvik
+          </button>
+        </div>
+
+        <!-- Save -->
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+          <button class="btn-primary" id="save-plan-btn" style="flex: 1;">💾 Uložit plán</button>
+        </div>
+        <p id="plan-status" class="form-error" style="margin-top: 0.5rem; color: var(--accent);" hidden></p>
+      </section>
+    </div>
+
+    <!-- ===== TAB: Nutrition Editor ===== -->
+    <div class="admin-content" id="tab-nutrition-editor" hidden>
+
+      <!-- Client selector -->
+      <section class="admin-card">
+        <div class="form-row" style="align-items: flex-end;">
+          <div class="form-group" style="flex: 2;">
+            <label>Vyber klienta</label>
+            <select id="nutr-client-select" class="form-select">
+              <option value="">— Vyber klienta —</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="load-nutrition-btn" style="margin-bottom: 0;">Načíst</button>
+        </div>
+      </section>
+
+      <!-- Nutrition editor -->
+      <section class="admin-card" id="nutrition-editor-section" hidden>
+        <h3>🥗 Výživa pro: <span id="nutr-client-name" style="color: var(--accent);"></span></h3>
+
+        <!-- Macros (auto-calculated from meals) -->
+        <div class="nutrition-totals-bar">
+          <div class="nutrition-total-item">
+            <span class="nutrition-total-label">🔥 Kalorie</span>
+            <input type="number" id="nutr-calories" placeholder="0" readonly class="nutrition-total-value">
+            <span class="nutrition-total-unit">kcal</span>
+          </div>
+          <div class="nutrition-total-item">
+            <span class="nutrition-total-label">🥩 Bílkoviny</span>
+            <input type="number" id="nutr-protein" placeholder="0" readonly class="nutrition-total-value">
+            <span class="nutrition-total-unit">g</span>
+          </div>
+          <div class="nutrition-total-item">
+            <span class="nutrition-total-label">🍚 Sacharidy</span>
+            <input type="number" id="nutr-carbs" placeholder="0" readonly class="nutrition-total-value">
+            <span class="nutrition-total-unit">g</span>
+          </div>
+          <div class="nutrition-total-item">
+            <span class="nutrition-total-label">🧈 Tuky</span>
+            <input type="number" id="nutr-fat" placeholder="0" readonly class="nutrition-total-value">
+            <span class="nutrition-total-unit">g</span>
+          </div>
+        </div>
+        <p class="text-muted" style="font-size: 0.75rem; margin-bottom: 1rem;">Součty se počítají automaticky z jídel níže ↓</p>
+
+        <!-- Meals -->
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">🍽 Jídla</h4>
+        <div id="meals-editor" class="exercises-editor"></div>
+        <button class="btn-ghost" id="add-meal-btn" style="width: 100%; margin-top: 0.5rem;">
+          + Přidat jídlo
+        </button>
+
+        <!-- Supplements -->
+        <h4 style="font-size: 0.95rem; margin: 1.25rem 0 0.75rem;">💊 Suplementace</h4>
+        <div id="supplements-editor" class="exercises-editor"></div>
+        <button class="btn-ghost" id="add-supplement-btn" style="width: 100%; margin-top: 0.5rem;">
+          + Přidat suplement
+        </button>
+
+        <!-- Notes -->
+        <div class="form-group" style="margin-top: 1rem;">
+          <label>📝 Poznámky k výživě</label>
+          <textarea id="nutr-notes" class="form-textarea" rows="2" placeholder="Např.: Pij min. 3l vody denně. Jez pomalu."></textarea>
+        </div>
+
+        <!-- Save -->
+        <div style="margin-top: 1.5rem;">
+          <button class="btn-primary" id="save-nutrition-btn" style="width: 100%;">💾 Uložit výživu + suplementaci</button>
+        </div>
+        <p id="nutrition-status" class="form-error" style="margin-top: 0.5rem; color: var(--accent);" hidden></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Progress modal -->
+  <div id="progress-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeProgressModal()"></div>
+    <div class="modal-content" style="max-width: 600px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeProgressModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">📈 Progres: <span id="progress-modal-name" style="color: var(--accent);"></span></h3>
+      <div id="progress-modal-content">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding modal -->
+  <div id="onboarding-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeOnboardingModal()"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeOnboardingModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">🎯 Dotazník: <span id="onboarding-modal-name" style="color: var(--accent);"></span></h3>
+      <div id="onboarding-modal-content">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat modal -->
+  <div id="chat-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeChatModal()"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto; display: flex; flex-direction: column;">
+      <button class="modal-close" onclick="closeChatModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">💬 Chat: <span id="chat-modal-name" style="color: var(--accent);"></span></h3>
+      <div id="chat-modal-messages" style="flex: 1; max-height: 400px; min-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem 0; margin-bottom: 0.75rem;">
+        <p class="text-muted">Načítám...</p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="chat-modal-input" placeholder="Napiš zprávu..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; color: var(--text); font-size: 0.9rem; font-family: inherit; outline: none;" maxlength="500">
+        <button class="btn-primary btn-sm" id="chat-modal-send">Odeslat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template picker modal -->
+  <div id="template-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeTemplateModal()"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeTemplateModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">📂 Šablony plánů</h3>
+      <div id="template-list">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=5"></script>
+</body>
+</html>

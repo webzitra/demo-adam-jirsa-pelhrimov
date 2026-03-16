@@ -2193,3 +2193,144 @@ img { max-width: 100%; display: block; }
     text-align: center;
   }
 }
+
+
+/* ===== SECURITY BADGE (login screens) ===== */
+.login-security-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(52, 211, 153, 0.06);
+  border: 1px solid rgba(52, 211, 153, 0.12);
+  border-radius: var(--radius-full);
+  color: #34d399;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.login-security-badge svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+[data-theme="light"] .login-security-badge {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+/* ===== GREETING CARD UPGRADE ===== */
+.dash-greeting {
+  padding: 1.75rem 1.25rem 0.75rem;
+  position: relative;
+}
+
+.dash-greeting h2 {
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== NOTIFICATION BADGE ===== */
+.dash-notif-btn {
+  position: relative;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: #f87171;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ===== IMPROVED CARD HOVER ===== */
+.admin-card {
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.admin-card:hover {
+  border-color: var(--border-accent);
+}
+
+/* ===== OVERVIEW STAT IMPROVEMENTS ===== */
+.overview-stat {
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-stat:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.overview-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.overview-stat:hover::before {
+  opacity: 1;
+}
+
+/* ===== DASH SECTION CARD STYLE ===== */
+.dash-section {
+  transition: opacity 0.3s ease;
+}
+
+/* ===== EXERCISE CARD COMPLETED STATE ===== */
+.exercise-card.completed {
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.exercise-card.completed .exercise-number-bar {
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.exercise-card.completed .exercise-number {
+  color: #34d399;
+}
+
+/* ===== MODAL IMPROVEMENTS ===== */
+.modal-content {
+  animation: modalSlideIn 0.25s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== LIGHT THEME HEADER ===== */
+[data-theme="light"] .dash-header {
+  --header-bg: rgba(245, 245, 247, 0.9);
+}

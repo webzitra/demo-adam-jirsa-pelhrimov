@@ -213,19 +213,74 @@
             e.preventDefault();
             var btn = form.querySelector('button[type="submit"]');
             if (btn) {
-                btn.textContent = 'Odesláno!';
+                btn.textContent = '✓ Odesláno!';
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
             }
             setTimeout(function() {
                 form.reset();
                 if (btn) {
-                    btn.textContent = 'Odeslat zprávu';
+                    btn.textContent = 'Chci konzultaci zdarma';
                     btn.disabled = false;
                     btn.style.opacity = '';
                 }
             }, 3000);
         });
+    }
+
+    // --- Privacy modal ---
+    var privacyModal = document.getElementById('ochrana-udaju-modal');
+    if (privacyModal) {
+        // Open via hash links
+        document.querySelectorAll('a[href="#ochrana-udaju"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                privacyModal.removeAttribute('hidden');
+                document.body.style.overflow = 'hidden';
+                requestAnimationFrame(function() {
+                    privacyModal.classList.add('visible');
+                });
+            });
+        });
+
+        // Close button
+        var closeBtn = privacyModal.querySelector('.privacy-modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                privacyModal.classList.remove('visible');
+                document.body.style.overflow = '';
+                setTimeout(function() { privacyModal.setAttribute('hidden', ''); }, 300);
+            });
+        }
+
+        // Close on backdrop click
+        var backdrop = privacyModal.querySelector('.privacy-modal-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', function() {
+                closeBtn.click();
+            });
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !privacyModal.hasAttribute('hidden')) {
+                closeBtn.click();
+            }
+        });
+    }
+
+    // --- Floating CTA — hide near contact section ---
+    var floatingCta = document.querySelector('.floating-cta');
+    var contactSection = document.getElementById('kontakt');
+    if (floatingCta && contactSection) {
+        window.addEventListener('scroll', function() {
+            var contactTop = contactSection.getBoundingClientRect().top;
+            if (contactTop < window.innerHeight * 1.2) {
+                floatingCta.classList.add('hidden');
+            } else {
+                floatingCta.classList.remove('hidden');
+            }
+        }, { passive: true });
     }
 
     // --- Active nav link highlight on scroll ---

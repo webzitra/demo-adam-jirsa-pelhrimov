@@ -276,13 +276,13 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--color-accent);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
 }
 
 .section-title {
   font-size: var(--font-size-3xl);
   font-weight: 800;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .section-subtitle {
@@ -294,7 +294,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-header {
   text-align: center;
-  margin-bottom: var(--space-3xl);
+  margin-bottom: var(--space-2xl);
 }
 
 .section-header .section-subtitle {
@@ -513,8 +513,62 @@ section {
   width: 100%;
 }
 
+.navbar-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+  margin-left: var(--space-sm);
+}
+
+.navbar-login:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(86, 200, 224, 0.06);
+}
+
+.navbar:not(.scrolled) .navbar-login {
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar:not(.scrolled) .navbar-login:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Highlighted nav link (Online koučink) */
+.navbar-links a.nav-link-highlight {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.navbar-links a.nav-link-highlight:hover {
+  color: var(--color-accent-hover);
+}
+
+.navbar:not(.scrolled) .navbar-links a.nav-link-highlight {
+  color: var(--color-accent);
+}
+
+.navbar:not(.scrolled) .navbar-links a.nav-link-highlight:hover {
+  color: #ffffff;
+}
+
+/* Mobile highlighted link */
+.navbar-mobile .nav-link-highlight {
+  color: var(--color-accent) !important;
+  font-weight: 600;
+}
+
 .navbar-cta {
-  margin-left: var(--space-md);
+  margin-left: var(--space-xs);
 }
 
 /* Mobile Hamburger */
@@ -602,7 +656,7 @@ section {
   padding-top: var(--navbar-height);
 }
 
-/* Diagonal bottom clip on the hero */
+/* Diagonal bottom clip on hero — sharp angle into white transformations */
 .hero::after {
   content: '';
   position: absolute;
@@ -656,7 +710,7 @@ section {
   color: var(--color-accent);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-md);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }
@@ -678,7 +732,7 @@ section {
   font-size: var(--font-size-5xl);
   font-weight: 800;
   line-height: var(--line-height-tight);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
   letter-spacing: -0.03em;
 }
 
@@ -700,10 +754,10 @@ section {
 }
 
 .hero-description {
-  font-size: var(--font-size-lg);
-  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--font-size-md);
+  color: rgba(255, 255, 255, 0.65);
   line-height: var(--line-height-normal);
-  margin-bottom: var(--space-2xl);
+  margin-bottom: var(--space-lg);
   max-width: 480px;
 }
 
@@ -746,9 +800,9 @@ section {
 /* Hero Stats Row */
 .hero-stats {
   display: flex;
-  gap: var(--space-3xl);
-  margin-top: var(--space-3xl);
-  padding-top: var(--space-xl);
+  gap: var(--space-2xl);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -784,17 +838,9 @@ section {
   z-index: 2;
 }
 
-/* Diagonal bottom — drops left */
+/* No diagonal bottom on about — urgency strip directly below */
 .about::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: calc(var(--diagonal-height) + 2px);
-  background: var(--color-bg-secondary);
-  clip-path: polygon(0 0, 100% 100%, 100% 100%, 0 100%);
-  z-index: 3;
+  display: none;
 }
 
 .about .container {
@@ -865,6 +911,8 @@ section {
   gap: var(--space-md);
   margin-top: var(--space-2xl);
   margin-bottom: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 2px solid rgba(86, 200, 224, 0.15);
 }
 
 .about-highlight {
@@ -895,9 +943,8 @@ section {
    ========================================================================== */
 
 .services {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
   padding: var(--section-padding);
-  padding-top: calc(var(--diagonal-height) + 4rem);
   position: relative;
   z-index: 2;
 }
@@ -1293,7 +1340,7 @@ section {
   z-index: 2;
 }
 
-/* Diagonal bottom — drops left → into light gray benefits */
+/* Diagonal bottom — drops left → into white benefits */
 .process::after {
   content: '';
   position: absolute;
@@ -1301,7 +1348,7 @@ section {
   left: 0;
   right: 0;
   height: calc(var(--diagonal-height) + 2px);
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
   clip-path: polygon(0 0, 100% 100%, 100% 100%, 0 100%);
   z-index: 3;
 }
@@ -1395,24 +1442,16 @@ section {
    ========================================================================== */
 
 .benefits {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-primary);
   padding: var(--section-padding);
   padding-top: calc(var(--diagonal-height) + 4rem);
   position: relative;
   z-index: 2;
 }
 
-/* Diagonal bottom — drops right → into dark transformations */
+/* No diagonal — benefits and about are both white */
 .benefits::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: calc(var(--diagonal-height) + 2px);
-  background: #111111;
-  clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
-  z-index: 3;
+  display: none;
 }
 
 .benefits-grid {
@@ -1429,6 +1468,25 @@ section {
   text-align: center;
   transition: all var(--transition-base);
   box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent top-line — appears on hover */
+.benefit-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.benefit-card:hover::before {
+  opacity: 1;
 }
 
 .benefit-card:hover {
@@ -1477,37 +1535,29 @@ section {
    ========================================================================== */
 
 .transformations {
-  background: #111111;
+  background: var(--color-bg-primary);
   padding: var(--section-padding);
-  padding-top: calc(var(--diagonal-height) + 4rem);
+  padding-top: calc(var(--diagonal-height) + 2rem);
   position: relative;
   z-index: 2;
 }
 
-/* Diagonal bottom — drops left → into white contact */
+/* No diagonal — transformations and services are both white */
 .transformations::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: calc(var(--diagonal-height) + 2px);
-  background: var(--color-bg-primary);
-  clip-path: polygon(0 0, 100% 100%, 100% 100%, 0 100%);
-  z-index: 3;
+  display: none;
 }
 
-/* Dark section text overrides */
+/* Light section — default text colors apply */
 .transformations .section-label {
   color: var(--color-accent);
 }
 
 .transformations .section-title {
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .transformations .section-subtitle {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
 }
 
 .transformations-grid {
@@ -1517,18 +1567,18 @@ section {
 }
 
 .transformation-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   transition: all var(--transition-base);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card);
 }
 
 .transformation-card:hover {
   transform: translateY(-8px);
-  border-color: rgba(86, 200, 224, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px var(--color-accent-glow);
+  border-color: rgba(86, 200, 224, 0.2);
+  box-shadow: var(--shadow-card-hover), 0 0 40px var(--color-accent-glow);
 }
 
 .transformation-image {
@@ -1543,6 +1593,19 @@ section {
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
+}
+
+/* Subtle gradient at bottom of transformation photo for text readability */
+.transformation-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0,0,0,0.08), transparent);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .transformation-card:hover .transformation-image img {
@@ -1571,7 +1634,7 @@ section {
   font-size: var(--font-size-lg);
   font-weight: 700;
   margin-bottom: 0.25rem;
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .transformation-result {
@@ -1583,7 +1646,7 @@ section {
 
 .transformation-desc {
   font-size: var(--font-size-sm);
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-text-muted);
   line-height: var(--line-height-normal);
 }
 
@@ -1593,21 +1656,9 @@ section {
 }
 
 .transformations-cta p {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
   margin-bottom: var(--space-lg);
   font-size: var(--font-size-md);
-}
-
-/* Outline button on dark bg */
-.transformations .btn-outline {
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.transformations .btn-outline:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
 }
 
 /* ==========================================================================
@@ -1617,7 +1668,6 @@ section {
 .contact {
   background: var(--color-bg-primary);
   padding: var(--section-padding);
-  padding-top: calc(var(--diagonal-height) + 4rem);
   position: relative;
   z-index: 2;
 }
@@ -1784,6 +1834,13 @@ section {
   border: 1px solid var(--glass-border);
   border-radius: var(--border-radius-lg);
   padding: var(--space-2xl);
+  position: relative;
+  transition: box-shadow var(--transition-base);
+}
+
+.contact-form-wrapper:focus-within {
+  border-color: rgba(86, 200, 224, 0.2);
+  box-shadow: 0 0 40px rgba(86, 200, 224, 0.08);
 }
 
 .contact-form {
@@ -1882,10 +1939,18 @@ section {
 
 .footer .container {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.footer-top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-logo {
@@ -1897,11 +1962,6 @@ section {
 
 .footer-logo .logo-accent {
   color: var(--color-accent);
-}
-
-.footer-copy {
-  font-size: var(--font-size-sm);
-  color: rgba(255, 255, 255, 0.4);
 }
 
 .footer-links {
@@ -1920,24 +1980,56 @@ section {
   color: var(--color-accent);
 }
 
-/* WebZitra badge in footer */
-.footer-credit {
-  width: 100%;
-  text-align: center;
-  padding-top: var(--space-lg);
-  margin-top: var(--space-lg);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.footer-contact {
+  display: flex;
+  gap: var(--space-lg);
 }
 
-.footer-credit a {
-  font-size: var(--font-size-xs);
-  color: rgba(255, 255, 255, 0.3);
+.footer-contact a {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
-.footer-credit a:hover {
+.footer-contact a:hover {
   color: var(--color-accent);
+}
+
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+}
+
+.footer-copy {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.footer-legal {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.footer-legal a {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-legal a:hover {
+  color: var(--color-accent);
+}
+
+.footer-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: var(--font-size-xs);
 }
 
 
@@ -2014,15 +2106,26 @@ section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
   flex-wrap: wrap;
 }
 
-.cookie-text {
-  font-size: var(--font-size-sm);
-  color: rgba(255, 255, 255, 0.7);
+.cookie-content {
   flex: 1;
   min-width: 250px;
+}
+
+.cookie-title {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.cookie-text {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.55);
+  line-height: var(--line-height-normal);
 }
 
 .cookie-text a {
@@ -2774,4 +2877,242 @@ section {
 /* Remove outline for mouse users */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+
+/* ==========================================================================
+   21. FUNNEL OPTIMIZATION — Mid-CTA, Urgency Strip, Floating CTA, Form Note
+   ========================================================================== */
+
+/* --- Mid-funnel CTA (simple text + button, no card) --- */
+.mid-cta {
+  text-align: center;
+  margin-top: var(--space-3xl);
+  padding-top: var(--space-2xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.mid-cta-text {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.mid-cta .btn {
+  font-size: var(--font-size-base);
+}
+
+
+/* --- Form urgency note (under submit button) --- */
+.form-urgency {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(86, 200, 224, 0.06);
+  border-radius: var(--border-radius-full);
+  border: 1px solid rgba(86, 200, 224, 0.12);
+}
+
+
+/* --- Floating Mobile CTA --- */
+.floating-cta {
+  display: none;
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  padding: 0.9rem 2rem;
+  border-radius: var(--border-radius-full);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(86, 200, 224, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-base);
+  letter-spacing: 0.01em;
+}
+
+.floating-cta:hover {
+  background: var(--color-accent-hover);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 6px 28px rgba(86, 200, 224, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .floating-cta {
+    display: block;
+  }
+
+  /* Hide when near the contact section (JS handles this) */
+  .floating-cta.hidden {
+    display: none;
+  }
+}
+
+
+/* --- Form Note --- */
+.form-note {
+  text-align: center;
+  color: var(--color-text-faint);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-sm);
+}
+
+.form-optional {
+  color: var(--color-text-faint);
+  font-weight: 400;
+  font-size: var(--font-size-sm);
+}
+
+
+/* --- About section photo upgrade (portrait crop) --- */
+.about-photo img {
+  object-fit: cover;
+  object-position: center top;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-card-hover);
+}
+
+@media (max-width: 768px) {
+  .mid-cta-text {
+    font-size: var(--font-size-lg);
+  }
+}
+
+
+/* ==========================================================================
+   22. PRIVACY MODAL
+   ========================================================================== */
+
+.privacy-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.privacy-modal[hidden] {
+  display: flex !important;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.privacy-modal.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.privacy-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.privacy-modal-content {
+  position: relative;
+  background: #ffffff;
+  border-radius: var(--border-radius-lg);
+  max-width: 640px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: var(--space-2xl) var(--space-2xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.privacy-modal-close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.privacy-modal-close:hover {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-color: var(--color-accent);
+}
+
+.privacy-modal-content h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-xl);
+  padding-right: var(--space-2xl);
+}
+
+.privacy-text h3 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.privacy-text p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--space-sm);
+}
+
+
+/* ==========================================================================
+   23. FOOTER RESPONSIVE OVERRIDES
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-contact {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-xs);
+  }
+
+  .footer-legal {
+    justify-content: center;
+  }
+
+  .privacy-modal-content {
+    width: 95%;
+    padding: var(--space-xl);
+    max-height: 85vh;
+  }
 }

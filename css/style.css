@@ -1460,6 +1460,10 @@ section {
   gap: var(--space-xl);
 }
 
+.benefits-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .benefit-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);

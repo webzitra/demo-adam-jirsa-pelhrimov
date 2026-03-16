@@ -10,9 +10,19 @@
 
   <!-- Open Graph -->
   <meta property="og:title" content="Online koučink 1:1 — Adam Jirsa">
-  <meta property="og:description" content="Trénuj odkudkoliv pod mým vedením. Tréninkový plán, výživa a pravidelné kontroly — vše online.">
+  <meta property="og:description" content="Trénuj odkudkoliv pod mým vedením. Tréninkový plán, výživa a pravidelné kontroly — vše online. 2 500 Kč/měsíc.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://demo-adam-jirsa.netlify.app/online-koucink/">
   <meta property="og:locale" content="cs_CZ">
+  <meta property="og:image" content="https://demo-adam-jirsa.netlify.app/img/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Adam Jirsa — Online koučink 1:1, osobní trenér">
+  <meta property="og:site_name" content="Adam Jirsa Fitness">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Online koučink 1:1 — Adam Jirsa">
+  <meta name="twitter:description" content="Trénuj odkudkoliv pod mým vedením. Tréninkový plán, výživa a pravidelné kontroly.">
+  <meta name="twitter:image" content="https://demo-adam-jirsa.netlify.app/img/og-image.jpg">
   <meta name="theme-color" content="#56C8E0">
 
   <!-- Favicon -->
@@ -29,9 +39,9 @@
       <a href="../" class="navbar-logo">Adam<span class="logo-accent">Jirsa</span></a>
 
       <div class="navbar-links">
+        <a href="../" class="nav-link">← Hlavní stránka</a>
         <a href="#co-dostanes" class="nav-link">Co dostaneš</a>
         <a href="#jak-to-funguje" class="nav-link">Jak to funguje</a>
-        <a href="#pro-koho" class="nav-link">Pro koho</a>
         <a href="#cenik" class="nav-link">Ceník</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="#cta" class="btn btn-primary btn-sm navbar-cta">Chci začít</a>
@@ -46,9 +56,9 @@
 
     <!-- Mobile Menu -->
     <div class="navbar-mobile" role="dialog" aria-label="Mobilní menu">
+      <a href="../" class="nav-link">← Hlavní stránka</a>
       <a href="#co-dostanes" class="nav-link">Co dostaneš</a>
       <a href="#jak-to-funguje" class="nav-link">Jak to funguje</a>
-      <a href="#pro-koho" class="nav-link">Pro koho</a>
       <a href="#cenik" class="nav-link">Ceník</a>
       <a href="#faq" class="nav-link">FAQ</a>
       <a href="#cta" class="btn btn-primary">Chci začít</a>
@@ -110,7 +120,7 @@
         <p class="section-subtitle">Žádný generický plán z&nbsp;internetu.<br>Všechno stavím od&nbsp;nuly přesně pro tebe.</p>
       </div>
 
-      <div class="benefits-grid fade-in-stagger">
+      <div class="benefits-grid benefits-grid-3 fade-in-stagger">
         <div class="benefit-card">
           <div class="benefit-icon">📋</div>
           <h3 class="benefit-title">Týdenní tréninkový plán</h3>
@@ -443,6 +453,8 @@
           </div>
 
           <button type="submit" class="btn btn-primary btn-lg">Chci začít trénovat</button>
+          <p class="form-note">Odpovím do 24 hodin.</p>
+          <p class="form-urgency">🔥 Momentálně nabírám omezený počet online klientů</p>
         </form>
       </div>
     </div>
@@ -452,18 +464,30 @@
   <!-- ====== FOOTER ====== -->
   <footer class="footer">
     <div class="container">
-      <a href="../" class="footer-logo">Adam<span class="logo-accent">Jirsa</span></a>
+      <div class="footer-top">
+        <a href="../" class="footer-logo">Adam<span class="logo-accent">Jirsa</span></a>
 
-      <div class="footer-links">
-        <a href="../">Hlavní stránka</a>
-        <a href="../#sluzby">Služby</a>
-        <a href="../#kontakt">Kontakt</a>
+        <div class="footer-links">
+          <a href="../">Hlavní stránka</a>
+          <a href="../#sluzby">Služby</a>
+          <a href="../#o-mne">O&nbsp;mně</a>
+          <a href="../#kontakt">Kontakt</a>
+          <a href="../zona/">Klientská zóna</a>
+        </div>
+
+        <div class="footer-contact">
+          <a href="tel:+420731171777">731&nbsp;171&nbsp;777</a>
+          <a href="mailto:jirsaadam2003@seznam.cz">jirsaadam2003@seznam.cz</a>
+        </div>
       </div>
 
-      <p class="footer-copy">&copy; 2026 Adam Jirsa — Osobní trenér</p>
-
-      <div class="footer-credit">
-        <a href="https://webzitra.cz" target="_blank" rel="noopener">Web vytvořilo WebZítra</a>
+      <div class="footer-bottom">
+        <p class="footer-copy">&copy; 2026 Adam Jirsa, IČO:&nbsp;07816448 — Osobní trenér, Pelhřimov</p>
+        <div class="footer-legal">
+          <a href="#ochrana-udaju">Ochrana osobních údajů</a>
+          <span class="footer-sep">·</span>
+          <a href="https://webzitra.cz" target="_blank" rel="noopener">Web: WebZítra</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -473,17 +497,55 @@
   <button class="scroll-top" aria-label="Nahoru">↑</button>
 
 
-  <!-- ====== COOKIE BANNER ====== -->
+  <!-- ====== OCHRANA OSOBNÍCH ÚDAJŮ (modal) ====== -->
+  <div class="privacy-modal" id="ochrana-udaju-modal" hidden>
+    <div class="privacy-modal-backdrop"></div>
+    <div class="privacy-modal-content">
+      <button class="privacy-modal-close" aria-label="Zavřít">&times;</button>
+      <h2>Ochrana osobních údajů</h2>
+      <div class="privacy-text">
+        <h3>1. Správce údajů</h3>
+        <p>Adam Jirsa, IČO:&nbsp;07816448<br>Pelhřimov<br>E-mail: jirsaadam2003@seznam.cz<br>Tel: +420 731 171 777</p>
+
+        <h3>2. Jaké údaje zpracováváme</h3>
+        <p>Prostřednictvím kontaktního formuláře zpracováváme: jméno, e-mail, telefon a&nbsp;text zprávy. Tyto údaje slouží výhradně pro odpověď na vaši poptávku a&nbsp;domluvení spolupráce.</p>
+
+        <h3>3. Právní základ</h3>
+        <p>Zpracování probíhá na základě vašeho souhlasu (odeslání formuláře) a&nbsp;oprávněného zájmu (odpověď na poptávku) dle čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;a) a&nbsp;f) GDPR.</p>
+
+        <h3>4. Doba uchování</h3>
+        <p>Osobní údaje uchováváme po dobu nezbytnou pro vyřízení poptávky, maximálně 1&nbsp;rok od posledního kontaktu, pokud nedojde k&nbsp;uzavření spolupráce.</p>
+
+        <h3>5. Cookies</h3>
+        <p>Web používá pouze technicky nezbytné cookies (zapamatování souhlasu s&nbsp;cookies). Nepoužíváme žádné analytické, marketingové ani&nbsp;cookies třetích stran.</p>
+
+        <h3>6. Vaše práva</h3>
+        <p>Máte právo na přístup k&nbsp;údajům, opravu, výmaz, omezení zpracování a&nbsp;přenositelnost. Pro uplatnění práv nás kontaktujte na výše uvedeném e-mailu. Máte také právo podat stížnost u&nbsp;Úřadu pro ochranu osobních údajů (uoou.cz).</p>
+
+        <h3>7. Předávání údajů</h3>
+        <p>Vaše údaje nepředáváme třetím stranám s&nbsp;výjimkou poskytovatele hostingu (Netlify, Inc.) za účelem provozu webu.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ====== FLOATING MOBILE CTA ====== -->
+  <a href="#cta" class="floating-cta" aria-label="Chci začít">
+    Chci začít →
+  </a>
+
+
+  <!-- ====== COOKIE BANNER (GDPR compliant) ====== -->
   <div class="cookie-banner" id="cookie-banner" hidden>
     <div class="container">
-      <p class="cookie-text">
-        Tento web používá cookies pro zajištění nejlepšího zážitku.
-        Web vytvořilo <a href="https://webzitra.cz" target="_blank" rel="noopener">WebZítra</a> —
-        v&nbsp;případě zájmu nás kontaktujte na <a href="https://webzitra.cz" target="_blank" rel="noopener">webzitra.cz</a>,
-        tel: <a href="tel:+420777269919">777&nbsp;269&nbsp;919</a>
-      </p>
+      <div class="cookie-content">
+        <p class="cookie-title">Soukromí a cookies</p>
+        <p class="cookie-text">
+          Tento web používá pouze technicky nezbytné cookies pro zajištění základní funkčnosti (např.&nbsp;zapamatování vašeho rozhodnutí o&nbsp;cookies). Nepoužíváme žádné analytické ani&nbsp;reklamní cookies. Více informací najdete v&nbsp;<a href="#ochrana-udaju">zásadách ochrany osobních údajů</a>.
+        </p>
+      </div>
       <div class="cookie-buttons">
-        <button class="btn btn-primary" id="cookie-accept">Přijmout</button>
+        <button class="btn btn-primary" id="cookie-accept">Rozumím</button>
         <button class="btn btn-outline" id="cookie-reject">Odmítnout</button>
       </div>
     </div>
@@ -491,7 +553,7 @@
 
 
   <!-- Scripts -->
-  <script src="../js/main.js?v=3"></script>
+  <script src="../js/main.js?v=5"></script>
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -504,7 +566,8 @@
       "@type": "Person",
       "name": "Adam Jirsa",
       "telephone": "+420731171777",
-      "email": "jirsaadam2003@seznam.cz"
+      "email": "jirsaadam2003@seznam.cz",
+      "taxID": "CZ07816448"
     },
     "areaServed": "CZ",
     "offers": {

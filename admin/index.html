@@ -56,15 +56,17 @@
     </header>
 
     <!-- Tabs -->
-    <div class="admin-tabs">
-      <button class="admin-tab active" data-tab="overview">📊 Přehled</button>
-      <button class="admin-tab" data-tab="clients">👥 Klienti</button>
-      <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
-      <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
-      <button class="admin-tab" data-tab="my-website">🌐 Můj web</button>
-      <button class="admin-tab" data-tab="schedule">📅 Rozvrh</button>
-      <button class="admin-tab" data-tab="payments">💰 Platby</button>
-      <button class="admin-tab" data-tab="engagement">📈 Report</button>
+    <div class="admin-tabs-wrap" id="admin-tabs-wrap">
+      <div class="admin-tabs" id="admin-tabs-scroll">
+        <button class="admin-tab active" data-tab="overview">📊 Přehled</button>
+        <button class="admin-tab" data-tab="clients">👥 Klienti</button>
+        <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
+        <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
+        <button class="admin-tab" data-tab="my-website">🌐 Web</button>
+        <button class="admin-tab" data-tab="schedule">📅 Rozvrh</button>
+        <button class="admin-tab" data-tab="payments">💰 Platby</button>
+        <button class="admin-tab" data-tab="engagement">📈 Report</button>
+      </div>
     </div>
 
     <!-- ===== TAB: Overview ===== -->
@@ -351,28 +353,6 @@
         </div>
       </section>
 
-      <!-- Web stats info -->
-      <section class="admin-card">
-        <h3>ℹ️ Informace o webu</h3>
-        <div class="website-details-grid">
-          <div class="website-detail-item">
-            <span class="website-detail-label">Platforma</span>
-            <span class="website-detail-value">WebZítra</span>
-          </div>
-          <div class="website-detail-item">
-            <span class="website-detail-label">Hosting</span>
-            <span class="website-detail-value">Netlify CDN</span>
-          </div>
-          <div class="website-detail-item">
-            <span class="website-detail-label">SSL</span>
-            <span class="website-detail-value" style="color: #4ade80;">✓ Aktivní</span>
-          </div>
-          <div class="website-detail-item">
-            <span class="website-detail-label">Tarif</span>
-            <span class="website-detail-value">Komfort (AI editor)</span>
-          </div>
-        </div>
-      </section>
     </div>
 
     <!-- ===== TAB: Schedule ===== -->

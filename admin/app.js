@@ -211,10 +211,31 @@
   const tabEngagement = document.getElementById('tab-engagement');
   const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'my-website': tabMyWebsite, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
 
+  // Tab scroll hint (fade on right when more tabs are hidden)
+  const tabsScrollEl = document.getElementById('admin-tabs-scroll');
+  const tabsWrap = document.getElementById('admin-tabs-wrap');
+  function updateTabScrollHint() {
+    if (!tabsScrollEl || !tabsWrap) return;
+    var hasMore = tabsScrollEl.scrollWidth - tabsScrollEl.scrollLeft - tabsScrollEl.clientWidth > 4;
+    tabsWrap.classList.toggle('has-scroll-right', hasMore);
+  }
+  if (tabsScrollEl) {
+    tabsScrollEl.addEventListener('scroll', updateTabScrollHint);
+    window.addEventListener('resize', updateTabScrollHint);
+    setTimeout(updateTabScrollHint, 100);
+  }
+
+  function scrollTabIntoView(tabEl) {
+    if (!tabEl || !tabsScrollEl) return;
+    tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    setTimeout(updateTabScrollHint, 300);
+  }
+
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
+      scrollTabIntoView(tab);
 
       const tabName = tab.dataset.tab;
       Object.keys(allTabs).forEach(k => { allTabs[k].hidden = k !== tabName; });
@@ -227,6 +248,7 @@
   function switchTab(tabName) {
     document.querySelectorAll('.admin-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.tab === tabName);
+      if (t.dataset.tab === tabName) scrollTabIntoView(t);
     });
     Object.keys(allTabs).forEach(k => { allTabs[k].hidden = k !== tabName; });
   }

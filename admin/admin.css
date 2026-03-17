@@ -1,16 +1,43 @@
 /* ===== Admin-specific styles ===== */
 /* Extends zona/style.css */
 
-.admin-tabs {
-  display: flex;
-  gap: 0.5rem;
+/* Tab wrapper — scroll on all sizes, fade hint on right */
+.admin-tabs-wrap {
+  position: relative;
   max-width: 700px;
   margin: 1rem auto 0;
   padding: 0 1.25rem;
+}
+
+.admin-tabs-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 1.25rem;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--bg, #0d0e14) 90%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.admin-tabs-wrap.has-scroll-right::after {
+  opacity: 1;
+}
+
+[data-theme="light"] .admin-tabs-wrap::after {
+  background: linear-gradient(to right, transparent, #f5f5f5 90%);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.35rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding-bottom: 2px;
 }
 
 .admin-tabs::-webkit-scrollbar {
@@ -19,34 +46,17 @@
 
 .admin-tab {
   flex: 0 0 auto;
-  padding: 0.55rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.admin-tab:first-child {
-  border-radius: var(--radius-sm);
-}
-
-.admin-tab:last-child {
-  border-radius: var(--radius-sm);
-}
-
-.admin-tab + .admin-tab {
-  border-left: 1px solid var(--border);
 }
 
 .admin-tab.active {

@@ -38,6 +38,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-bottom: 2px;
+  padding-right: 2rem;
 }
 
 .admin-tabs::-webkit-scrollbar {

@@ -121,6 +121,8 @@
   const tabPlanEditor = document.getElementById('tab-plan-editor');
   const tabNutritionEditor = document.getElementById('tab-nutrition-editor');
   const tabMyWebsite = document.getElementById('tab-my-website');
+  const tabSchedule = document.getElementById('tab-schedule');
+  const tabPayments = document.getElementById('tab-payments');
 
   const clientsList = document.getElementById('clients-list');
   const addClientForm = document.getElementById('add-client-form');
@@ -206,7 +208,8 @@
   });
 
   // ===== Tabs =====
-  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'my-website': tabMyWebsite };
+  const tabEngagement = document.getElementById('tab-engagement');
+  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'my-website': tabMyWebsite, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
 
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -215,6 +218,9 @@
 
       const tabName = tab.dataset.tab;
       Object.keys(allTabs).forEach(k => { allTabs[k].hidden = k !== tabName; });
+
+      // Lazy load engagement report
+      if (tabName === 'engagement') loadEngagement();
     });
   });
 
@@ -1561,6 +1567,566 @@
 
     // Load on page load (after small delay)
     setTimeout(loadRecentMessages, 1500);
+  })();
+
+  // ===== Engagement Report =====
+  let engagementLoaded = false;
+
+  async function loadEngagement() {
+    const tbody = document.getElementById('engagement-tbody');
+    const summaryAvgAdherence = document.getElementById('eng-avg-adherence');
+    const summaryAvgWorkouts = document.getElementById('eng-avg-workouts');
+    const summaryMostActive = document.getElementById('eng-most-active');
+    const summaryNeedsAttention = document.getElementById('eng-needs-attention');
+
+    if (!tbody) return;
+
+    // Show loading state
+    if (!engagementLoaded) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;">Načítám...</td></tr>';
+    }
+
+    try {
+      const data = await api('zona-admin', { action: 'engagement-report' });
+      engagementLoaded = true;
+
+      const summary = data.summary || {};
+      const clientMetrics = data.clients || [];
+
+      // Summary cards
+      summaryAvgAdherence.textContent = summary.avgAdherence != null ? summary.avgAdherence + '%' : '—';
+      summaryAvgWorkouts.textContent = summary.avgWorkoutsPerWeek != null ? summary.avgWorkoutsPerWeek.toFixed(1) : '—';
+      summaryMostActive.textContent = summary.mostActiveClient || '—';
+      summaryMostActive.style.fontSize = summary.mostActiveClient && summary.mostActiveClient.length > 10 ? '0.9rem' : '';
+      summaryNeedsAttention.textContent = summary.needsAttention != null ? summary.needsAttention : '—';
+
+      // Table
+      if (clientMetrics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;">Zatím žádná data.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = clientMetrics.map(c => {
+        // Status badge
+        let statusClass, statusLabel;
+        if (c.status === 'active') {
+          statusClass = 'eng-active';
+          statusLabel = 'Aktivní';
+        } else if (c.status === 'declining') {
+          statusClass = 'eng-declining';
+          statusLabel = 'Klesá';
+        } else {
+          statusClass = 'eng-inactive';
+          statusLabel = 'Neaktivní';
+        }
+
+        // Color classes for values
+        const workoutClass = c.workoutsPerWeek >= 3 ? 'eng-value-good' : c.workoutsPerWeek >= 1 ? 'eng-value-ok' : 'eng-value-bad';
+        const dietClass = c.dietAdherence >= 70 ? 'eng-value-good' : c.dietAdherence >= 40 ? 'eng-value-ok' : 'eng-value-bad';
+        const responseClass = c.responseRate >= 70 ? 'eng-value-good' : c.responseRate >= 40 ? 'eng-value-ok' : 'eng-value-bad';
+        const activityClass = c.daysSinceLastActivity <= 2 ? 'eng-value-good' : c.daysSinceLastActivity <= 5 ? 'eng-value-ok' : 'eng-value-bad';
+
+        const daysSinceText = c.daysSinceLastActivity === 0 ? 'Dnes'
+          : c.daysSinceLastActivity === 1 ? 'Včera'
+          : c.daysSinceLastActivity != null ? c.daysSinceLastActivity + ' dní'
+          : '—';
+
+        return `<tr>
+          <td style="font-weight: 600;">${esc(c.name)}</td>
+          <td class="${workoutClass}">${c.workoutsPerWeek != null ? c.workoutsPerWeek.toFixed(1) : '—'}</td>
+          <td class="${dietClass}">${c.dietAdherence != null ? c.dietAdherence + '%' : '—'}</td>
+          <td class="${responseClass}">${c.responseRate != null ? c.responseRate + '%' : '—'}</td>
+          <td class="${activityClass}">${daysSinceText}</td>
+          <td><span class="eng-status ${statusClass}">${statusLabel}</span></td>
+        </tr>`;
+      }).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color: #f87171; text-align: center;">${err.message}</td></tr>`;
+    }
+  }
+
+  // Refresh button
+  const refreshEngBtn = document.getElementById('refresh-engagement-btn');
+  if (refreshEngBtn) {
+    refreshEngBtn.addEventListener('click', () => {
+      engagementLoaded = false;
+      loadEngagement();
+    });
+  }
+
+  // ===== SCHEDULE / CALENDAR =====
+  (function scheduleModule() {
+    let currentWeekStart = getMonday(new Date());
+    let weekSessions = [];
+    let editingSessionId = null;
+
+    const HOURS_START = 6;
+    const HOURS_END = 21;
+    const DAY_NAMES_S = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+    const SESSION_COLORS = 8;
+
+    function getMonday(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      date.setDate(diff);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function getWeekKey(monday) {
+      const year = monday.getFullYear();
+      const oneJan = new Date(year, 0, 1);
+      const days = Math.floor((monday - oneJan) / 86400000);
+      const weekNum = Math.ceil((days + oneJan.getDay() + 1) / 7);
+      return `${year}-W${String(weekNum).padStart(2, '0')}`;
+    }
+
+    function fmtShort(date) {
+      return `${date.getDate()}.${date.getMonth() + 1}.`;
+    }
+
+    function getWeekDates(monday) {
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(d.getDate() + i);
+        dates.push(d);
+      }
+      return dates;
+    }
+
+    function getClientColor(clientId) {
+      if (!clients.length) return 0;
+      const idx = clients.findIndex(c => c.id === clientId);
+      return idx >= 0 ? idx % SESSION_COLORS : 0;
+    }
+
+    function getClientNameS(clientId) {
+      const c = clients.find(c => c.id === clientId);
+      return c ? c.name : 'Neznámý';
+    }
+
+    function escHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    async function loadWeek() {
+      const weekKey = getWeekKey(currentWeekStart);
+      const weekDates = getWeekDates(currentWeekStart);
+      const label = document.getElementById('sched-week-label');
+      label.textContent = `${fmtShort(weekDates[0])} – ${fmtShort(weekDates[6])} ${weekDates[6].getFullYear()}`;
+
+      try {
+        const data = await api('zona-admin', { action: 'get-schedule', weekKey });
+        weekSessions = data.sessions || [];
+      } catch {
+        weekSessions = [];
+      }
+
+      renderGrid(weekDates);
+    }
+
+    function renderGrid(weekDates) {
+      const grid = document.getElementById('schedule-grid');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let html = '<div class="sched-col-header sched-time-header">Čas</div>';
+      weekDates.forEach((d, i) => {
+        const isToday = d.getTime() === today.getTime();
+        html += `<div class="sched-col-header${isToday ? ' sched-today' : ''}">${DAY_NAMES_S[i]}<br>${fmtShort(d)}</div>`;
+      });
+
+      for (let h = HOURS_START; h <= HOURS_END; h++) {
+        html += `<div class="sched-time-label">${String(h).padStart(2, '0')}:00</div>`;
+        weekDates.forEach((d) => {
+          const dateStr = d.toISOString().split('T')[0];
+          html += `<div class="sched-cell" data-date="${dateStr}" data-hour="${h}"></div>`;
+        });
+      }
+
+      grid.innerHTML = html;
+
+      // Render sessions as cards
+      weekSessions.forEach(session => {
+        const [sh, sm] = session.time.split(':').map(Number);
+        const durationHours = (session.duration || 60) / 60;
+        const heightPx = durationHours * 48;
+
+        const cell = grid.querySelector(`.sched-cell[data-date="${session.date}"][data-hour="${sh}"]`);
+        if (!cell) return;
+
+        const colorIdx = getClientColor(session.clientId);
+        const el = document.createElement('div');
+        el.className = `sched-session sched-color-${colorIdx}`;
+        el.style.top = `${(sm / 60) * 48}px`;
+        el.style.height = `${Math.max(heightPx, 24)}px`;
+        el.innerHTML = `<span class="sched-session-name">${escHtml(getClientNameS(session.clientId))}</span><span class="sched-session-time">${session.time} (${session.duration}min)</span>`;
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openSessionModal(session);
+        });
+        cell.appendChild(el);
+      });
+
+      // Click empty cell to add
+      grid.querySelectorAll('.sched-cell').forEach(cell => {
+        cell.addEventListener('click', (e) => {
+          if (e.target !== cell) return;
+          openSessionModal(null, cell.dataset.date, cell.dataset.hour);
+        });
+      });
+    }
+
+    function openSessionModal(session, date, hour) {
+      const modal = document.getElementById('schedule-modal');
+      const title = document.getElementById('sched-modal-title');
+      const clientSelect = document.getElementById('sched-client-select');
+      const dateInput = document.getElementById('sched-date');
+      const timeInput = document.getElementById('sched-time');
+      const durationInput = document.getElementById('sched-duration');
+      const notesInput = document.getElementById('sched-notes');
+      const deleteBtn = document.getElementById('sched-delete-btn');
+
+      clientSelect.innerHTML = '<option value="">— Vyber klienta —</option>';
+      clients.forEach(c => {
+        clientSelect.innerHTML += `<option value="${c.id}">${escHtml(c.name)}</option>`;
+      });
+
+      if (session) {
+        title.textContent = '📅 Upravit trénink';
+        editingSessionId = session.id;
+        clientSelect.value = session.clientId;
+        dateInput.value = session.date;
+        timeInput.value = session.time;
+        durationInput.value = session.duration || 60;
+        notesInput.value = session.notes || '';
+        deleteBtn.style.display = '';
+      } else {
+        title.textContent = '📅 Nový trénink';
+        editingSessionId = null;
+        clientSelect.value = '';
+        dateInput.value = date || '';
+        timeInput.value = hour ? `${String(hour).padStart(2, '0')}:00` : '';
+        durationInput.value = 60;
+        notesInput.value = '';
+        deleteBtn.style.display = 'none';
+      }
+
+      modal.hidden = false;
+    }
+
+    window.closeScheduleModal = function() {
+      document.getElementById('schedule-modal').hidden = true;
+      editingSessionId = null;
+    };
+
+    document.getElementById('sched-session-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const clientId = document.getElementById('sched-client-select').value;
+      const date = document.getElementById('sched-date').value;
+      const time = document.getElementById('sched-time').value;
+      const duration = parseInt(document.getElementById('sched-duration').value) || 60;
+      const notes = document.getElementById('sched-notes').value;
+
+      if (!clientId || !date || !time) return;
+
+      const sessionDate = new Date(date + 'T00:00:00');
+      const sessionMonday = getMonday(sessionDate);
+      const weekKey = getWeekKey(sessionMonday);
+
+      let sessions;
+      try {
+        const data = await api('zona-admin', { action: 'get-schedule', weekKey });
+        sessions = data.sessions || [];
+      } catch {
+        sessions = [];
+      }
+
+      if (editingSessionId) {
+        const idx = sessions.findIndex(s => s.id === editingSessionId);
+        if (idx !== -1) {
+          sessions[idx] = { ...sessions[idx], clientId, date, time, duration, notes };
+        }
+      } else {
+        sessions.push({
+          id: `ses-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          clientId, date, time, duration, notes,
+        });
+      }
+
+      try {
+        await api('zona-admin', { action: 'save-schedule', weekKey, sessions });
+        window.closeScheduleModal();
+        loadWeek();
+        toast('Trénink uložen');
+      } catch (err) {
+        alert('Chyba: ' + err.message);
+      }
+    });
+
+    document.getElementById('sched-delete-btn').addEventListener('click', async () => {
+      if (!editingSessionId || !confirm('Smazat tento trénink?')) return;
+
+      const weekKey = getWeekKey(currentWeekStart);
+      let sessions;
+      try {
+        const data = await api('zona-admin', { action: 'get-schedule', weekKey });
+        sessions = (data.sessions || []).filter(s => s.id !== editingSessionId);
+      } catch {
+        sessions = [];
+      }
+
+      try {
+        await api('zona-admin', { action: 'save-schedule', weekKey, sessions });
+        window.closeScheduleModal();
+        loadWeek();
+        toast('Trénink smazán');
+      } catch (err) {
+        alert('Chyba: ' + err.message);
+      }
+    });
+
+    document.getElementById('sched-prev-week').addEventListener('click', () => {
+      currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+      loadWeek();
+    });
+
+    document.getElementById('sched-next-week').addEventListener('click', () => {
+      currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+      loadWeek();
+    });
+
+    document.getElementById('sched-today-btn').addEventListener('click', () => {
+      currentWeekStart = getMonday(new Date());
+      loadWeek();
+    });
+
+    // ICS Export
+    document.getElementById('sched-export-ics').addEventListener('click', () => {
+      if (!weekSessions.length) {
+        toast('Žádné tréninky k exportu');
+        return;
+      }
+
+      let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Adam Jirsa//Rozvrh//CS\r\nCALSCALE:GREGORIAN\r\n';
+
+      weekSessions.forEach(s => {
+        const [y, m, d] = s.date.split('-');
+        const [hh, mm] = s.time.split(':');
+        const startDt = `${y}${m}${d}T${hh}${mm}00`;
+        const endDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), parseInt(hh), parseInt(mm));
+        endDate.setMinutes(endDate.getMinutes() + (s.duration || 60));
+        const endDt = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
+
+        ics += 'BEGIN:VEVENT\r\n';
+        ics += `DTSTART:${startDt}\r\n`;
+        ics += `DTEND:${endDt}\r\n`;
+        ics += `SUMMARY:Trénink - ${getClientNameS(s.clientId)}\r\n`;
+        if (s.notes) ics += `DESCRIPTION:${s.notes.replace(/\n/g, '\\n')}\r\n`;
+        ics += `UID:${s.id}@adamjirsa\r\n`;
+        ics += 'END:VEVENT\r\n';
+      });
+
+      ics += 'END:VCALENDAR\r\n';
+
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rozvrh-${getWeekKey(currentWeekStart)}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Load schedule when tab is shown
+    document.querySelector('[data-tab="schedule"]').addEventListener('click', () => {
+      if (clients.length) loadWeek();
+    });
+
+    window._scheduleLoadWeek = loadWeek;
+  })();
+
+  // ===== PAYMENTS =====
+  (function paymentsModule() {
+    let allPayments = [];
+
+    function escHtmlP(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    async function loadPayments() {
+      try {
+        const data = await api('zona-admin', { action: 'get-payments' });
+        allPayments = data.payments || [];
+      } catch {
+        allPayments = [];
+      }
+      renderPayments();
+    }
+
+    function renderPayments() {
+      const tbody = document.getElementById('payments-tbody');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const sevenDaysLater = new Date(today);
+      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+
+      // Latest payment per client
+      const latestByClient = {};
+      allPayments.forEach(p => {
+        if (!latestByClient[p.clientId] || new Date(p.paidUntil) > new Date(latestByClient[p.clientId].paidUntil)) {
+          latestByClient[p.clientId] = p;
+        }
+      });
+
+      const rows = [];
+      clients.forEach(c => {
+        rows.push({ client: c, payment: latestByClient[c.id] || null });
+      });
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;">Žádní klienti</td></tr>';
+        updateSummary([]);
+        return;
+      }
+
+      let html = '';
+      rows.forEach(({ client, payment }) => {
+        const amount = payment ? payment.amount : null;
+        const paidUntil = payment ? payment.paidUntil : null;
+        let statusClass = '';
+        let statusText = 'Žádná platba';
+        let statusIcon = '⚪';
+
+        if (paidUntil) {
+          const paidDate = new Date(paidUntil + 'T23:59:59');
+          if (paidDate < today) {
+            statusClass = 'pay-overdue';
+            statusText = 'Nezaplaceno';
+            statusIcon = '🔴';
+          } else if (paidDate < sevenDaysLater) {
+            statusClass = 'pay-warning';
+            statusText = 'Brzy vyprší';
+            statusIcon = '🟡';
+          } else {
+            statusClass = 'pay-ok';
+            statusText = 'Zaplaceno';
+            statusIcon = '🟢';
+          }
+        }
+
+        const paidFmt = paidUntil ? formatCzDate(paidUntil) : '—';
+        const amtFmt = amount != null ? amount.toLocaleString('cs-CZ') + ' Kč' : '—';
+
+        html += `<tr>
+          <td style="font-weight:600;">${escHtmlP(client.name)}</td>
+          <td class="pay-amount">${amtFmt}</td>
+          <td>${paidFmt}</td>
+          <td><span class="pay-status ${statusClass}">${statusIcon} ${statusText}</span></td>
+          <td><button class="btn-icon" data-client-id="${client.id}" data-action="add-pay" title="Přidat platbu">+</button></td>
+        </tr>`;
+      });
+
+      tbody.innerHTML = html;
+
+      tbody.querySelectorAll('[data-action="add-pay"]').forEach(btn => {
+        btn.addEventListener('click', () => openPaymentModal(btn.dataset.clientId));
+      });
+
+      updateSummary(rows);
+    }
+
+    function updateSummary(rows) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let expected = 0;
+      let received = 0;
+
+      rows.forEach(({ payment }) => {
+        if (payment) {
+          expected += payment.amount || 0;
+          const paidDate = new Date(payment.paidUntil + 'T23:59:59');
+          if (paidDate >= today) {
+            received += payment.amount || 0;
+          }
+        }
+      });
+
+      document.getElementById('pay-expected').textContent = expected.toLocaleString('cs-CZ') + ' Kč';
+      document.getElementById('pay-received').textContent = received.toLocaleString('cs-CZ') + ' Kč';
+      document.getElementById('pay-missing').textContent = (expected - received).toLocaleString('cs-CZ') + ' Kč';
+    }
+
+    function formatCzDate(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      return `${parseInt(d)}.${parseInt(m)}.${y}`;
+    }
+
+    function openPaymentModal(preselectedClientId) {
+      const modal = document.getElementById('payment-modal');
+      const clientSelect = document.getElementById('pay-client-select');
+      const amountInput = document.getElementById('pay-amount');
+      const paidUntilInput = document.getElementById('pay-paid-until');
+      const notesInput = document.getElementById('pay-notes');
+
+      clientSelect.innerHTML = '<option value="">— Vyber klienta —</option>';
+      clients.forEach(c => {
+        clientSelect.innerHTML += `<option value="${c.id}">${escHtmlP(c.name)}</option>`;
+      });
+
+      if (preselectedClientId) clientSelect.value = preselectedClientId;
+
+      const now = new Date();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      paidUntilInput.value = endOfMonth.toISOString().split('T')[0];
+      amountInput.value = '';
+      notesInput.value = '';
+
+      modal.hidden = false;
+    }
+
+    window.closePaymentModal = function() {
+      document.getElementById('payment-modal').hidden = true;
+    };
+
+    document.getElementById('add-payment-btn').addEventListener('click', () => openPaymentModal(null));
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const clientId = document.getElementById('pay-client-select').value;
+      const amount = parseInt(document.getElementById('pay-amount').value) || 0;
+      const paidUntil = document.getElementById('pay-paid-until').value;
+      const notes = document.getElementById('pay-notes').value;
+
+      if (!clientId || !amount || !paidUntil) return;
+
+      try {
+        await api('zona-admin', {
+          action: 'save-payment',
+          payment: { clientId, amount, paidUntil, notes },
+        });
+        window.closePaymentModal();
+        loadPayments();
+        toast('Platba uložena');
+      } catch (err) {
+        alert('Chyba: ' + err.message);
+      }
+    });
+
+    // Load when tab is shown
+    document.querySelector('[data-tab="payments"]').addEventListener('click', () => {
+      if (clients.length) loadPayments();
+    });
+
+    window._paymentsLoadPayments = loadPayments;
   })();
 
   // ===== Start =====

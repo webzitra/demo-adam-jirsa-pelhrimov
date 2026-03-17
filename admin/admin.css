@@ -1265,3 +1265,320 @@
     height: 350px;
   }
 }
+
+/* ===== SCHEDULE / CALENDAR TAB ===== */
+.schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.schedule-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.schedule-grid-card {
+  overflow-x: auto;
+  padding: 0.75rem;
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, 1fr);
+  min-width: 600px;
+}
+
+.sched-col-header {
+  padding: 0.5rem 0.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--border);
+}
+
+.sched-col-header.sched-today {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.sched-col-header.sched-time-header {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+}
+
+.sched-time-label {
+  padding: 0.2rem 0.35rem;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  text-align: right;
+  border-right: 1px solid var(--border);
+  min-height: 48px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.sched-cell {
+  min-height: 48px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.sched-cell:hover {
+  background: var(--accent-dim);
+}
+
+.sched-cell:nth-child(8n+1) {
+  border-right: 1px solid var(--border);
+}
+
+.sched-session {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 2;
+  line-height: 1.2;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.sched-session-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sched-session-time {
+  font-size: 0.62rem;
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+/* Session color palette */
+.sched-color-0 { background: #0891b2; }
+.sched-color-1 { background: #7c3aed; }
+.sched-color-2 { background: #059669; }
+.sched-color-3 { background: #d97706; }
+.sched-color-4 { background: #dc2626; }
+.sched-color-5 { background: #2563eb; }
+.sched-color-6 { background: #c026d3; }
+.sched-color-7 { background: #65a30d; }
+
+/* ===== PAYMENTS TAB ===== */
+.payments-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.payments-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.payments-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.payments-table tbody tr:hover {
+  background: var(--bg-elevated);
+}
+
+.pay-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pay-status.pay-ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.pay-status.pay-warning {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+.pay-status.pay-overdue {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+.pay-amount {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Light theme payment overrides */
+[data-theme="light"] .pay-status.pay-ok {
+  background: rgba(22, 163, 74, 0.08);
+  color: #16a34a;
+}
+
+[data-theme="light"] .pay-status.pay-warning {
+  background: rgba(217, 119, 6, 0.08);
+  color: #d97706;
+}
+
+[data-theme="light"] .pay-status.pay-overdue {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+/* Responsive schedule + payments */
+@media (max-width: 600px) {
+  .schedule-header h3 {
+    font-size: 0.85rem;
+  }
+  .schedule-toolbar {
+    flex-wrap: wrap;
+  }
+  .payments-summary {
+    grid-template-columns: 1fr;
+  }
+  .payments-table {
+    font-size: 0.8rem;
+  }
+  .payments-table th,
+  .payments-table td {
+    padding: 0.5rem;
+  }
+  #payments-table-wrap {
+    overflow-x: auto;
+  }
+  #engagement-table-wrap {
+    overflow-x: auto;
+  }
+}
+
+/* ===== ENGAGEMENT REPORT TAB ===== */
+.engagement-table-wrap {
+  overflow-x: auto;
+}
+
+.engagement-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.engagement-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.engagement-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.engagement-table tbody tr:hover {
+  background: var(--bg-elevated);
+}
+
+.eng-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eng-status.eng-active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.eng-status.eng-declining {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+.eng-status.eng-inactive {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+.eng-value-good { color: #22c55e; font-weight: 600; }
+.eng-value-ok { color: #fbbf24; font-weight: 600; }
+.eng-value-bad { color: #f87171; font-weight: 600; }
+
+/* Light theme engagement overrides */
+[data-theme="light"] .eng-status.eng-active {
+  background: rgba(22, 163, 74, 0.08);
+  color: #16a34a;
+}
+
+[data-theme="light"] .eng-status.eng-declining {
+  background: rgba(217, 119, 6, 0.08);
+  color: #d97706;
+}
+
+[data-theme="light"] .eng-status.eng-inactive {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+[data-theme="light"] .eng-value-good { color: #16a34a; }
+[data-theme="light"] .eng-value-ok { color: #d97706; }
+[data-theme="light"] .eng-value-bad { color: #dc2626; }
+
+@media (max-width: 600px) {
+  .engagement-table {
+    font-size: 0.8rem;
+  }
+  .engagement-table th,
+  .engagement-table td {
+    padding: 0.5rem;
+  }
+}

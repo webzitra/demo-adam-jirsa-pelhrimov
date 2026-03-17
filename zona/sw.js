@@ -1,7 +1,7 @@
-const CACHE_NAME = 'zona-v14';
+const CACHE_NAME = 'zona-v15';
 const STATIC_ASSETS = [
-  '/zona/style.css?v=14',
-  '/zona/app.js?v=11',
+  '/zona/style.css?v=15',
+  '/zona/app.js?v=12',
   '/fonts/inter-latin.woff2',
   '/fonts/inter-latinext.woff2',
 ];

@@ -228,6 +228,38 @@ async function saveNutritionLog(clientId, date, log) {
   });
 }
 
+// --- Schedule (weekly calendar) ---
+async function getSchedule(weekKey) {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get(`schedule:${weekKey}`, { type: 'json' });
+    return data?.sessions || [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveSchedule(weekKey, sessions) {
+  const store = await getZonaStore();
+  await store.setJSON(`schedule:${weekKey}`, { sessions, updatedAt: new Date().toISOString() });
+}
+
+// --- Payments ---
+async function getPayments() {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get('payments', { type: 'json' });
+    return data?.payments || [];
+  } catch {
+    return [];
+  }
+}
+
+async function savePayments(payments) {
+  const store = await getZonaStore();
+  await store.setJSON('payments', { payments, updatedAt: new Date().toISOString() });
+}
+
 module.exports = {
   getAllClients,
   saveAllClients,
@@ -251,4 +283,8 @@ module.exports = {
   saveNutritionLog,
   getCheckins,
   addCheckin,
+  getSchedule,
+  saveSchedule,
+  getPayments,
+  savePayments,
 };

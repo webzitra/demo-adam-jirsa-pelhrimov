@@ -9,6 +9,9 @@ const {
   getOnboarding,
   getMessages, addMessage,
   getWorkoutLog,
+  getSchedule, saveSchedule,
+  getPayments, savePayments,
+  getCheckins,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -337,6 +340,198 @@ exports.handler = async (event) => {
       totalClients: allClients.length,
       activeClients: activeClients.length,
       clientMetrics,
+    });
+  }
+
+  // =====================
+  // SCHEDULE (CALENDAR)
+  // =====================
+
+  if (action === 'get-schedule') {
+    const { weekKey } = body;
+    if (!weekKey) {
+      return jsonResponse(400, { error: 'weekKey je povinné' });
+    }
+    const sessions = await getSchedule(weekKey);
+    return jsonResponse(200, { sessions });
+  }
+
+  if (action === 'save-schedule') {
+    const { weekKey, sessions } = body;
+    if (!weekKey || !Array.isArray(sessions)) {
+      return jsonResponse(400, { error: 'weekKey a sessions jsou povinné' });
+    }
+    await saveSchedule(weekKey, sessions);
+    return jsonResponse(200, { success: true });
+  }
+
+  // =====================
+  // PAYMENTS
+  // =====================
+
+  if (action === 'get-payments') {
+    const payments = await getPayments();
+    return jsonResponse(200, { payments });
+  }
+
+  if (action === 'save-payment') {
+    const { payment } = body;
+    if (!payment || !payment.clientId || !payment.amount || !payment.paidUntil) {
+      return jsonResponse(400, { error: 'clientId, amount a paidUntil jsou povinné' });
+    }
+    const payments = await getPayments();
+    if (payment.id) {
+      // Update existing
+      const idx = payments.findIndex(p => p.id === payment.id);
+      if (idx !== -1) {
+        payments[idx] = { ...payments[idx], ...payment, updatedAt: new Date().toISOString() };
+      }
+    } else {
+      // Create new
+      payment.id = `pay-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      payment.paidAt = new Date().toISOString();
+      payments.push(payment);
+    }
+    await savePayments(payments);
+    return jsonResponse(200, { success: true, payments });
+  }
+
+  if (action === 'delete-payment') {
+    const { paymentId } = body;
+    if (!paymentId) {
+      return jsonResponse(400, { error: 'paymentId je povinné' });
+    }
+    let payments = await getPayments();
+    payments = payments.filter(p => p.id !== paymentId);
+    await savePayments(payments);
+    return jsonResponse(200, { success: true });
+  }
+
+  // =====================
+  // ENGAGEMENT REPORT
+  // =====================
+
+  if (action === 'engagement-report') {
+    const allClients = await getAllClients();
+    const activeClients = allClients.filter(c => c.active);
+    const now = new Date();
+
+    const clientResults = [];
+
+    for (const client of activeClients) {
+      // Get check-ins (last 4)
+      const checkins = await getCheckins(client.id);
+      const recentCheckins = checkins.slice(-4);
+
+      // Diet adherence from check-ins (average of diet rating if available)
+      let dietAdherence = null;
+      if (recentCheckins.length > 0) {
+        const dietValues = recentCheckins
+          .map(ci => ci.dietAdherence || ci.dietRating || ci.diet)
+          .filter(v => v != null && !isNaN(Number(v)));
+        if (dietValues.length > 0) {
+          dietAdherence = Math.round(dietValues.reduce((s, v) => s + Number(v), 0) / dietValues.length);
+        }
+      }
+
+      // Response rate: how many check-ins in last 4 expected weeks
+      const responseRate = Math.round((recentCheckins.length / 4) * 100);
+
+      // Workout logs: count completed in last 14 days
+      let workoutCount = 0;
+      let daysSinceLastActivity = null;
+
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const log = await getWorkoutLog(client.id, dateStr);
+        if (log && log.completedAt) {
+          workoutCount++;
+          if (daysSinceLastActivity === null) {
+            daysSinceLastActivity = i;
+          }
+        }
+      }
+
+      // Also check check-in dates for last activity
+      if (recentCheckins.length > 0) {
+        const lastCheckin = recentCheckins[recentCheckins.length - 1];
+        if (lastCheckin.createdAt) {
+          const checkinDays = Math.floor((now - new Date(lastCheckin.createdAt)) / (1000 * 60 * 60 * 24));
+          if (daysSinceLastActivity === null || checkinDays < daysSinceLastActivity) {
+            daysSinceLastActivity = checkinDays;
+          }
+        }
+      }
+
+      // Also check progress entries for last activity
+      const progress = await getProgress(client.id);
+      if (progress.length > 0) {
+        const lastProg = progress[progress.length - 1];
+        if (lastProg.createdAt) {
+          const progDays = Math.floor((now - new Date(lastProg.createdAt)) / (1000 * 60 * 60 * 24));
+          if (daysSinceLastActivity === null || progDays < daysSinceLastActivity) {
+            daysSinceLastActivity = progDays;
+          }
+        }
+      }
+
+      if (daysSinceLastActivity === null) daysSinceLastActivity = 99;
+
+      const workoutsPerWeek = workoutCount / 2; // 14 days = 2 weeks
+
+      // Engagement status
+      let status;
+      const trainedRecently = daysSinceLastActivity <= 3;
+      const trainedSomewhat = daysSinceLastActivity <= 5;
+      const hasRecentCheckin = recentCheckins.length > 0 && recentCheckins[recentCheckins.length - 1].createdAt &&
+        Math.floor((now - new Date(recentCheckins[recentCheckins.length - 1].createdAt)) / (1000 * 60 * 60 * 24)) <= 7;
+
+      if (trainedRecently && hasRecentCheckin) {
+        status = 'active';
+      } else if (trainedSomewhat || !hasRecentCheckin && trainedRecently) {
+        status = 'declining';
+      } else {
+        status = 'inactive';
+      }
+
+      clientResults.push({
+        id: client.id,
+        name: client.name,
+        workoutsPerWeek,
+        dietAdherence,
+        responseRate,
+        daysSinceLastActivity,
+        status,
+      });
+    }
+
+    // Summary calculations
+    const allAdherences = clientResults.filter(c => c.dietAdherence != null).map(c => c.dietAdherence);
+    const avgAdherence = allAdherences.length > 0 ? Math.round(allAdherences.reduce((s, v) => s + v, 0) / allAdherences.length) : null;
+
+    const allWorkouts = clientResults.map(c => c.workoutsPerWeek);
+    const avgWorkoutsPerWeek = allWorkouts.length > 0 ? allWorkouts.reduce((s, v) => s + v, 0) / allWorkouts.length : null;
+
+    // Most active: highest workouts/week
+    let mostActiveClient = null;
+    if (clientResults.length > 0) {
+      const sorted = [...clientResults].sort((a, b) => b.workoutsPerWeek - a.workoutsPerWeek);
+      mostActiveClient = sorted[0].name;
+    }
+
+    // Needs attention: inactive 3+ days
+    const needsAttention = clientResults.filter(c => c.daysSinceLastActivity >= 3).length;
+
+    return jsonResponse(200, {
+      summary: {
+        avgAdherence,
+        avgWorkoutsPerWeek,
+        mostActiveClient,
+        needsAttention,
+      },
+      clients: clientResults,
     });
   }
 

@@ -478,7 +478,7 @@
             </div>
             <div class="exercise-meta">
               ${ex.sets ? `<span class="exercise-meta-tag sets-tag">${escapeHtml(ex.sets)}${ex.reps ? ' × ' + escapeHtml(ex.reps) : ''}</span>` : ''}
-              ${ex.rest ? `<span class="exercise-meta-tag">⏱ ${escapeHtml(ex.rest)}</span>` : ''}
+              ${ex.rest ? `<span class="exercise-meta-tag rest-tag" data-rest="${escapeAttr(ex.rest)}" title="Spustit odpočinkový časovač">⏱ ${escapeHtml(ex.rest)}</span>` : ''}
               ${ex.weight ? `<span class="exercise-meta-tag">🏋 ${escapeHtml(ex.weight)}</span>` : ''}
             </div>
             ${isToday ? `
@@ -506,6 +506,17 @@
     // Event listeners
     container.querySelectorAll('.exercise-video-btn').forEach(btn => {
       btn.addEventListener('click', () => openVideo(btn.dataset.video));
+    });
+
+    // Rest timer integration
+    container.querySelectorAll('.rest-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        const restStr = tag.dataset.rest;
+        if (restStr && window.startRestTimer) {
+          const secs = parseRestSeconds(restStr);
+          if (secs > 0) window.startRestTimer(secs);
+        }
+      });
     });
 
     if (isToday) {
@@ -1749,6 +1760,286 @@
 
     // Apply on load
     applyVisibility();
+  })();
+
+  // ===== PARSE REST TIME STRING =====
+  function parseRestSeconds(str) {
+    if (!str) return 0;
+    str = str.trim().toLowerCase();
+    // "90s", "90 s", "90", "1:30", "1m30s", "2m", "2 min"
+    var match;
+    if ((match = str.match(/^(\d+)\s*(?:s|sec|sekund)?$/))) return parseInt(match[1]);
+    if ((match = str.match(/^(\d+)\s*(?:m|min)/))) {
+      var mins = parseInt(match[1]);
+      var secMatch = str.match(/(\d+)\s*(?:s|sec|sekund)/);
+      return mins * 60 + (secMatch ? parseInt(secMatch[1]) : 0);
+    }
+    if ((match = str.match(/^(\d+):(\d+)$/))) return parseInt(match[1]) * 60 + parseInt(match[2]);
+    var num = parseInt(str);
+    return isNaN(num) ? 0 : (num > 10 ? num : num * 60); // >10 assume seconds, else minutes
+  }
+
+  // ===== REST TIMER =====
+  (function initRestTimer() {
+    var fab = document.getElementById('rest-timer-fab');
+    var fabIcon = document.getElementById('rest-timer-fab-icon');
+    var fabCountdown = document.getElementById('rest-timer-fab-countdown');
+    var panel = document.getElementById('rest-timer-panel');
+    var closeBtn = document.getElementById('rest-timer-panel-close');
+    var display = document.getElementById('rest-timer-display');
+    var ringProgress = document.getElementById('rest-timer-ring-progress');
+    var playBtn = document.getElementById('rest-timer-play');
+    var resetBtn = document.getElementById('rest-timer-reset');
+    var presetBtns = document.querySelectorAll('.rest-timer-preset');
+
+    if (!fab || !panel) return;
+
+    var CIRCUMFERENCE = 2 * Math.PI * 50; // r=50
+    var timerInterval = null;
+    var totalSeconds = 0;
+    var remainingMs = 0;
+    var isRunning = false;
+    var panelOpen = false;
+    var audioCtx = null;
+
+    function formatTime(ms) {
+      var secs = Math.ceil(ms / 1000);
+      if (secs < 0) secs = 0;
+      if (secs >= 60) {
+        var m = Math.floor(secs / 60);
+        var s = secs % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+      }
+      return secs + 's';
+    }
+
+    function updateDisplay() {
+      var secs = Math.ceil(remainingMs / 1000);
+      if (secs < 0) secs = 0;
+      display.textContent = formatTime(remainingMs);
+
+      // Ring progress
+      var fraction = totalSeconds > 0 ? (1 - remainingMs / (totalSeconds * 1000)) : 0;
+      var offset = CIRCUMFERENCE * fraction;
+      ringProgress.setAttribute('stroke-dasharray', CIRCUMFERENCE.toFixed(2));
+      ringProgress.setAttribute('stroke-dashoffset', (-offset).toFixed(2));
+
+      // FAB countdown
+      if (isRunning || remainingMs > 0) {
+        fabIcon.hidden = true;
+        fabCountdown.hidden = false;
+        fabCountdown.textContent = formatTime(remainingMs);
+        fab.classList.add('active');
+      } else {
+        fabIcon.hidden = false;
+        fabCountdown.hidden = true;
+        fab.classList.remove('active');
+      }
+
+      playBtn.textContent = isRunning ? '⏸' : '▶';
+    }
+
+    function startTimer() {
+      if (remainingMs <= 0 || isRunning) return;
+      isRunning = true;
+      var lastTick = Date.now();
+      timerInterval = setInterval(function() {
+        var now = Date.now();
+        remainingMs -= (now - lastTick);
+        lastTick = now;
+        if (remainingMs <= 0) {
+          remainingMs = 0;
+          isRunning = false;
+          clearInterval(timerInterval);
+          timerInterval = null;
+          onTimerComplete();
+        }
+        updateDisplay();
+      }, 100);
+      updateDisplay();
+    }
+
+    function pauseTimer() {
+      isRunning = false;
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      updateDisplay();
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      remainingMs = totalSeconds * 1000;
+      updateDisplay();
+    }
+
+    function setTimer(seconds) {
+      pauseTimer();
+      totalSeconds = seconds;
+      remainingMs = seconds * 1000;
+      updateDisplay();
+      // Highlight active preset
+      presetBtns.forEach(function(btn) {
+        btn.classList.toggle('active', parseInt(btn.dataset.seconds) === seconds);
+      });
+      startTimer();
+    }
+
+    function onTimerComplete() {
+      // Vibrate
+      if (navigator.vibrate) {
+        try { navigator.vibrate([200, 100, 200]); } catch(e) {}
+      }
+      // Beep sound (Web Audio API)
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = 880;
+        osc.type = 'sine';
+        gain.gain.value = 0.3;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.stop(audioCtx.currentTime + 0.5);
+        // Second beep
+        setTimeout(function() {
+          var osc2 = audioCtx.createOscillator();
+          var gain2 = audioCtx.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.frequency.value = 1100;
+          osc2.type = 'sine';
+          gain2.gain.value = 0.3;
+          osc2.start();
+          gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+          osc2.stop(audioCtx.currentTime + 0.5);
+        }, 300);
+      } catch(e) {}
+      updateDisplay();
+    }
+
+    // Toggle panel
+    fab.addEventListener('click', function() {
+      panelOpen = !panelOpen;
+      panel.hidden = !panelOpen;
+    });
+
+    closeBtn.addEventListener('click', function() {
+      panelOpen = false;
+      panel.hidden = true;
+    });
+
+    // Play/Pause
+    playBtn.addEventListener('click', function() {
+      if (isRunning) { pauseTimer(); }
+      else if (remainingMs > 0) { startTimer(); }
+      else if (totalSeconds > 0) { remainingMs = totalSeconds * 1000; startTimer(); }
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', resetTimer);
+
+    // Preset buttons
+    presetBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setTimer(parseInt(btn.dataset.seconds));
+      });
+    });
+
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+      if (panelOpen && !panel.contains(e.target) && !fab.contains(e.target)) {
+        panelOpen = false;
+        panel.hidden = true;
+      }
+    });
+
+    // Expose globally so exercise cards can trigger it
+    window.startRestTimer = function(seconds) {
+      panelOpen = true;
+      panel.hidden = false;
+      setTimer(seconds);
+    };
+
+    updateDisplay();
+  })();
+
+  // ===== PROGRESS GALLERY =====
+  (function initProgressGallery() {
+    var toggle = document.getElementById('progress-view-toggle');
+    var chartEl = document.getElementById('progress-chart');
+    var historyEl = document.getElementById('progress-history');
+    var galleryEl = document.getElementById('progress-gallery');
+    var btns = toggle ? toggle.querySelectorAll('.progress-view-btn') : [];
+
+    if (!toggle || !galleryEl) return;
+
+    var currentView = 'chart';
+
+    function switchView(view) {
+      currentView = view;
+      btns.forEach(function(b) { b.classList.toggle('active', b.dataset.view === view); });
+
+      if (view === 'chart') {
+        if (chartEl) chartEl.hidden = false;
+        if (historyEl) historyEl.hidden = false;
+        galleryEl.hidden = true;
+      } else {
+        if (chartEl) chartEl.hidden = true;
+        if (historyEl) historyEl.hidden = true;
+        galleryEl.hidden = false;
+        renderGallery();
+      }
+    }
+
+    function renderGallery() {
+      var photos = progressData
+        .filter(function(e) { return e.photo; })
+        .sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+
+      if (photos.length === 0) {
+        galleryEl.innerHTML = '<div class="progress-gallery-empty">📸 Zatím žádné progress fotky. Přidej fotku přes "Zaznamenat" nebo týdenní check-in!</div>';
+        return;
+      }
+
+      galleryEl.innerHTML = photos.map(function(entry, i) {
+        var date = new Date(entry.createdAt);
+        var dateStr = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+        return '<div class="progress-gallery-item" data-gallery-index="' + i + '" style="animation-delay:' + (i * 0.04) + 's">' +
+          '<img src="' + entry.photo + '" alt="Progress ' + dateStr + '" loading="lazy">' +
+          '<div class="progress-gallery-info">' +
+            '<div class="progress-gallery-date">' + dateStr + '</div>' +
+            '<div class="progress-gallery-weight">' + entry.weight + ' kg</div>' +
+            (entry.notes ? '<div class="progress-gallery-note">' + escapeHtml(entry.notes) + '</div>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      // Click to open photo modal
+      galleryEl.querySelectorAll('.progress-gallery-item').forEach(function(item, i) {
+        item.addEventListener('click', function() {
+          var entry = photos[i];
+          var date = new Date(entry.createdAt);
+          var dateStr = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+          openPhotoModal(entry.photo, dateStr + ' — ' + entry.weight + ' kg');
+        });
+      });
+    }
+
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchView(btn.dataset.view);
+      });
+    });
+
+    // Show toggle when there are photos (called after renderProgress)
+    var origRenderProgress = renderProgress;
+    renderProgress = function() {
+      origRenderProgress();
+      var hasPhotos = progressData.some(function(e) { return e.photo; });
+      toggle.hidden = !hasPhotos;
+      if (currentView === 'gallery') renderGallery();
+    };
   })();
 
   // ===== Start =====

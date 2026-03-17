@@ -11,7 +11,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
   <link rel="manifest" href="manifest.json">
   <!-- Font loaded via CSS @font-face -->
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
   <script>
     // Flash prevention — apply saved theme before render
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
@@ -327,6 +327,12 @@
         </div>
       </div>
 
+      <!-- Gallery / Chart toggle -->
+      <div class="progress-view-toggle" id="progress-view-toggle" hidden>
+        <button class="progress-view-btn active" data-view="chart">📈 Graf</button>
+        <button class="progress-view-btn" data-view="gallery">📸 Galerie</button>
+      </div>
+
       <div class="section-body">
         <!-- Add entry form (hidden by default) -->
         <div id="progress-form-wrap" class="progress-form-wrap" hidden>
@@ -364,6 +370,9 @@
 
         <!-- History list -->
         <div id="progress-history" class="progress-history"></div>
+
+        <!-- Photo gallery view (hidden by default) -->
+        <div id="progress-gallery" class="progress-gallery" hidden></div>
       </div>
     </section>
 
@@ -533,6 +542,38 @@
 
   </div>
 
+  <!-- ===== REST TIMER FAB + PANEL ===== -->
+  <button class="rest-timer-fab" id="rest-timer-fab" title="Odpočinkový časovač">
+    <span class="rest-timer-fab-icon" id="rest-timer-fab-icon">⏱</span>
+    <span class="rest-timer-fab-countdown" id="rest-timer-fab-countdown" hidden></span>
+  </button>
+
+  <div class="rest-timer-panel" id="rest-timer-panel" hidden>
+    <div class="rest-timer-panel-header">
+      <span class="rest-timer-panel-title">Odpočinek</span>
+      <button class="rest-timer-panel-close" id="rest-timer-panel-close">✕</button>
+    </div>
+    <div class="rest-timer-ring-wrap">
+      <svg class="rest-timer-ring" viewBox="0 0 120 120">
+        <circle class="rest-timer-ring-bg" cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="6"/>
+        <circle class="rest-timer-ring-progress" id="rest-timer-ring-progress" cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+      </svg>
+      <div class="rest-timer-display" id="rest-timer-display">0s</div>
+    </div>
+    <div class="rest-timer-presets" id="rest-timer-presets">
+      <button class="rest-timer-preset" data-seconds="30">30s</button>
+      <button class="rest-timer-preset" data-seconds="45">45s</button>
+      <button class="rest-timer-preset" data-seconds="60">60s</button>
+      <button class="rest-timer-preset" data-seconds="75">75s</button>
+      <button class="rest-timer-preset" data-seconds="90">90s</button>
+      <button class="rest-timer-preset" data-seconds="120">2m</button>
+    </div>
+    <div class="rest-timer-controls">
+      <button class="rest-timer-ctrl" id="rest-timer-play" title="Start/Pauza">▶</button>
+      <button class="rest-timer-ctrl" id="rest-timer-reset" title="Reset">⟲</button>
+    </div>
+  </div>
+
   <!-- Workout save bar (sticky bottom) -->
   <div id="workout-save-bar" class="workout-save-bar" hidden>
     <div class="workout-save-inner">
@@ -586,7 +627,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {

@@ -6,8 +6,8 @@
   <title>Admin — Adam Jirsa</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
-  <link rel="stylesheet" href="/zona/style.css?v=14">
-  <link rel="stylesheet" href="admin.css?v=7">
+  <link rel="stylesheet" href="/zona/style.css?v=15">
+  <link rel="stylesheet" href="admin.css?v=8">
   <script>
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
   </script>
@@ -62,6 +62,9 @@
       <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
       <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
       <button class="admin-tab" data-tab="my-website">🌐 Můj web</button>
+      <button class="admin-tab" data-tab="schedule">📅 Rozvrh</button>
+      <button class="admin-tab" data-tab="payments">💰 Platby</button>
+      <button class="admin-tab" data-tab="engagement">📈 Report</button>
     </div>
 
     <!-- ===== TAB: Overview ===== -->
@@ -372,6 +375,189 @@
       </section>
     </div>
 
+    <!-- ===== TAB: Schedule ===== -->
+    <div class="admin-content" id="tab-schedule" hidden>
+      <section class="admin-card">
+        <div class="schedule-header">
+          <button class="btn-ghost btn-sm" id="sched-prev-week">← Předchozí</button>
+          <h3 id="sched-week-label" style="margin: 0;">Týden</h3>
+          <button class="btn-ghost btn-sm" id="sched-next-week">Další →</button>
+        </div>
+        <div class="schedule-toolbar">
+          <button class="btn-ghost btn-sm" id="sched-today-btn">Dnes</button>
+          <button class="btn-ghost btn-sm" id="sched-export-ics">📥 Export .ics</button>
+        </div>
+      </section>
+      <section class="admin-card schedule-grid-card">
+        <div class="schedule-grid" id="schedule-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== TAB: Payments ===== -->
+    <div class="admin-content" id="tab-payments" hidden>
+      <section class="admin-card">
+        <h3>💰 Přehled plateb</h3>
+        <div class="payments-summary" id="payments-summary">
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="pay-expected">—</span>
+            <span class="overview-stat-label">Očekáváno</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="pay-received">—</span>
+            <span class="overview-stat-label">Přijato</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="pay-missing">—</span>
+            <span class="overview-stat-label">Chybí</span>
+          </div>
+        </div>
+      </section>
+      <section class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">📋 Platby klientů</h3>
+          <button class="btn-primary btn-sm" id="add-payment-btn">+ Nová platba</button>
+        </div>
+        <div id="payments-table-wrap">
+          <table class="payments-table" id="payments-table">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Částka</th>
+                <th>Zaplaceno do</th>
+                <th>Status</th>
+                <th>Akce</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              <tr><td colspan="5" class="text-muted" style="text-align:center;">Načítám...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== TAB: Engagement Report ===== -->
+    <div class="admin-content" id="tab-engagement" hidden>
+      <section class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">📈 Engagement Report</h3>
+          <button class="btn-ghost btn-sm" id="refresh-engagement-btn">🔄 Aktualizovat</button>
+        </div>
+        <div class="overview-stats" id="engagement-summary">
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="eng-avg-adherence">—</span>
+            <span class="overview-stat-label">Prům. adherence</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="eng-avg-workouts">—</span>
+            <span class="overview-stat-label">Prům. tréninky/týden</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="eng-most-active">—</span>
+            <span class="overview-stat-label">Nejaktivnější</span>
+          </div>
+          <div class="overview-stat">
+            <span class="overview-stat-value" id="eng-needs-attention">—</span>
+            <span class="overview-stat-label">Vyžadují pozornost</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card">
+        <h3>👥 Přehled klientů</h3>
+        <div class="engagement-table-wrap" id="engagement-table-wrap">
+          <table class="engagement-table" id="engagement-table">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Tréninky/týden</th>
+                <th>Dieta</th>
+                <th>Odpovědi</th>
+                <th>Posl. aktivita</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="engagement-tbody">
+              <tr><td colspan="6" class="text-muted" style="text-align:center;">Načítám...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- Schedule session modal -->
+  <div id="schedule-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeScheduleModal()"></div>
+    <div class="modal-content" style="max-width: 420px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem;">
+      <button class="modal-close" onclick="closeScheduleModal()">✕</button>
+      <h3 id="sched-modal-title" style="margin-bottom: 1rem;">📅 Nový trénink</h3>
+      <form id="sched-session-form" class="admin-form">
+        <div class="form-group">
+          <label>Klient</label>
+          <select id="sched-client-select" class="form-select" required>
+            <option value="">— Vyber klienta —</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Datum</label>
+            <input type="date" id="sched-date" required>
+          </div>
+          <div class="form-group">
+            <label>Čas</label>
+            <input type="time" id="sched-time" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Délka (min)</label>
+          <input type="number" id="sched-duration" value="60" min="15" max="180" step="15" required>
+        </div>
+        <div class="form-group">
+          <label>Poznámky</label>
+          <input type="text" id="sched-notes" placeholder="Volitelné...">
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn-primary" style="flex: 1;" id="sched-save-btn">Uložit</button>
+          <button type="button" class="btn-ghost" id="sched-delete-btn" style="display:none; color: #f87171;">Smazat</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Payment modal -->
+  <div id="payment-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closePaymentModal()"></div>
+    <div class="modal-content" style="max-width: 420px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem;">
+      <button class="modal-close" onclick="closePaymentModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">💰 Nová platba</h3>
+      <form id="payment-form" class="admin-form">
+        <div class="form-group">
+          <label>Klient</label>
+          <select id="pay-client-select" class="form-select" required>
+            <option value="">— Vyber klienta —</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Částka (Kč)</label>
+            <input type="number" id="pay-amount" required min="0" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Zaplaceno do</label>
+            <input type="date" id="pay-paid-until" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Poznámky</label>
+          <input type="text" id="pay-notes" placeholder="Volitelné...">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%;">Uložit platbu</button>
+      </form>
+    </div>
   </div>
 
   <!-- Progress modal -->
@@ -426,6 +612,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

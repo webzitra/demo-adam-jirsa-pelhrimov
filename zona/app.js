@@ -8,6 +8,7 @@
   let nutritionData = null;
   let selectedDay = null;
   let progressData = [];
+  let checkinData = [];
   let onboardingData = null;
   let messagesData = [];
   let todayWorkoutLog = {};
@@ -50,10 +51,12 @@
   const comparePhotosBtn = document.getElementById('compare-photos-btn');
 
   // ===== Theme toggle =====
-  const allThemeToggles = document.querySelectorAll('#theme-toggle, #login-theme-toggle, #onboarding-theme-toggle');
+  const allThemeToggles = document.querySelectorAll('#login-theme-toggle, #onboarding-theme-toggle, #profile-theme-toggle');
+  const profileThemeIcon = document.getElementById('profile-theme-icon');
   function updateThemeIcons() {
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
     allThemeToggles.forEach(btn => { btn.textContent = isLight ? '☀️' : '🌙'; });
+    if (profileThemeIcon) profileThemeIcon.textContent = isLight ? '☀️' : '🌙';
   }
   updateThemeIcons();
   function toggleTheme() {
@@ -68,6 +71,61 @@
     updateThemeIcons();
   }
   allThemeToggles.forEach(btn => btn.addEventListener('click', toggleTheme));
+
+  // ===== Profile menu =====
+  const profileTrigger = document.getElementById('profile-trigger');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  const profileMenuWrap = profileTrigger ? profileTrigger.closest('.profile-menu-wrap') : null;
+
+  if (profileTrigger && profileDropdown) {
+    profileTrigger.addEventListener('click', () => {
+      const isOpen = !profileDropdown.hidden;
+      profileDropdown.hidden = isOpen;
+      profileMenuWrap.classList.toggle('open', !isOpen);
+    });
+    document.addEventListener('click', (e) => {
+      if (!profileMenuWrap.contains(e.target)) {
+        profileDropdown.hidden = true;
+        profileMenuWrap.classList.remove('open');
+      }
+    });
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+
+  function populateProfile() {
+    if (!clientData) return;
+    const initials = getInitials(clientData.name);
+    const avatarEl = document.getElementById('profile-avatar');
+    const dropdownAvatar = document.getElementById('profile-dropdown-avatar');
+    const dropdownName = document.getElementById('profile-dropdown-name');
+    const dropdownEmail = document.getElementById('profile-dropdown-email');
+    const sinceValue = document.getElementById('profile-since-value');
+    const goalValue = document.getElementById('profile-goal-value');
+    const freqValue = document.getElementById('profile-freq-value');
+
+    if (avatarEl) avatarEl.textContent = initials;
+    if (dropdownAvatar) dropdownAvatar.textContent = initials;
+    if (dropdownName) dropdownName.textContent = clientData.name;
+    if (dropdownEmail) dropdownEmail.textContent = clientData.email || '';
+
+    if (sinceValue && clientData.createdAt) {
+      const d = new Date(clientData.createdAt);
+      const months = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+      sinceValue.textContent = d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    if (onboardingData) {
+      const goalMap = { hubnutí: 'Hubnutí', nabírání: 'Nabírání svalů', síla: 'Síla', výkon: 'Sport. výkon', zdraví: 'Zdraví' };
+      if (goalValue && onboardingData.goal) goalValue.textContent = goalMap[onboardingData.goal] || onboardingData.goal;
+      if (freqValue && onboardingData.frequency) freqValue.textContent = onboardingData.frequency + '× týdně';
+    }
+  }
 
   // ===== Day names =====
   const DAY_NAMES = {
@@ -166,6 +224,7 @@
     planData = data.plan;
     nutritionData = data.nutrition;
     progressData = data.progress || [];
+    checkinData = data.checkins || [];
     onboardingData = data.onboarding;
     messagesData = data.messages || [];
     todayWorkoutLog = data.todayLog || {};
@@ -200,6 +259,7 @@
   async function loadDashboard() {
     showScreen('dashboard');
     dashUserName.textContent = clientData.name;
+    populateProfile();
 
     // Greeting
     const hour = new Date().getHours();
@@ -241,6 +301,7 @@
       if (dashGreeting) dashGreeting.hidden = false;
       if (sectionToday) sectionToday.hidden = false;
 
+      populateProfile();
       renderDashboard();
     } catch (err) {
       // If we had cached data, keep showing it
@@ -367,8 +428,10 @@
       renderSupplements();
     }
 
-    // Progress
+    // Stats overview + progress
+    renderStats();
     renderProgress();
+    renderCheckinHistory();
 
     // Chat
     renderChat();
@@ -497,8 +560,7 @@
   function updateWorkoutSaveBar(totalExercises) {
     const checked = document.querySelectorAll('#today-content .exercise-check:checked').length;
     workoutProgressText.textContent = `${checked}/${totalExercises} cviků hotovo`;
-    workoutSaveBar.hidden = !workoutDirty && checked === 0;
-    if (checked > 0 || workoutDirty) workoutSaveBar.hidden = false;
+    workoutSaveBar.hidden = !workoutDirty;
   }
 
   workoutSaveBtn.addEventListener('click', async () => {
@@ -859,7 +921,7 @@
     try {
       pendingPhotoBase64 = await compressImage(file, 800, 0.7);
       photoPreviewImg.src = pendingPhotoBase64;
-      photoPreview.hidden = false;
+      photoPreview.classList.add('visible');
       photoTrigger.style.display = 'none';
     } catch (err) {
       console.error('Image compression failed:', err);
@@ -870,7 +932,7 @@
   photoRemove.addEventListener('click', () => {
     pendingPhotoBase64 = null;
     photoInput.value = '';
-    photoPreview.hidden = true;
+    photoPreview.classList.remove('visible');
     photoTrigger.style.display = '';
   });
 
@@ -935,7 +997,7 @@
 
       progressForm.reset();
       pendingPhotoBase64 = null;
-      photoPreview.hidden = true;
+      photoPreview.classList.remove('visible');
       photoTrigger.style.display = '';
       progressFormWrap.hidden = true;
       toggleProgressBtn.textContent = '+ Zaznamenat';
@@ -948,8 +1010,122 @@
     }
   });
 
+  // ===== Stats overview =====
+  function renderStats() {
+    const statsEl = document.getElementById('stats-overview');
+    if (!statsEl) return;
+
+    const entries = [...progressData].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const hasProgress = entries.length > 0;
+    const hasCheckins = checkinData.length > 0;
+
+    if (!hasProgress && !hasCheckins) {
+      statsEl.hidden = true;
+      return;
+    }
+
+    statsEl.hidden = false;
+
+    // Current weight
+    if (hasProgress) {
+      const latest = entries[entries.length - 1];
+      document.getElementById('stat-weight-value').textContent = latest.weight + ' kg';
+
+      // Total change
+      if (entries.length > 1) {
+        const first = entries[0];
+        const diff = latest.weight - first.weight;
+        const sign = diff > 0 ? '+' : '';
+        const changeEl = document.getElementById('stat-change-value');
+        changeEl.textContent = sign + diff.toFixed(1) + ' kg';
+        changeEl.className = 'stat-value ' + (diff < 0 ? 'stat-down' : diff > 0 ? 'stat-up' : '');
+        document.getElementById('stat-change').querySelector('.stat-icon').textContent = diff <= 0 ? '📉' : '📈';
+      }
+    }
+
+    // Weekly streak (consecutive weeks with at least one check-in)
+    if (hasCheckins) {
+      const sorted = [...checkinData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      let streak = 0;
+      const now = new Date();
+      const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+
+      // Count backwards from current week
+      for (let w = 0; w < 52; w++) {
+        const weekStart = new Date(now.getTime() - (w + 1) * msPerWeek);
+        const weekEnd = new Date(now.getTime() - w * msPerWeek);
+        const hasEntry = sorted.some(c => {
+          const d = new Date(c.createdAt);
+          return d >= weekStart && d < weekEnd;
+        });
+        if (hasEntry) streak++;
+        else if (w > 0) break; // Allow current week to be empty
+      }
+      document.getElementById('stat-streak-value').textContent = streak;
+    }
+
+    // Total check-ins
+    document.getElementById('stat-checkins-value').textContent = checkinData.length;
+
+    // Badges
+    renderBadges(entries);
+  }
+
+  function renderBadges(entries) {
+    const row = document.getElementById('badges-row');
+    if (!row) return;
+
+    const badges = [];
+    const totalCheckins = checkinData.length;
+    const totalProgress = entries.length;
+
+    // Progress milestones
+    if (totalProgress >= 1) badges.push({ icon: '⚖️', label: 'První záznam', active: true });
+    if (totalProgress >= 5) badges.push({ icon: '📊', label: '5 záznamů', active: true });
+    if (totalProgress >= 10) badges.push({ icon: '🏆', label: '10 záznamů', active: true });
+    if (totalProgress >= 25) badges.push({ icon: '💎', label: '25 záznamů', active: true });
+
+    // Check-in milestones
+    if (totalCheckins >= 1) badges.push({ icon: '✅', label: 'První check-in', active: true });
+    if (totalCheckins >= 4) badges.push({ icon: '🔥', label: '4 týdny', active: true });
+    if (totalCheckins >= 12) badges.push({ icon: '⭐', label: '3 měsíce', active: true });
+
+    // Weight change milestones
+    if (entries.length >= 2) {
+      const diff = Math.abs(entries[entries.length - 1].weight - entries[0].weight);
+      if (diff >= 2) badges.push({ icon: '💪', label: '-2 kg', active: true });
+      if (diff >= 5) badges.push({ icon: '🎯', label: '-5 kg', active: true });
+      if (diff >= 10) badges.push({ icon: '👑', label: '-10 kg', active: true });
+    }
+
+    // Next unlockable badge
+    if (totalProgress < 5 && totalProgress >= 1) {
+      badges.push({ icon: '📊', label: '5 záznamů', active: false, progress: totalProgress + '/5' });
+    } else if (totalProgress < 10 && totalProgress >= 5) {
+      badges.push({ icon: '🏆', label: '10 záznamů', active: false, progress: totalProgress + '/10' });
+    }
+
+    if (totalCheckins < 4 && totalCheckins >= 1) {
+      badges.push({ icon: '🔥', label: '4 týdny', active: false, progress: totalCheckins + '/4' });
+    }
+
+    if (badges.length === 0) {
+      row.hidden = true;
+      return;
+    }
+
+    row.hidden = false;
+    row.innerHTML = badges.map(b =>
+      `<div class="badge-item${b.active ? ' earned' : ' locked'}">
+        <span class="badge-icon">${b.icon}</span>
+        <span class="badge-label">${b.label}</span>
+        ${b.progress ? `<span class="badge-progress">${b.progress}</span>` : ''}
+      </div>`
+    ).join('');
+  }
+
+  // ===== SVG line chart =====
   function renderProgress() {
-    // Show compare button if there are photos
     const hasPhotos = progressData.some(e => e.photo);
     comparePhotosBtn.hidden = !hasPhotos;
 
@@ -969,35 +1145,67 @@
     const diffSign = diff > 0 ? '+' : '';
     const diffClass = diff < 0 ? 'down' : diff > 0 ? 'up' : 'neutral';
 
-    let chartHtml = `<div class="chart-header">
+    // Chart header
+    let headerHtml = `<div class="chart-header">
       <div class="chart-current">${latest.weight}<small>kg</small></div>
       ${entries.length > 1 ? `<span class="chart-change ${diffClass}">${diffSign}${diff.toFixed(1)} kg</span>` : ''}
     </div>`;
 
-    const chartEntries = entries.slice(-10);
+    // SVG line chart
+    const chartEntries = entries.slice(-15);
+    const W = 600, H = 180, PAD_X = 10, PAD_Y = 20, PAD_BOTTOM = 30;
+    const plotH = H - PAD_Y - PAD_BOTTOM;
+    const plotW = W - PAD_X * 2;
     const weights = chartEntries.map(e => e.weight);
-    const minW = Math.min(...weights) - 1;
-    const maxW = Math.max(...weights) + 1;
+    const minW = Math.min(...weights) - 0.5;
+    const maxW = Math.max(...weights) + 0.5;
     const range = maxW - minW || 1;
 
-    chartHtml += '<div class="chart-bars">';
-    chartEntries.forEach((entry, i) => {
-      const pct = ((entry.weight - minW) / range) * 100;
-      const height = Math.max(8, pct);
-      const isLatest = i === chartEntries.length - 1;
-      const date = new Date(entry.createdAt);
-      const label = `${date.getDate()}.${date.getMonth() + 1}.`;
-
-      chartHtml += `
-        <div class="chart-bar-col">
-          <span class="chart-bar-value">${entry.weight}</span>
-          <div class="chart-bar${isLatest ? ' latest' : ''}" style="height: ${height}px;" title="${entry.weight} kg — ${label}"></div>
-          <span class="chart-bar-label">${label}</span>
-        </div>`;
+    const points = chartEntries.map((e, i) => {
+      const x = PAD_X + (chartEntries.length === 1 ? plotW / 2 : (i / (chartEntries.length - 1)) * plotW);
+      const y = PAD_Y + plotH - ((e.weight - minW) / range) * plotH;
+      return { x, y, entry: e };
     });
-    chartHtml += '</div>';
 
-    progressChart.innerHTML = chartHtml;
+    const linePath = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+    const areaPath = linePath + ` L${points[points.length - 1].x.toFixed(1)},${H - PAD_BOTTOM} L${points[0].x.toFixed(1)},${H - PAD_BOTTOM} Z`;
+
+    let svgContent = `
+      <defs>
+        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>`;
+
+    // Grid lines
+    const gridLines = 4;
+    for (let i = 0; i <= gridLines; i++) {
+      const y = PAD_Y + (i / gridLines) * plotH;
+      const val = (maxW - (i / gridLines) * range).toFixed(1);
+      svgContent += `<line x1="${PAD_X}" y1="${y}" x2="${W - PAD_X}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+      svgContent += `<text x="${W - PAD_X + 4}" y="${y + 4}" fill="var(--text-faint)" font-size="10" font-family="Inter,sans-serif">${val}</text>`;
+    }
+
+    // Area fill + line
+    svgContent += `<path d="${areaPath}" fill="url(#chartGrad)"/>`;
+    svgContent += `<path d="${linePath}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+    // Data points + date labels
+    points.forEach((p, i) => {
+      const isLatest = i === points.length - 1;
+      const r = isLatest ? 5 : 3.5;
+      svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${isLatest ? 'var(--accent)' : 'var(--bg-card)'}" stroke="var(--accent)" stroke-width="2"/>`;
+
+      // Date label (show every other + always last)
+      if (i % 2 === 0 || isLatest || chartEntries.length <= 6) {
+        const d = new Date(p.entry.createdAt);
+        const label = d.getDate() + '.' + (d.getMonth() + 1) + '.';
+        svgContent += `<text x="${p.x.toFixed(1)}" y="${H - 8}" fill="var(--text-faint)" font-size="10" font-family="Inter,sans-serif" text-anchor="middle">${label}</text>`;
+      }
+    });
+
+    progressChart.innerHTML = headerHtml + `<svg class="weight-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svgContent}</svg>`;
 
     // History
     const historyEntries = [...entries].reverse().slice(0, 5);
@@ -1033,12 +1241,51 @@
 
     progressHistory.innerHTML = historyHtml;
 
-    // Bind photo click events
     progressHistory.querySelectorAll('.progress-entry-photo').forEach(img => {
       img.addEventListener('click', () => {
         openPhotoModal(img.src, img.closest('.progress-entry').querySelector('.progress-entry-date')?.textContent || '');
       });
     });
+  }
+
+  // ===== Check-in history =====
+  function renderCheckinHistory() {
+    const titleEl = document.getElementById('checkin-history-title');
+    const listEl = document.getElementById('checkin-history-list');
+    if (!titleEl || !listEl) return;
+
+    if (!checkinData || checkinData.length === 0) {
+      titleEl.hidden = true;
+      listEl.innerHTML = '';
+      return;
+    }
+
+    titleEl.hidden = false;
+    const sorted = [...checkinData].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
+
+    const energyLabels = { low: '😴 Nízká', ok: '😐 OK', good: '💪 Dobrá', great: '🔥 Skvělá' };
+
+    listEl.innerHTML = sorted.map((ci, i) => {
+      const date = new Date(ci.createdAt);
+      const dateStr = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+      const stars = '★'.repeat(ci.trainingRating || 0) + '☆'.repeat(5 - (ci.trainingRating || 0));
+
+      return `
+        <div class="checkin-history-entry" style="animation: fadeIn 0.3s ease ${i * 0.05}s both;">
+          <div class="ci-date">${dateStr}</div>
+          <div class="ci-details">
+            <div class="ci-row">
+              <span class="ci-stars">${stars}</span>
+              <span class="ci-diet">${ci.dietAdherence || 0}% jídelníček</span>
+            </div>
+            <div class="ci-row">
+              ${ci.weight ? `<span class="ci-weight">${ci.weight} kg</span>` : ''}
+              ${ci.energy ? `<span class="ci-energy">${energyLabels[ci.energy] || ci.energy}</span>` : ''}
+            </div>
+            ${ci.notes ? `<div class="ci-notes">${escapeHtml(ci.notes)}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
   }
 
   // ===== Photo compare modal =====
@@ -1274,6 +1521,235 @@
       return dateStr;
     }
   }
+
+  // ===== Check-in =====
+  (function initCheckin() {
+    const stars = document.querySelectorAll('#checkin-stars .star-btn');
+    const ratingInput = document.getElementById('checkin-training-rating');
+    const dietRange = document.getElementById('checkin-diet');
+    const dietValue = document.getElementById('checkin-diet-value');
+    const pills = document.querySelectorAll('#checkin-energy .checkin-pill');
+    const energyInput = document.getElementById('checkin-energy-value');
+    const checkinForm = document.getElementById('checkin-form');
+    const checkinSubmitBtn = document.getElementById('checkin-submit-btn');
+    const checkinPhotoTrigger = document.getElementById('checkin-photo-trigger');
+    const checkinPhotoInput = document.getElementById('checkin-photo');
+    const checkinPhotoPreview = document.getElementById('checkin-photo-preview');
+    const checkinPhotoPreviewImg = document.getElementById('checkin-photo-preview-img');
+    const checkinPhotoRemove = document.getElementById('checkin-photo-remove');
+
+    if (!stars.length) return;
+
+    // Stars
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        const val = parseInt(star.dataset.value);
+        ratingInput.value = val;
+        stars.forEach(s => {
+          s.classList.toggle('active', parseInt(s.dataset.value) <= val);
+        });
+      });
+    });
+
+    // Diet range
+    if (dietRange) {
+      dietRange.addEventListener('input', () => {
+        dietValue.textContent = dietRange.value + ' %';
+      });
+    }
+
+    // Energy pills
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        energyInput.value = pill.dataset.value;
+      });
+    });
+
+    // Photo upload
+    if (checkinPhotoTrigger && checkinPhotoInput) {
+      checkinPhotoTrigger.addEventListener('click', () => checkinPhotoInput.click());
+      checkinPhotoInput.addEventListener('change', () => {
+        const file = checkinPhotoInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            checkinPhotoPreviewImg.src = e.target.result;
+            checkinPhotoPreview.classList.add('visible');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      if (checkinPhotoRemove) {
+        checkinPhotoRemove.addEventListener('click', () => {
+          checkinPhotoInput.value = '';
+          checkinPhotoPreview.classList.remove('visible');
+          checkinPhotoPreviewImg.src = '';
+        });
+      }
+    }
+
+    // Submit
+    if (checkinForm) {
+      checkinForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        checkinSubmitBtn.disabled = true;
+        checkinSubmitBtn.textContent = 'Odesílám...';
+
+        const formData = {
+          action: 'submit-checkin',
+          trainingRating: parseInt(ratingInput.value) || 0,
+          dietAdherence: parseInt(dietRange.value) || 0,
+          weight: parseFloat(document.getElementById('checkin-weight').value) || null,
+          energy: energyInput.value || null,
+          notes: document.getElementById('checkin-notes').value.trim() || null,
+        };
+
+        // Photo as base64
+        if (checkinPhotoInput.files[0]) {
+          formData.photo = checkinPhotoPreviewImg.src;
+        }
+
+        try {
+          const result = await api('zona-data', formData, sessionToken);
+          if (result.entries) checkinData = result.entries;
+          else checkinData.push({ ...formData, createdAt: new Date().toISOString() });
+          renderCheckinHistory();
+          renderStats();
+          checkinForm.reset();
+          stars.forEach(s => s.classList.remove('active'));
+          pills.forEach(p => p.classList.remove('active'));
+          ratingInput.value = '';
+          energyInput.value = '';
+          dietValue.textContent = '75 %';
+          if (checkinPhotoPreview) checkinPhotoPreview.classList.remove('visible');
+
+          checkinSubmitBtn.textContent = '✅ Odesláno!';
+          setTimeout(() => {
+            checkinSubmitBtn.textContent = 'Odeslat check-in ✓';
+            checkinSubmitBtn.disabled = false;
+          }, 2000);
+        } catch (err) {
+          alert('Chyba: ' + err.message);
+          checkinSubmitBtn.textContent = 'Odeslat check-in ✓';
+          checkinSubmitBtn.disabled = false;
+        }
+      });
+    }
+  })();
+
+  // ===== Collapsible sections =====
+  (function initCollapsible() {
+    const STORAGE_KEY = 'zona_collapsed';
+    let collapsed = null;
+    try { collapsed = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
+    const isFirstVisit = collapsed === null;
+    if (isFirstVisit) collapsed = {};
+
+    document.querySelectorAll('.dash-section').forEach(section => {
+      const id = section.id;
+      if (!id) return;
+
+      // First visit: collapse everything so user discovers the toggle
+      if (isFirstVisit || collapsed[id]) section.classList.add('collapsed');
+
+      const header = section.querySelector('.section-header');
+      if (!header) return;
+
+      header.addEventListener('click', (e) => {
+        // Don't collapse when clicking buttons inside header
+        if (e.target.closest('button, a, .section-header-actions')) return;
+
+        section.classList.toggle('collapsed');
+        collapsed[id] = section.classList.contains('collapsed');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed));
+      });
+    });
+  })();
+
+  // ===== Range slider fill =====
+  (function initRangeFill() {
+    function updateRangeFill(range) {
+      const pct = ((range.value - range.min) / (range.max - range.min)) * 100;
+      range.style.background = 'linear-gradient(to right, var(--accent) 0%, var(--accent) ' + pct + '%, var(--bg-elevated) ' + pct + '%, var(--bg-elevated) 100%)';
+    }
+    document.querySelectorAll('.checkin-range').forEach(range => {
+      updateRangeFill(range);
+      range.addEventListener('input', () => updateRangeFill(range));
+    });
+  })();
+
+  // ===== CUSTOMIZE SECTIONS =====
+  (function initCustomize() {
+    var customizeBtn = document.getElementById('customize-btn');
+    var customizePanel = document.getElementById('customize-panel');
+    var customizeBackdrop = document.getElementById('customize-backdrop');
+    var customizeClose = document.getElementById('customize-close');
+    var customizeReset = document.getElementById('customize-reset');
+    var toggles = document.querySelectorAll('#customize-toggles input[data-section]');
+    var STORAGE_KEY = 'zona_hidden_sections';
+
+    function getHiddenSections() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) { return []; }
+    }
+
+    function saveHiddenSections(arr) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    function applyVisibility() {
+      var hidden = getHiddenSections();
+      toggles.forEach(function(toggle) {
+        var sectionId = toggle.getAttribute('data-section');
+        var el = document.getElementById(sectionId);
+        if (!el) return;
+        var isHidden = hidden.indexOf(sectionId) !== -1;
+        toggle.checked = !isHidden;
+        if (isHidden) {
+          el.classList.add('user-hidden');
+        } else {
+          el.classList.remove('user-hidden');
+        }
+      });
+    }
+
+    function openPanel() {
+      if (customizePanel) customizePanel.hidden = false;
+    }
+
+    function closePanel() {
+      if (customizePanel) customizePanel.hidden = true;
+    }
+
+    if (customizeBtn) customizeBtn.addEventListener('click', openPanel);
+    if (customizeBackdrop) customizeBackdrop.addEventListener('click', closePanel);
+    if (customizeClose) customizeClose.addEventListener('click', closePanel);
+
+    toggles.forEach(function(toggle) {
+      toggle.addEventListener('change', function() {
+        var sectionId = this.getAttribute('data-section');
+        var hidden = getHiddenSections();
+        if (this.checked) {
+          hidden = hidden.filter(function(id) { return id !== sectionId; });
+        } else {
+          if (hidden.indexOf(sectionId) === -1) hidden.push(sectionId);
+        }
+        saveHiddenSections(hidden);
+        applyVisibility();
+      });
+    });
+
+    if (customizeReset) {
+      customizeReset.addEventListener('click', function() {
+        localStorage.removeItem(STORAGE_KEY);
+        applyVisibility();
+      });
+    }
+
+    // Apply on load
+    applyVisibility();
+  })();
 
   // ===== Start =====
   init();

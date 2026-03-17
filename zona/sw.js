@@ -1,8 +1,7 @@
-const CACHE_NAME = 'zona-v5';
+const CACHE_NAME = 'zona-v14';
 const STATIC_ASSETS = [
-  '/zona/',
-  '/zona/style.css?v=5',
-  '/zona/app.js?v=5',
+  '/zona/style.css?v=14',
+  '/zona/app.js?v=11',
   '/fonts/inter-latin.woff2',
   '/fonts/inter-latinext.woff2',
 ];
@@ -29,7 +28,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API, cache-first for static
+// Fetch: network-first for API + HTML, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -46,13 +45,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache-first
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        // Cache successful GET responses
-        if (response.ok && event.request.method === 'GET') {
+  // HTML pages: network-first (prevents stale login page flash)
+  if (event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, clone);
@@ -60,10 +57,24 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       }).catch(() => {
-        // Offline fallback for HTML
-        if (event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/zona/');
+        return caches.match(event.request) || caches.match('/zona/');
+      })
+    );
+    return;
+  }
+
+  // Static assets: cache-first
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response.ok && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone);
+          });
         }
+        return response;
       });
     })
   );

@@ -185,6 +185,29 @@ async function addMessage(clientId, message) {
   return messages;
 }
 
+// --- Check-ins (weekly check-in history) ---
+async function getCheckins(clientId) {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get(`checkins:${clientId}`, { type: 'json' });
+    return data?.entries || [];
+  } catch {
+    return [];
+  }
+}
+
+async function addCheckin(clientId, entry) {
+  const entries = await getCheckins(clientId);
+  entries.push({
+    ...entry,
+    id: `ci-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  });
+  const store = await getZonaStore();
+  await store.setJSON(`checkins:${clientId}`, { entries, updatedAt: new Date().toISOString() });
+  return entries;
+}
+
 // --- Nutrition Log (daily tracking: meals eaten, supplements taken) ---
 async function getNutritionLog(clientId, date) {
   const store = await getZonaStore();
@@ -226,4 +249,6 @@ module.exports = {
   addMessage,
   getNutritionLog,
   saveNutritionLog,
+  getCheckins,
+  addCheckin,
 };

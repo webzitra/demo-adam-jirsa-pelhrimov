@@ -41,6 +41,12 @@
             var target = document.querySelector(this.getAttribute('href'));
             if (target) {
                 e.preventDefault();
+                // Always close mobile menu if open
+                if (navMenu && navMenu.classList.contains('open')) {
+                    navMenu.classList.remove('open');
+                    if (navToggle) navToggle.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
                 var offset = navbar ? navbar.offsetHeight : 0;
                 var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
                 window.scrollTo({ top: top, behavior: 'smooth' });

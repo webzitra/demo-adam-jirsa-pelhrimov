@@ -520,7 +520,7 @@ section {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border);
+  border: none;
   color: var(--color-text-muted);
   transition: all var(--transition-fast);
   margin-left: var(--space-sm);
@@ -534,13 +534,11 @@ section {
 
 .navbar:not(.scrolled) .navbar-login {
   color: rgba(255, 255, 255, 0.6);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .navbar:not(.scrolled) .navbar-login:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Highlighted nav link (Online koučink) */
@@ -962,6 +960,50 @@ section {
   z-index: 3;
 }
 
+.services.no-diagonal::after {
+  display: none;
+}
+
+/* Online koučink page — disable ALL diagonal pseudo-elements */
+.page-online .diagonal-top::before,
+.page-online .diagonal-bottom::after,
+.page-online .diagonal-top-reverse::before,
+.page-online .hero::after,
+.page-online .about::after,
+.page-online .services::after,
+.page-online .process::after,
+.page-online .benefits::after {
+  display: none !important;
+}
+
+.page-online .diagonal-top {
+  padding: 7rem 0;
+}
+
+.page-online .benefits,
+.page-online .transformations,
+.page-online .contact {
+  padding: 7rem 0;
+}
+
+.page-online .services.no-diagonal {
+  padding: 7rem 0;
+}
+
+.page-online .about .container {
+  text-align: left;
+}
+
+.page-online .about .about-image {
+  max-width: 500px;
+}
+
+.page-online .about .about-image img {
+  border-radius: var(--radius-lg, 16px);
+  width: 100%;
+  height: auto;
+}
+
 .services-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1158,6 +1200,7 @@ section {
   background: var(--color-accent-subtle);
   border-radius: var(--border-radius-md);
   font-size: 1.4rem;
+  color: var(--color-accent);
   flex-shrink: 0;
 }
 
@@ -1215,6 +1258,14 @@ section {
 .service-accordion-body-inner {
   padding: 0 var(--space-2xl) var(--space-2xl);
   border-top: 1px solid var(--color-border);
+}
+
+.service-accordion-img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-lg);
 }
 
 .service-accordion-desc {
@@ -1325,6 +1376,12 @@ section {
 
 .hero.hero-video .hero-stats {
   justify-content: center;
+  gap: var(--space-3xl, 4.5rem);
+}
+
+.hero.hero-video .hero-stat {
+  text-align: center;
+  min-width: 120px;
 }
 
 
@@ -3118,5 +3175,356 @@ section {
     width: 95%;
     padding: var(--space-xl);
     max-height: 85vh;
+  }
+}
+
+
+/* ==========================================================================
+   KLIENTSKÁ ZÓNA PREVIEW — Online koučink page
+   ========================================================================== */
+
+.zona-preview {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(86, 200, 224, 0.15);
+}
+
+.zona-preview-browser {
+  background: var(--color-bg-dark, #1a1a2e);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zona-preview-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.zona-preview-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.zona-preview-dots span:first-child { background: #ff5f57; }
+.zona-preview-dots span:nth-child(2) { background: #febc2e; }
+.zona-preview-dots span:last-child { background: #28c840; }
+
+.zona-preview-url {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 16px;
+  border-radius: 6px;
+  flex: 1;
+  text-align: center;
+}
+
+.zona-preview-content {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  min-height: 320px;
+}
+
+.zona-preview-sidebar {
+  background: var(--color-bg-dark, #1a1a2e);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zona-preview-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent), #3a9fb8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.zona-preview-menu-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.zona-preview-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.zona-preview-menu-item.active {
+  background: rgba(86, 200, 224, 0.12);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.zona-preview-main {
+  background: var(--color-bg-secondary, #f5f7fa);
+  padding: 24px;
+}
+
+.zona-preview-main h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  margin-bottom: 16px;
+}
+
+.zona-preview-card {
+  background: var(--color-bg-primary, #fff);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.zona-preview-card strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-heading);
+  margin-bottom: 4px;
+}
+
+.zona-preview-card p {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #666);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Zona tabs */
+.zona-tab {
+  display: none;
+}
+
+.zona-tab.active {
+  display: block;
+  animation: zonaFadeIn 0.3s ease;
+}
+
+@keyframes zonaFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress bars */
+.zona-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0 4px;
+}
+
+.zona-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), #3BBDD8);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* Chat */
+.zona-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zona-chat-msg {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
+}
+
+.zona-chat-msg strong {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.zona-chat-msg p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.zona-chat-time {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #999);
+  margin-top: 4px;
+}
+
+.zona-chat-trainer {
+  background: rgba(86, 200, 224, 0.08);
+  border: 1px solid rgba(86, 200, 224, 0.15);
+  align-self: flex-start;
+}
+
+.zona-chat-trainer strong {
+  color: var(--color-accent);
+}
+
+.zona-chat-client {
+  background: var(--color-bg-primary, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  align-self: flex-end;
+}
+
+.zona-chat-client strong {
+  color: var(--color-heading);
+}
+
+/* Video grid */
+.zona-video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.zona-video-card {
+  background: var(--color-bg-primary, #fff);
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.zona-video-thumb {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.zona-video-card strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-heading);
+  margin-bottom: 2px;
+}
+
+.zona-video-card p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #999);
+  margin: 0;
+}
+
+/* Check-in stars */
+.zona-checkin-stars {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.zona-star {
+  font-size: 1.4rem;
+  color: rgba(0, 0, 0, 0.12);
+  line-height: 1;
+}
+
+.zona-star.active {
+  color: #f5a623;
+}
+
+/* Check-in slider */
+.zona-checkin-slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.zona-slider-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.zona-slider-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), #3BBDD8);
+  border-radius: 4px;
+}
+
+.zona-slider-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  min-width: 40px;
+}
+
+/* Energy pills */
+.zona-energy-pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--color-text-muted, #666);
+  cursor: default;
+}
+
+.zona-energy-pill.active {
+  background: rgba(86, 200, 224, 0.1);
+  border-color: rgba(86, 200, 224, 0.3);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Responsive — zona preview */
+@media (max-width: 768px) {
+  .zona-preview-content {
+    grid-template-columns: 1fr;
+  }
+
+  .zona-preview-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .zona-preview-avatar {
+    display: none;
+  }
+
+  .zona-preview-menu-item {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+
+  .zona-preview-main {
+    padding: 16px;
+  }
+
+  .zona-video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .zona-chat-msg {
+    max-width: 95%;
   }
 }

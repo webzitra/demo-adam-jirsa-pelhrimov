@@ -120,6 +120,7 @@
   const tabClients = document.getElementById('tab-clients');
   const tabPlanEditor = document.getElementById('tab-plan-editor');
   const tabNutritionEditor = document.getElementById('tab-nutrition-editor');
+  const tabMyWebsite = document.getElementById('tab-my-website');
 
   const clientsList = document.getElementById('clients-list');
   const addClientForm = document.getElementById('add-client-form');
@@ -172,8 +173,8 @@
     try {
       await api('zona-auth', { action: 'admin-verify', sessionToken });
       showScreen('admin');
-      await loadClients();
-      loadOverview();
+      // Load clients and overview in parallel for faster startup
+      Promise.all([loadClients(), loadOverview()]);
     } catch {
       localStorage.removeItem('admin_token');
       sessionToken = null;
@@ -191,8 +192,7 @@
       sessionToken = data.sessionToken;
       localStorage.setItem('admin_token', sessionToken);
       showScreen('admin');
-      await loadClients();
-      loadOverview();
+      Promise.all([loadClients(), loadOverview()]);
     } catch (err) {
       loginError.textContent = err.message;
       loginError.hidden = false;
@@ -206,7 +206,7 @@
   });
 
   // ===== Tabs =====
-  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor };
+  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'my-website': tabMyWebsite };
 
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -372,6 +372,12 @@
     planClientSelect.value = clientId;
     loadPlanForClient(clientId);
   };
+
+  // Auto-load on client select change
+  planClientSelect.addEventListener('change', () => {
+    const clientId = planClientSelect.value;
+    if (clientId) loadPlanForClient(clientId);
+  });
 
   loadPlanBtn.addEventListener('click', () => {
     const clientId = planClientSelect.value;
@@ -808,6 +814,11 @@
     const clientId = nutrClientSelect.value;
     if (!clientId) return toast('Vyber klienta');
     loadNutritionForClient(clientId);
+  });
+
+  nutrClientSelect.addEventListener('change', () => {
+    const clientId = nutrClientSelect.value;
+    if (clientId) loadNutritionForClient(clientId);
   });
 
   async function loadNutritionForClient(clientId) {
@@ -1428,6 +1439,129 @@
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   }
+
+  // ===== WEBSITE PREVIEW CONTROLS =====
+  (function initWebsitePreview() {
+    var deviceBtns = document.querySelectorAll('.website-device-btn');
+    var previewWrap = document.getElementById('website-preview-wrap');
+    var refreshBtn = document.getElementById('refresh-preview-btn');
+    var previewFrame = document.getElementById('website-preview-frame');
+
+    deviceBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        deviceBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        if (previewWrap) previewWrap.style.maxWidth = btn.dataset.width;
+      });
+    });
+
+    if (refreshBtn && previewFrame) {
+      refreshBtn.addEventListener('click', function() {
+        previewFrame.src = previewFrame.src;
+      });
+    }
+  })();
+
+  // ===== NOTIFICATION BUTTON — recent messages =====
+  (function initNotifications() {
+    var notifBtn = document.getElementById('notif-btn');
+    var notifBadge = document.getElementById('notif-badge');
+    if (!notifBtn) return;
+
+    // Create dropdown
+    var dropdown = document.createElement('div');
+    dropdown.className = 'notif-dropdown';
+    dropdown.id = 'notif-dropdown';
+    dropdown.hidden = true;
+    dropdown.innerHTML = '<div class="notif-dropdown-header"><h4>Poslední zprávy</h4></div><div class="notif-dropdown-body" id="notif-messages-list"><p class="text-muted">Načítám...</p></div>';
+    notifBtn.parentElement.style.position = 'relative';
+    notifBtn.parentElement.appendChild(dropdown);
+
+    var isOpen = false;
+    notifBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      isOpen = !isOpen;
+      dropdown.hidden = !isOpen;
+      if (isOpen) loadRecentMessages();
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target) && e.target !== notifBtn) {
+        isOpen = false;
+        dropdown.hidden = true;
+      }
+    });
+
+    async function loadRecentMessages() {
+      var list = document.getElementById('notif-messages-list');
+      if (!list) return;
+      list.innerHTML = '<p class="text-muted">Načítám...</p>';
+
+      try {
+        var data = await api('zona-admin', { action: 'list-clients' });
+        var clients = data.clients || [];
+        var allMessages = [];
+
+        // Fetch messages from each client (parallel, max 10)
+        var promises = clients.slice(0, 10).map(async function(client) {
+          try {
+            var msgData = await api('zona-admin', { action: 'get-messages', clientId: client.id });
+            var msgs = msgData.messages || [];
+            msgs.forEach(function(m) {
+              if (m.from === 'client') {
+                allMessages.push({ clientName: client.name, clientId: client.id, text: m.text, timestamp: m.timestamp });
+              }
+            });
+          } catch(e) { /* skip */ }
+        });
+
+        await Promise.all(promises);
+
+        // Sort by timestamp desc, take last 10
+        allMessages.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+        var recent = allMessages.slice(0, 10);
+
+        if (recent.length === 0) {
+          list.innerHTML = '<p class="text-muted" style="padding: 1rem; text-align: center;">Žádné nové zprávy</p>';
+          if (notifBadge) { notifBadge.hidden = true; }
+          return;
+        }
+
+        list.innerHTML = recent.map(function(m) {
+          var time = m.timestamp ? new Date(m.timestamp).toLocaleString('cs-CZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+          var shortText = m.text && m.text.length > 60 ? m.text.substring(0, 60) + '…' : (m.text || '');
+          return '<div class="notif-message-item" data-client-id="' + esc(m.clientId) + '">' +
+            '<div class="notif-msg-header"><strong>' + esc(m.clientName) + '</strong><span class="notif-msg-time">' + time + '</span></div>' +
+            '<p class="notif-msg-text">' + esc(shortText) + '</p>' +
+          '</div>';
+        }).join('');
+
+        // Update badge count
+        if (notifBadge) {
+          notifBadge.textContent = recent.length;
+          notifBadge.hidden = recent.length === 0;
+        }
+
+        // Click on message → open chat modal
+        list.querySelectorAll('.notif-message-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            var clientId = this.dataset.clientId;
+            if (clientId && typeof openChatModal === 'function') {
+              openChatModal(clientId);
+              isOpen = false;
+              dropdown.hidden = true;
+            }
+          });
+        });
+
+      } catch(e) {
+        list.innerHTML = '<p class="text-muted" style="padding: 1rem; text-align: center;">Nepodařilo se načíst zprávy</p>';
+      }
+    }
+
+    // Load on page load (after small delay)
+    setTimeout(loadRecentMessages, 1500);
+  })();
 
   // ===== Start =====
   init();

@@ -11,7 +11,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
   <link rel="manifest" href="manifest.json">
   <!-- Font loaded via CSS @font-face -->
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=14">
   <script>
     // Flash prevention — apply saved theme before render
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
@@ -44,22 +44,7 @@
         </button>
         <p id="login-error" class="form-error" hidden></p>
       </form>
-      <div class="login-security-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-        <span>Zabezpečeno · Tvoje data jsou v bezpečí</span>
-      </div>
-
-      <div class="login-promo">
-        <div class="login-promo-divider">
-          <span>Ještě nejsi klient?</span>
-        </div>
-        <p class="login-promo-text">Tréninkový plán, videa ke cvikům, výživa a suplementace — vše na jednom místě.</p>
-        <div class="login-promo-price">
-          <span class="promo-price-value">2 500 Kč</span>
-          <span class="promo-price-period">/ měsíc</span>
-        </div>
-        <a href="/online-koucink/" class="btn-promo">Chci taky začít →</a>
-      </div>
+      <p class="login-footer-link">Ještě nejsi klient? <a href="/online-koucink/">Zjisti více →</a></p>
     </div>
   </div>
 
@@ -186,9 +171,50 @@
         <span class="dash-logo">Adam<span>Jirsa</span></span>
       </div>
       <div class="dash-header-right">
-        <span class="dash-user" id="dash-user-name"></span>
-        <button class="theme-toggle" id="theme-toggle" title="Přepnout motiv">🌙</button>
-        <button class="btn-ghost btn-sm" id="logout-btn">Odhlásit</button>
+        <button class="dash-customize-btn" id="customize-btn" title="Přizpůsobit zobrazení">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div class="profile-menu-wrap">
+          <button class="profile-trigger" id="profile-trigger">
+            <span class="profile-avatar" id="profile-avatar"></span>
+            <span class="profile-name" id="dash-user-name"></span>
+            <svg class="profile-chevron" width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5L6 7.5L9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="profile-dropdown" id="profile-dropdown" hidden>
+            <div class="profile-dropdown-header">
+              <div class="profile-dropdown-avatar" id="profile-dropdown-avatar"></div>
+              <div class="profile-dropdown-info">
+                <div class="profile-dropdown-name" id="profile-dropdown-name"></div>
+                <div class="profile-dropdown-email" id="profile-dropdown-email"></div>
+              </div>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <div class="profile-dropdown-item" id="profile-member-since">
+              <span class="profile-item-icon">📅</span>
+              <span class="profile-item-label">Člen od</span>
+              <span class="profile-item-value" id="profile-since-value"></span>
+            </div>
+            <div class="profile-dropdown-item" id="profile-plan-info">
+              <span class="profile-item-icon">🎯</span>
+              <span class="profile-item-label">Cíl</span>
+              <span class="profile-item-value" id="profile-goal-value">—</span>
+            </div>
+            <div class="profile-dropdown-item" id="profile-frequency-info">
+              <span class="profile-item-icon">🏋️</span>
+              <span class="profile-item-label">Tréninky</span>
+              <span class="profile-item-value" id="profile-freq-value">—</span>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <button class="profile-dropdown-item profile-dropdown-btn" id="profile-theme-toggle">
+              <span class="profile-item-icon" id="profile-theme-icon">🌙</span>
+              <span class="profile-item-label">Tmavý režim</span>
+            </button>
+            <button class="profile-dropdown-item profile-dropdown-btn profile-logout" id="logout-btn">
+              <span class="profile-item-icon">🚪</span>
+              <span class="profile-item-label">Odhlásit se</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -208,17 +234,46 @@
       <p id="greeting-sub"></p>
     </section>
 
+    <!-- Stats overview -->
+    <section class="stats-overview" id="stats-overview" hidden>
+      <div class="stats-grid">
+        <div class="stat-card" id="stat-weight">
+          <div class="stat-icon">⚖️</div>
+          <div class="stat-value" id="stat-weight-value">—</div>
+          <div class="stat-label">Aktuální váha</div>
+        </div>
+        <div class="stat-card" id="stat-change">
+          <div class="stat-icon">📉</div>
+          <div class="stat-value" id="stat-change-value">—</div>
+          <div class="stat-label">Celková změna</div>
+        </div>
+        <div class="stat-card" id="stat-streak">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value" id="stat-streak-value">0</div>
+          <div class="stat-label">Týdenní streak</div>
+        </div>
+        <div class="stat-card" id="stat-checkins">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="stat-checkins-value">0</div>
+          <div class="stat-label">Check-inů</div>
+        </div>
+      </div>
+      <div class="badges-row" id="badges-row"></div>
+    </section>
+
     <!-- Today's training card -->
     <section class="dash-section" id="section-today" hidden>
       <div class="section-header">
         <h3>🏋️ Dnešní trénink</h3>
         <span class="badge" id="today-badge"></span>
       </div>
-      <div id="today-content" class="today-content">
-        <div class="empty-state" id="today-empty">
-          <span class="empty-icon">📋</span>
-          <p>Zatím nemáš přiřazený tréninkový plán.</p>
-          <p class="text-muted">Adam ti ho brzy připraví!</p>
+      <div class="section-body">
+        <div id="today-content" class="today-content">
+          <div class="empty-state" id="today-empty">
+            <span class="empty-icon">📋</span>
+            <p>Zatím nemáš přiřazený tréninkový plán.</p>
+            <p class="text-muted">Adam ti ho brzy připraví!</p>
+          </div>
         </div>
       </div>
     </section>
@@ -228,16 +283,18 @@
       <div class="section-header">
         <h3>📅 Tento týden</h3>
       </div>
-      <div class="day-tabs" id="day-tabs">
-        <button class="day-tab" data-day="monday">Po</button>
-        <button class="day-tab" data-day="tuesday">Út</button>
-        <button class="day-tab" data-day="wednesday">St</button>
-        <button class="day-tab" data-day="thursday">Čt</button>
-        <button class="day-tab" data-day="friday">Pá</button>
-        <button class="day-tab" data-day="saturday">So</button>
-        <button class="day-tab" data-day="sunday">Ne</button>
+      <div class="section-body">
+        <div class="day-tabs" id="day-tabs">
+          <button class="day-tab" data-day="monday">Po</button>
+          <button class="day-tab" data-day="tuesday">Út</button>
+          <button class="day-tab" data-day="wednesday">St</button>
+          <button class="day-tab" data-day="thursday">Čt</button>
+          <button class="day-tab" data-day="friday">Pá</button>
+          <button class="day-tab" data-day="saturday">So</button>
+          <button class="day-tab" data-day="sunday">Ne</button>
+        </div>
+        <div id="day-exercises" class="exercises-list"></div>
       </div>
-      <div id="day-exercises" class="exercises-list"></div>
     </section>
 
     <!-- Nutrition quick view -->
@@ -245,7 +302,9 @@
       <div class="section-header">
         <h3>🥗 Stravovací plán</h3>
       </div>
-      <div id="nutrition-content"></div>
+      <div class="section-body">
+        <div id="nutrition-content"></div>
+      </div>
     </section>
 
     <!-- Supplements -->
@@ -253,7 +312,9 @@
       <div class="section-header">
         <h3>💊 Suplementace</h3>
       </div>
-      <div id="supplements-content"></div>
+      <div class="section-body">
+        <div id="supplements-content"></div>
+      </div>
     </section>
 
     <!-- Progress tracking -->
@@ -266,40 +327,130 @@
         </div>
       </div>
 
-      <!-- Add entry form (hidden by default) -->
-      <div id="progress-form-wrap" class="progress-form-wrap" hidden>
-        <form id="progress-form" class="progress-form">
-          <div class="progress-form-row">
-            <div class="form-group">
-              <label for="progress-weight">Váha (kg)</label>
-              <input type="number" id="progress-weight" step="0.1" min="30" max="300" required placeholder="85.5">
+      <div class="section-body">
+        <!-- Add entry form (hidden by default) -->
+        <div id="progress-form-wrap" class="progress-form-wrap" hidden>
+          <form id="progress-form" class="progress-form">
+            <div class="progress-form-row">
+              <div class="form-group">
+                <label for="progress-weight">Váha (kg)</label>
+                <input type="number" id="progress-weight" step="0.1" min="30" max="300" required placeholder="85.5">
+              </div>
+              <div class="form-group">
+                <label for="progress-notes">Poznámka</label>
+                <input type="text" id="progress-notes" placeholder="Po tréninku, ráno nalačno...">
+              </div>
             </div>
-            <div class="form-group">
-              <label for="progress-notes">Poznámka</label>
-              <input type="text" id="progress-notes" placeholder="Po tréninku, ráno nalačno...">
+            <!-- Photo upload -->
+            <div class="photo-upload-area" id="photo-upload-area">
+              <input type="file" id="progress-photo" accept="image/*" capture="environment" hidden>
+              <div class="photo-upload-trigger" id="photo-upload-trigger">
+                <span class="photo-upload-icon">📸</span>
+                <span class="photo-upload-text">Přidej fotku (nepovinné)</span>
+              </div>
+              <div class="photo-preview" id="photo-preview">
+                <img id="photo-preview-img" alt="Preview">
+                <button type="button" class="photo-remove" id="photo-remove">✕</button>
+              </div>
             </div>
-          </div>
-          <!-- Photo upload -->
-          <div class="photo-upload-area" id="photo-upload-area">
-            <input type="file" id="progress-photo" accept="image/*" capture="environment" hidden>
-            <div class="photo-upload-trigger" id="photo-upload-trigger">
-              <span class="photo-upload-icon">📸</span>
-              <span class="photo-upload-text">Přidej fotku (nepovinné)</span>
-            </div>
-            <div class="photo-preview" id="photo-preview" hidden>
-              <img id="photo-preview-img" alt="Preview">
-              <button type="button" class="photo-remove" id="photo-remove">✕</button>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary btn-sm" id="progress-submit-btn">Uložit záznam</button>
-        </form>
+            <button type="submit" class="btn-primary btn-sm" id="progress-submit-btn">Uložit záznam</button>
+          </form>
+        </div>
+
+        <!-- Weight chart (SVG line) -->
+        <div id="progress-chart" class="progress-chart">
+          <svg id="weight-svg" class="weight-svg" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+        </div>
+
+        <!-- History list -->
+        <div id="progress-history" class="progress-history"></div>
+      </div>
+    </section>
+
+    <!-- Weekly check-in -->
+    <section class="dash-section" id="section-checkin">
+      <div class="section-header">
+        <h3>✅ Týdenní check-in</h3>
+        <span class="badge" id="checkin-badge"></span>
       </div>
 
-      <!-- Weight chart -->
-      <div id="progress-chart" class="progress-chart"></div>
+      <div class="section-body">
+        <div id="checkin-content">
+          <div id="checkin-form-wrap">
+            <form id="checkin-form" class="checkin-form">
+            <!-- Training rating -->
+            <div class="checkin-field">
+              <label>Jak šel trénink tento týden?</label>
+              <div class="checkin-stars" id="checkin-stars">
+                <button type="button" class="star-btn" data-value="1">★</button>
+                <button type="button" class="star-btn" data-value="2">★</button>
+                <button type="button" class="star-btn" data-value="3">★</button>
+                <button type="button" class="star-btn" data-value="4">★</button>
+                <button type="button" class="star-btn" data-value="5">★</button>
+              </div>
+              <input type="hidden" id="checkin-training-rating" name="trainingRating" value="">
+            </div>
 
-      <!-- History list -->
-      <div id="progress-history" class="progress-history"></div>
+            <!-- Diet adherence -->
+            <div class="checkin-field">
+              <label>Dodržování jídelníčku</label>
+              <div class="checkin-range-wrap">
+                <input type="range" id="checkin-diet" name="dietAdherence" min="0" max="100" step="5" value="75" class="checkin-range">
+                <span class="checkin-range-value" id="checkin-diet-value">75 %</span>
+              </div>
+            </div>
+
+            <!-- Weight -->
+            <div class="checkin-field">
+              <label for="checkin-weight">Aktuální váha (kg)</label>
+              <input type="number" id="checkin-weight" name="weight" step="0.1" min="30" max="300" placeholder="83.5" class="checkin-input">
+            </div>
+
+            <!-- Energy -->
+            <div class="checkin-field">
+              <label>Energie a nálada</label>
+              <div class="checkin-pills" id="checkin-energy">
+                <button type="button" class="checkin-pill" data-value="low">😴 Nízká</button>
+                <button type="button" class="checkin-pill" data-value="ok">😐 OK</button>
+                <button type="button" class="checkin-pill" data-value="good">💪 Dobrá</button>
+                <button type="button" class="checkin-pill" data-value="great">🔥 Skvělá</button>
+              </div>
+              <input type="hidden" id="checkin-energy-value" name="energy" value="">
+            </div>
+
+            <!-- Notes -->
+            <div class="checkin-field">
+              <label for="checkin-notes">Poznámky pro Adama</label>
+              <textarea id="checkin-notes" name="notes" class="checkin-textarea" rows="3" placeholder="Jak se cítíš? Co šlo dobře, co ne? Bolesti, otázky..."></textarea>
+            </div>
+
+            <!-- Photo -->
+            <div class="checkin-field">
+              <label>Progress fotka (nepovinné)</label>
+              <div class="photo-upload-area" id="checkin-photo-area">
+                <input type="file" id="checkin-photo" accept="image/*" capture="environment" hidden>
+                <div class="photo-upload-trigger" id="checkin-photo-trigger">
+                  <span class="photo-upload-icon">📸</span>
+                  <span class="photo-upload-text">Přidej fotku</span>
+                </div>
+                <div class="photo-preview" id="checkin-photo-preview">
+                  <img id="checkin-photo-preview-img" alt="Preview">
+                  <button type="button" class="photo-remove" id="checkin-photo-remove">✕</button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="checkin-submit-btn">Odeslat check-in ✓</button>
+          </form>
+        </div>
+
+          <!-- Check-in history -->
+          <div id="checkin-history" class="checkin-history">
+            <h4 class="checkin-history-title" id="checkin-history-title" hidden>Předchozí check-iny</h4>
+            <div id="checkin-history-list"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Chat section -->
@@ -307,16 +458,73 @@
       <div class="section-header">
         <h3>💬 Chat s Adamem</h3>
       </div>
-      <div class="chat-container" id="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-empty">Zatím žádné zprávy. Napiš Adamovi!</div>
-        </div>
-        <div class="chat-input-wrap">
-          <input type="text" id="chat-input" class="chat-input" placeholder="Napiš zprávu..." maxlength="500">
-          <button class="btn-primary btn-sm chat-send-btn" id="chat-send-btn">Odeslat</button>
+      <div class="section-body">
+        <div class="chat-container" id="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-empty">Zatím žádné zprávy. Napiš Adamovi!</div>
+          </div>
+          <div class="chat-input-wrap">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Napiš zprávu..." maxlength="500">
+            <button class="btn-primary btn-sm chat-send-btn" id="chat-send-btn">Odeslat</button>
+          </div>
         </div>
       </div>
     </section>
+
+    <!-- Customize panel (slide-in) -->
+    <div class="customize-panel" id="customize-panel" hidden>
+      <div class="customize-backdrop" id="customize-backdrop"></div>
+      <div class="customize-content">
+        <div class="customize-header">
+          <h3>Přizpůsobit zobrazení</h3>
+          <button class="customize-close" id="customize-close">✕</button>
+        </div>
+        <p class="customize-desc">Vyber, které sekce chceš vidět. Nastavení se uloží.</p>
+        <div class="customize-toggles" id="customize-toggles">
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="stats-overview" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">📊 Statistiky</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-today" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">🏋️ Dnešní trénink</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-week" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">📅 Tento týden</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-nutrition" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">🥗 Stravovací plán</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-supplements" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">💊 Suplementace</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-progress" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">📈 Můj progres</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-checkin" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">✅ Týdenní check-in</span>
+          </label>
+          <label class="customize-toggle">
+            <input type="checkbox" data-section="section-chat" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">💬 Chat s Adamem</span>
+          </label>
+        </div>
+        <button class="btn-ghost btn-sm customize-reset" id="customize-reset">Zobrazit vše</button>
+      </div>
+    </div>
 
     <!-- Footer -->
     <footer class="dash-footer">
@@ -378,7 +586,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=11"></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {

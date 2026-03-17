@@ -4,6 +4,7 @@ const {
   getWorkoutLog, saveWorkoutLog, getOnboarding, saveOnboarding,
   getMessages, addMessage,
   getNutritionLog, saveNutritionLog,
+  getCheckins, addCheckin,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -126,6 +127,35 @@ exports.handler = async (event) => {
     return jsonResponse(200, { success: true, messages });
   }
 
+  // --- Submit weekly check-in ---
+  if (action === 'submit-checkin') {
+    const { trainingRating, dietAdherence, weight, energy, notes, photo } = body;
+
+    const entry = {
+      trainingRating: parseInt(trainingRating) || 0,
+      dietAdherence: parseInt(dietAdherence) || 0,
+      weight: weight ? parseFloat(weight) : null,
+      energy: energy || null,
+      notes: notes || '',
+    };
+
+    if (photo && typeof photo === 'string' && photo.startsWith('data:image/')) {
+      if (photo.length > 700000) {
+        return jsonResponse(400, { error: 'Fotka je příliš velká (max 500 KB)' });
+      }
+      entry.photo = photo;
+    }
+
+    const entries = await addCheckin(clientId, entry);
+    return jsonResponse(200, { success: true, entries });
+  }
+
+  // --- Get check-in history ---
+  if (action === 'get-checkins') {
+    const entries = await getCheckins(clientId);
+    return jsonResponse(200, { entries });
+  }
+
   // --- Save nutrition log (meals eaten, supplements taken) ---
   if (action === 'save-nutrition-log') {
     const { date, log } = body;
@@ -149,7 +179,7 @@ exports.handler = async (event) => {
   // --- Get dashboard (all data at once) ---
   if (action === 'dashboard') {
     const today = new Date().toISOString().split('T')[0];
-    const [plan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog] = await Promise.all([
+    const [plan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog, checkins] = await Promise.all([
       getPlan(clientId),
       getNutrition(clientId),
       getProgress(clientId),
@@ -157,6 +187,7 @@ exports.handler = async (event) => {
       getOnboarding(clientId),
       getMessages(clientId),
       getNutritionLog(clientId, today),
+      getCheckins(clientId),
     ]);
 
     const { passwordHash, ...safeClient } = client;
@@ -165,11 +196,12 @@ exports.handler = async (event) => {
       client: safeClient,
       plan,
       nutrition,
-      progress: progressEntries.slice(-10),
+      progress: progressEntries.slice(-30),
       todayLog,
       todayNutritionLog,
       onboarding,
       messages: messages.slice(-50),
+      checkins: checkins.slice(-20),
     });
   }
 

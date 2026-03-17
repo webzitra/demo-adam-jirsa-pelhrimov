@@ -6,8 +6,8 @@
   <title>Admin — Adam Jirsa</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
-  <link rel="stylesheet" href="/zona/style.css?v=7">
-  <link rel="stylesheet" href="admin.css?v=6">
+  <link rel="stylesheet" href="/zona/style.css?v=14">
+  <link rel="stylesheet" href="admin.css?v=7">
   <script>
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
   </script>
@@ -61,6 +61,7 @@
       <button class="admin-tab" data-tab="clients">👥 Klienti</button>
       <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
       <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
+      <button class="admin-tab" data-tab="my-website">🌐 Můj web</button>
     </div>
 
     <!-- ===== TAB: Overview ===== -->
@@ -287,6 +288,90 @@
         <p id="nutrition-status" class="form-error" style="margin-top: 0.5rem; color: var(--accent);" hidden></p>
       </section>
     </div>
+    <!-- ===== TAB: My Website ===== -->
+    <div class="admin-content" id="tab-my-website" hidden>
+
+      <!-- Website info bar -->
+      <section class="admin-card website-info-card">
+        <div class="website-info-header">
+          <div class="website-info-left">
+            <h3>🌐 Správa webu</h3>
+            <p class="text-muted">Tvůj web: <a href="https://demo-adam-jirsa.netlify.app" target="_blank" rel="noopener" class="website-url-link">demo-adam-jirsa.netlify.app</a></p>
+          </div>
+          <div class="website-info-actions">
+            <a href="https://webzitra.cz/klient/" target="_blank" rel="noopener" class="btn-primary btn-sm">✏️ Otevřít editor</a>
+            <a href="https://demo-adam-jirsa.netlify.app" target="_blank" rel="noopener" class="btn-ghost btn-sm">↗ Živý web</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick actions -->
+      <section class="admin-card">
+        <h3>⚡ Rychlé akce</h3>
+        <div class="website-actions-grid">
+          <a href="https://webzitra.cz/klient/" target="_blank" rel="noopener" class="website-action-card">
+            <span class="website-action-icon">✏️</span>
+            <span class="website-action-title">AI Editor</span>
+            <span class="website-action-desc">Uprav texty, obrázky a styly pomocí AI chatu</span>
+          </a>
+          <a href="https://webzitra.cz/klient/" target="_blank" rel="noopener" class="website-action-card">
+            <span class="website-action-icon">🎨</span>
+            <span class="website-action-title">Grafika</span>
+            <span class="website-action-desc">Generuj bannery, příspěvky na sociální sítě</span>
+          </a>
+          <a href="https://demo-adam-jirsa.netlify.app" target="_blank" rel="noopener" class="website-action-card">
+            <span class="website-action-icon">👀</span>
+            <span class="website-action-title">Náhled webu</span>
+            <span class="website-action-desc">Podívej se jak web aktuálně vypadá</span>
+          </a>
+          <a href="https://www.instagram.com/adam.jirsa.fit/" target="_blank" rel="noopener" class="website-action-card">
+            <span class="website-action-icon">📱</span>
+            <span class="website-action-title">Instagram</span>
+            <span class="website-action-desc">Tvůj profil @adam.jirsa.fit</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Live preview -->
+      <section class="admin-card website-preview-card">
+        <div class="website-preview-header">
+          <h3>📺 Náhled webu</h3>
+          <div class="website-preview-controls">
+            <button class="btn-ghost btn-sm website-device-btn active" data-width="100%" title="Desktop">🖥</button>
+            <button class="btn-ghost btn-sm website-device-btn" data-width="768px" title="Tablet">📱</button>
+            <button class="btn-ghost btn-sm website-device-btn" data-width="375px" title="Mobil">📲</button>
+            <button class="btn-ghost btn-sm" id="refresh-preview-btn" title="Obnovit">🔄</button>
+          </div>
+        </div>
+        <div class="website-preview-frame-wrap" id="website-preview-wrap">
+          <iframe src="https://demo-adam-jirsa.netlify.app" class="website-preview-frame" id="website-preview-frame" loading="lazy"></iframe>
+        </div>
+      </section>
+
+      <!-- Web stats info -->
+      <section class="admin-card">
+        <h3>ℹ️ Informace o webu</h3>
+        <div class="website-details-grid">
+          <div class="website-detail-item">
+            <span class="website-detail-label">Platforma</span>
+            <span class="website-detail-value">WebZítra</span>
+          </div>
+          <div class="website-detail-item">
+            <span class="website-detail-label">Hosting</span>
+            <span class="website-detail-value">Netlify CDN</span>
+          </div>
+          <div class="website-detail-item">
+            <span class="website-detail-label">SSL</span>
+            <span class="website-detail-value" style="color: #4ade80;">✓ Aktivní</span>
+          </div>
+          <div class="website-detail-item">
+            <span class="website-detail-label">Tarif</span>
+            <span class="website-detail-value">Komfort (AI editor)</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
   </div>
 
   <!-- Progress modal -->
@@ -341,6 +426,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

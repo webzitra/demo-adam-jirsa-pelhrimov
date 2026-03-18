@@ -435,7 +435,7 @@ section {
   height: var(--navbar-height);
   display: flex;
   align-items: center;
-  z-index: var(--z-nav);
+  z-index: 9990;
   transition: background var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -3052,7 +3052,7 @@ section {
   bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: var(--z-overlay);
+  z-index: 500;
   background: var(--color-accent);
   color: var(--color-text-on-accent);
   padding: 0.9rem 2rem;

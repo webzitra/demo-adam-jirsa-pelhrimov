@@ -2407,11 +2407,37 @@ section {
 
   /* Navbar — mobile */
   .navbar-links {
-    display: none;
+    display: none !important;
+  }
+
+  .navbar-login {
+    display: none !important;
+  }
+
+  .navbar-cta {
+    display: none !important;
   }
 
   .navbar-toggle {
-    display: flex;
+    display: flex !important;
+  }
+
+  .navbar-toggle span {
+    width: 24px;
+    height: 2px;
+    background: var(--color-text);
+  }
+
+  .navbar:not(.scrolled) .navbar-toggle span {
+    background: #fff;
+  }
+
+  .navbar.scrolled .navbar-toggle span {
+    background: var(--color-text);
+  }
+
+  .page-online .navbar.scrolled .navbar-toggle span {
+    background: #fff;
   }
 
   /* Floating CTA lower z-index than menu overlay */

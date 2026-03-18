@@ -435,7 +435,7 @@ section {
   height: var(--navbar-height);
   display: flex;
   align-items: center;
-  z-index: 9990;
+  z-index: 9999;
   transition: background var(--transition-base), box-shadow var(--transition-base);
 }
 

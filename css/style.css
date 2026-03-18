@@ -130,6 +130,7 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -141,6 +142,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  max-width: 100vw;
 }
 
 img {
@@ -1756,7 +1758,7 @@ section {
 .contact-details {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   margin-bottom: var(--space-2xl);
 }
 
@@ -1764,17 +1766,27 @@ section {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  transition: all var(--transition-base);
+}
+
+.contact-detail:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 4px 16px rgba(86, 200, 224, 0.08);
+  transform: translateY(-1px);
 }
 
 .contact-detail-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(86, 200, 224, 0.08);
-  border: 1px solid rgba(86, 200, 224, 0.12);
-  border-radius: var(--border-radius-md);
+  background: rgba(86, 200, 224, 0.1);
+  border-radius: 50%;
   font-size: 1.25rem;
   color: var(--color-accent);
   flex-shrink: 0;
@@ -1817,19 +1829,21 @@ section {
   margin-top: var(--space-lg);
 }
 
-/* Instagram CTA Link */
+/* Instagram & Facebook Links */
 .contact-ig-link,
 .contact-fb-link {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
   color: #fff;
-  border-radius: var(--border-radius-md);
+  border-radius: 999px;
   text-decoration: none;
   font-weight: 600;
   font-size: var(--font-size-sm);
   transition: all var(--transition-base);
+  flex: 1;
 }
 
 .contact-ig-link {
@@ -2890,6 +2904,32 @@ section {
 
   .pricing-box-amount {
     font-size: var(--font-size-3xl);
+  }
+}
+
+
+/* ==========================================================================
+   19b. MOBILE CONTACT FIX
+   ========================================================================== */
+
+@media (max-width: 480px) {
+  .contact-social-links {
+    flex-direction: column;
+  }
+
+  .contact-ig-link,
+  .contact-fb-link {
+    width: 100%;
+    max-width: none;
+  }
+
+  .contact-detail {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .contact-detail-value {
+    font-size: var(--font-size-sm);
+    word-break: break-all;
   }
 }
 

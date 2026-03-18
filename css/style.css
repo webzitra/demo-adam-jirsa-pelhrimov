@@ -970,6 +970,24 @@ section {
   display: none;
 }
 
+/* Online koučink page — navbar always dark */
+.page-online .navbar.scrolled {
+  background: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.page-online .navbar.scrolled .navbar-logo { color: #ffffff; }
+.page-online .navbar.scrolled .navbar-toggle span { background: #ffffff; }
+.page-online .navbar.scrolled .navbar-links a { color: rgba(255, 255, 255, 0.7); }
+.page-online .navbar.scrolled .navbar-links a:hover,
+.page-online .navbar.scrolled .navbar-links a.active { color: #ffffff; }
+.page-online .navbar.scrolled .navbar-cta {
+  background: var(--color-accent);
+  color: #fff;
+}
+
 /* Online koučink page — disable ALL diagonal pseudo-elements */
 .page-online .diagonal-top::before,
 .page-online .diagonal-bottom::after,

@@ -578,18 +578,11 @@ section {
   gap: 5px;
   padding: 8px;
   cursor: pointer;
-  z-index: 2;
+  z-index: calc(var(--z-overlay) + 10);
   background: none;
   border: none;
   -webkit-appearance: none;
   appearance: none;
-}
-
-.navbar-toggle.active {
-  z-index: calc(var(--z-overlay) + 10);
-  position: fixed;
-  top: 20px;
-  right: 20px;
 }
 
 .navbar-toggle span {

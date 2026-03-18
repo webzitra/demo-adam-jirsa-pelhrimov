@@ -2850,6 +2850,8 @@ section {
   color: var(--color-accent);
   font-weight: 700;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
 .pricing-box-cta {
@@ -3262,6 +3264,13 @@ section {
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zona-preview-menu-item svg {
+  flex-shrink: 0;
 }
 
 .zona-preview-menu-item:hover {
@@ -3477,7 +3486,9 @@ section {
 
 /* Energy pills */
 .zona-energy-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.75rem;

@@ -608,6 +608,7 @@ section {
 
 /* Mobile Menu Overlay */
 .navbar-mobile {
+  display: none !important;
   position: fixed;
   top: 0;
   left: 0;
@@ -617,21 +618,14 @@ section {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 9998;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-xl);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .navbar-mobile.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+  display: flex !important;
 }
 
 .navbar-mobile a {

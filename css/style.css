@@ -2923,6 +2923,48 @@ section {
     margin: 0 auto;
   }
 
+  /* Online about — compact on mobile */
+  .page-online .about {
+    padding: 3rem 0;
+  }
+
+  .page-online .about .about-text {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .page-online .about .about-text p {
+    margin-bottom: var(--space-sm);
+  }
+
+  .page-online .about .about-lead {
+    font-size: var(--font-size-base);
+  }
+
+  .page-online .about .about-highlights {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding-top: var(--space-md);
+    text-align: center;
+  }
+
+  .page-online .about .about-highlight {
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--font-size-xs);
+  }
+
+  .page-online .about .about-image {
+    max-width: 100%;
+  }
+
+  .page-online .about .about-image img {
+    max-height: 350px;
+    object-fit: cover;
+  }
+
   /* Service cards tighter */
   .service-card {
     padding: var(--space-xl);

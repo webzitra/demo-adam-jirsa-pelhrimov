@@ -387,4 +387,15 @@
         });
     }
 
+    // --- Show more transformations ---
+    var showMoreBtn = document.getElementById('show-more-transformations');
+    var moreTransformations = document.getElementById('more-transformations');
+    var showMoreWrap = document.getElementById('show-more-wrap');
+    if (showMoreBtn && moreTransformations) {
+        showMoreBtn.addEventListener('click', function() {
+            moreTransformations.removeAttribute('hidden');
+            showMoreWrap.style.display = 'none';
+        });
+    }
+
 })();

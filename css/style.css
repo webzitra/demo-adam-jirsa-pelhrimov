@@ -1800,7 +1800,7 @@ section {
   height: 56px;
   border-radius: 50%;
   object-fit: cover;
-  object-position: top left;
+  object-position: center center;
   border: 2px solid var(--color-accent-glow);
   flex-shrink: 0;
 }

@@ -2809,19 +2809,30 @@ section {
   }
 
   .contact-details {
-    align-items: center;
+    align-items: stretch;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contact-detail {
+    justify-content: center;
   }
 
   .contact-social-links {
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .contact-ig-link,
   .contact-fb-link {
     justify-content: center;
     width: 100%;
-    max-width: 280px;
   }
 
   .form-row {

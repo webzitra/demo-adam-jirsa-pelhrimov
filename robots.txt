@@ -1,0 +1,7 @@
+# robots.txt — adamjirsa.cz
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /zona/
+
+Sitemap: https://adamjirsa.cz/sitemap.xml

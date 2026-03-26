@@ -5,6 +5,13 @@
 [functions]
   node_bundler = "esbuild"
 
+# www → non-www redirect
+[[redirects]]
+  from = "https://www.adamjirsa.cz/*"
+  to = "https://adamjirsa.cz/:splat"
+  status = 301
+  force = true
+
 # API redirects
 [[redirects]]
   from = "/api/*"
@@ -40,4 +47,20 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     X-XSS-Protection = "1; mode=block"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Cache static assets (images, css, js)
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
 

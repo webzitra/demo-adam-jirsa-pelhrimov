@@ -7,6 +7,11 @@
   <meta name="description" content="Osobní trenér a výživový poradce Adam Jirsa. Měsíční koučink, tréninky na míru a stravovací plány. Hypertrophy Gym Pelhřimov. 10+ let zkušeností.">
   <meta name="author" content="Adam Jirsa">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://adamjirsa.cz/">
+  <meta name="geo.region" content="CZ-VY">
+  <meta name="geo.placename" content="Pelhřimov">
+  <meta name="geo.position" content="49.4313;15.2233">
+  <meta name="ICBM" content="49.4313, 15.2233">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Adam Jirsa — Osobní trenér a výživový poradce Pelhřimov">
@@ -728,28 +733,100 @@
   <!-- Scripts -->
   <script src="js/main.js?v=6"></script>
 
-  <!-- JSON-LD Structured Data -->
+  <!-- JSON-LD Structured Data — LocalBusiness -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": "HealthAndBeautyBusiness",
     "name": "Adam Jirsa — Osobní trenér",
-    "description": "Certifikovaný osobní trenér v Pelhřimově. Osobní tréninky, výživové poradenství, online spolupráce a life style coaching.",
-    "url": "https://www.adamjirsa.cz",
+    "alternateName": "Adam Jirsa Fitness",
+    "description": "Certifikovaný osobní trenér a výživový poradce v Pelhřimově. Osobní tréninky, výživové poradenství, online koučink a life style coaching.",
+    "url": "https://adamjirsa.cz",
     "telephone": "+420731171777",
     "email": "jirsaadam2003@seznam.cz",
     "taxID": "CZ07816448",
-    "areaServed": ["Pelhřimov"],
+    "image": "https://adamjirsa.cz/img/og-image.jpg",
+    "logo": "https://adamjirsa.cz/img/og-image.jpg",
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "Pelhřimov",
+        "sameAs": "https://cs.wikipedia.org/wiki/Pelh%C5%99imov"
+      }
+    ],
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Pražská 1947",
       "addressLocality": "Pelhřimov",
+      "postalCode": "39301",
+      "addressRegion": "Vysočina",
       "addressCountry": "CZ"
     },
-    "priceRange": "600-2500 Kč",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 49.4313,
+      "longitude": 15.2233
+    },
+    "priceRange": "600–2500 Kč",
+    "currenciesAccepted": "CZK",
+    "paymentAccepted": "Cash, Bank Transfer",
     "sameAs": [
-      "https://www.instagram.com/adam.jirsa.fit/"
-    ]
+      "https://www.instagram.com/adam.jirsa.fit/",
+      "https://www.facebook.com/Adam.Jirsa.Fitness"
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Služby osobního trenéra",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Individuální osobní trénink",
+            "description": "Osobní trénink 1:1 v Hypertrophy Gym Pelhřimov"
+          },
+          "price": "600",
+          "priceCurrency": "CZK",
+          "unitText": "hodina"
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Online koučink 1:1",
+            "description": "Kompletní online koučink — tréninkový plán, stravovací plán, pravidelné kontroly",
+            "url": "https://adamjirsa.cz/online-koucink/"
+          },
+          "price": "2500",
+          "priceCurrency": "CZK",
+          "unitText": "měsíc"
+        }
+      ]
+    }
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data — Person -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Adam Jirsa",
+    "jobTitle": "Osobní trenér a výživový poradce",
+    "url": "https://adamjirsa.cz",
+    "image": "https://adamjirsa.cz/img/adam-profile.jpg",
+    "telephone": "+420731171777",
+    "email": "jirsaadam2003@seznam.cz",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Pelhřimov",
+      "addressCountry": "CZ"
+    },
+    "sameAs": [
+      "https://www.instagram.com/adam.jirsa.fit/",
+      "https://www.facebook.com/Adam.Jirsa.Fitness"
+    ],
+    "knowsAbout": ["osobní trénink", "výživové poradenství", "fitness", "kulturistika", "online koučink"]
   }
   </script>
 </body>

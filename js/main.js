@@ -225,6 +225,7 @@
                 btn.style.opacity = '0.7';
             }
             var formData = new FormData(form);
+            formData.append('form-name', form.getAttribute('name'));
             fetch('/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

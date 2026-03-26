@@ -664,7 +664,7 @@
   let planAutosavePaused = false;
 
   async function savePlan() {
-    if (!selectedClientId || !currentPlan || planSaving) return;
+    if (!selectedClientId || !currentPlan || planSaving || planAutosavePaused) return;
     saveDayToModel();
     currentPlan.message = planMessage.value.trim();
     currentPlan.messageDate = new Date().toISOString();
@@ -793,7 +793,7 @@
       renderDayEditor();
       closeTemplateModal();
       toast('✅ Šablona aplikována!');
-      setTimeout(() => { planAutosavePaused = false; }, 1000);
+      setTimeout(() => { planAutosavePaused = false; }, 3000);
     } catch (err) {
       toast('❌ ' + err.message);
       planAutosavePaused = false;

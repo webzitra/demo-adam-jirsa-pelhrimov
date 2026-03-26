@@ -209,7 +209,7 @@
 
   // ===== Tabs =====
   const tabEngagement = document.getElementById('tab-engagement');
-  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'my-website': tabMyWebsite, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
+  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
 
   // Tab scroll hint (fade on right when more tabs are hidden)
   const tabsScrollEl = document.getElementById('admin-tabs-scroll');

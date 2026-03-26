@@ -212,25 +212,47 @@
         firstAccordion.style.maxHeight = firstAccordion.scrollHeight + 'px';
     }
 
-    // --- Contact form (demo only) ---
+    // --- Contact form (Netlify Forms) ---
     var form = document.querySelector('.contact-form');
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             var btn = form.querySelector('button[type="submit"]');
+            var originalText = btn ? btn.textContent : '';
             if (btn) {
-                btn.textContent = '✓ Odesláno!';
+                btn.textContent = 'Odesílám...';
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
             }
-            setTimeout(function() {
-                form.reset();
+            var formData = new FormData(form);
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(formData).toString()
+            }).then(function(response) {
+                if (response.ok) {
+                    if (btn) btn.textContent = '✓ Odesláno!';
+                    form.reset();
+                    setTimeout(function() {
+                        if (btn) {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                            btn.style.opacity = '';
+                        }
+                    }, 4000);
+                } else {
+                    throw new Error('Chyba při odesílání');
+                }
+            }).catch(function() {
                 if (btn) {
-                    btn.textContent = 'Chci konzultaci zdarma';
+                    btn.textContent = '✗ Chyba, zkus to znovu';
                     btn.disabled = false;
                     btn.style.opacity = '';
                 }
-            }, 3000);
+                setTimeout(function() {
+                    if (btn) btn.textContent = originalText;
+                }, 3000);
+            });
         });
     }
 

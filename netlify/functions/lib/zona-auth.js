@@ -1,6 +1,9 @@
 const crypto = require('crypto');
 
-const TOKEN_SECRET = process.env.ZONA_SECRET || 'dev-secret-change-me';
+const TOKEN_SECRET = process.env.ZONA_SECRET;
+if (!TOKEN_SECRET) {
+  console.error('ZONA_SECRET env variable is not set! Auth will not work.');
+}
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 dní
 
 // --- Password hashing (scrypt) ---
@@ -79,7 +82,7 @@ function jsonResponse(statusCode, body) {
     statusCode,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN || '*',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
     body: JSON.stringify(body),

@@ -1370,7 +1370,7 @@
 
   function renderChat() {
     if (!messagesData || messagesData.length === 0) {
-      chatMessages.innerHTML = '<div class="chat-empty">Zatím žádné zprávy. Napiš Adamovi!</div>';
+      chatMessages.innerHTML = '<div class="chat-empty">Zatím žádné zprávy. Napiš mi!</div>';
       return;
     }
 

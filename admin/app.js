@@ -775,12 +775,9 @@
   };
 
   window.applyTemplate = async function(templateId) {
-    if (!confirm('Nahradit aktuální plán šablonou?')) return;
-
     try {
       const data = await api('zona-admin', { action: 'apply-template', clientId: selectedClientId, templateId });
       currentPlan = data.plan || createEmptyPlan();
-      currentDay = 'monday';
       renderPlanDayTabs();
       renderDayEditor();
       closeTemplateModal();

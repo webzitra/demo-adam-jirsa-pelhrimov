@@ -375,47 +375,37 @@
     <div class="admin-content" id="tab-engagement" hidden>
       <section class="admin-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3 style="margin: 0;">📈 Engagement Report</h3>
+          <h3 style="margin: 0;">📈 Report</h3>
           <button class="btn-ghost btn-sm" id="refresh-engagement-btn">🔄 Aktualizovat</button>
         </div>
-        <div class="overview-stats" id="engagement-summary">
-          <div class="overview-stat">
-            <span class="overview-stat-value" id="eng-avg-adherence">—</span>
-            <span class="overview-stat-label">Prům. adherence</span>
+        <div class="eng-summary-grid">
+          <div class="eng-summary-card">
+            <span class="eng-summary-icon">🎯</span>
+            <span class="eng-summary-value" id="eng-avg-adherence">—</span>
+            <span class="eng-summary-label">Dodržování plánu</span>
           </div>
-          <div class="overview-stat">
-            <span class="overview-stat-value" id="eng-avg-workouts">—</span>
-            <span class="overview-stat-label">Prům. tréninky/týden</span>
+          <div class="eng-summary-card">
+            <span class="eng-summary-icon">💪</span>
+            <span class="eng-summary-value" id="eng-avg-workouts">—</span>
+            <span class="eng-summary-label">Tréninky / týden</span>
           </div>
-          <div class="overview-stat">
-            <span class="overview-stat-value" id="eng-most-active">—</span>
-            <span class="overview-stat-label">Nejaktivnější</span>
+          <div class="eng-summary-card">
+            <span class="eng-summary-icon">🏆</span>
+            <span class="eng-summary-value" id="eng-most-active">—</span>
+            <span class="eng-summary-label">Nejaktivnější</span>
           </div>
-          <div class="overview-stat">
-            <span class="overview-stat-value" id="eng-needs-attention">—</span>
-            <span class="overview-stat-label">Vyžadují pozornost</span>
+          <div class="eng-summary-card eng-attention">
+            <span class="eng-summary-icon">⚠️</span>
+            <span class="eng-summary-value" id="eng-needs-attention">—</span>
+            <span class="eng-summary-label">Potřebují pozornost</span>
           </div>
         </div>
       </section>
 
       <section class="admin-card">
         <h3>👥 Přehled klientů</h3>
-        <div class="engagement-table-wrap" id="engagement-table-wrap">
-          <table class="engagement-table" id="engagement-table">
-            <thead>
-              <tr>
-                <th>Jméno</th>
-                <th>Tréninky/týden</th>
-                <th>Dieta</th>
-                <th>Odpovědi</th>
-                <th>Posl. aktivita</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="engagement-tbody">
-              <tr><td colspan="6" class="text-muted" style="text-align:center;">Načítám...</td></tr>
-            </tbody>
-          </table>
+        <div id="engagement-clients">
+          <p class="text-muted" style="text-align: center;">Načítám...</p>
         </div>
       </section>
     </div>

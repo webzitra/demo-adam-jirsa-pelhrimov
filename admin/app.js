@@ -1919,17 +1919,16 @@
   let engagementLoaded = false;
 
   async function loadEngagement() {
-    const tbody = document.getElementById('engagement-tbody');
+    const container = document.getElementById('engagement-clients');
     const summaryAvgAdherence = document.getElementById('eng-avg-adherence');
     const summaryAvgWorkouts = document.getElementById('eng-avg-workouts');
     const summaryMostActive = document.getElementById('eng-most-active');
     const summaryNeedsAttention = document.getElementById('eng-needs-attention');
 
-    if (!tbody) return;
+    if (!container) return;
 
-    // Show loading state
     if (!engagementLoaded) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;">Načítám...</td></tr>';
+      container.innerHTML = '<div class="eng-loading"><div class="eng-skeleton"></div><div class="eng-skeleton"></div></div>';
     }
 
     try {
@@ -1939,56 +1938,67 @@
       const summary = data.summary || {};
       const clientMetrics = data.clients || [];
 
-      // Summary cards
       summaryAvgAdherence.textContent = summary.avgAdherence != null ? summary.avgAdherence + '%' : '—';
       summaryAvgWorkouts.textContent = summary.avgWorkoutsPerWeek != null ? summary.avgWorkoutsPerWeek.toFixed(1) : '—';
       summaryMostActive.textContent = summary.mostActiveClient || '—';
-      summaryMostActive.style.fontSize = summary.mostActiveClient && summary.mostActiveClient.length > 10 ? '0.9rem' : '';
+      summaryMostActive.style.fontSize = summary.mostActiveClient && summary.mostActiveClient.length > 10 ? '0.85rem' : '';
       summaryNeedsAttention.textContent = summary.needsAttention != null ? summary.needsAttention : '—';
 
-      // Table
       if (clientMetrics.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;">Zatím žádná data.</td></tr>';
+        container.innerHTML = '<p class="text-muted" style="text-align:center;">Zatím žádná data.</p>';
         return;
       }
 
-      tbody.innerHTML = clientMetrics.map(c => {
-        // Status badge
-        let statusClass, statusLabel;
-        if (c.status === 'active') {
-          statusClass = 'eng-active';
-          statusLabel = 'Aktivní';
-        } else if (c.status === 'declining') {
-          statusClass = 'eng-declining';
-          statusLabel = 'Klesá';
-        } else {
-          statusClass = 'eng-inactive';
-          statusLabel = 'Neaktivní';
-        }
-
-        // Color classes for values
-        const workoutClass = c.workoutsPerWeek >= 3 ? 'eng-value-good' : c.workoutsPerWeek >= 1 ? 'eng-value-ok' : 'eng-value-bad';
-        const dietClass = c.dietAdherence >= 70 ? 'eng-value-good' : c.dietAdherence >= 40 ? 'eng-value-ok' : 'eng-value-bad';
-        const responseClass = c.responseRate >= 70 ? 'eng-value-good' : c.responseRate >= 40 ? 'eng-value-ok' : 'eng-value-bad';
-        const activityClass = c.daysSinceLastActivity <= 2 ? 'eng-value-good' : c.daysSinceLastActivity <= 5 ? 'eng-value-ok' : 'eng-value-bad';
+      container.innerHTML = clientMetrics.map(c => {
+        let statusClass, statusLabel, statusIcon;
+        if (c.status === 'active') { statusClass = 'eng-active'; statusLabel = 'Aktivní'; statusIcon = '🟢'; }
+        else if (c.status === 'declining') { statusClass = 'eng-declining'; statusLabel = 'Klesá'; statusIcon = '🟡'; }
+        else { statusClass = 'eng-inactive'; statusLabel = 'Neaktivní'; statusIcon = '🔴'; }
 
         const daysSinceText = c.daysSinceLastActivity === 0 ? 'Dnes'
           : c.daysSinceLastActivity === 1 ? 'Včera'
           : c.daysSinceLastActivity != null ? c.daysSinceLastActivity + ' dní'
           : '—';
 
-        return `<tr>
-          <td style="font-weight: 600;">${esc(c.name)}</td>
-          <td class="${workoutClass}">${c.workoutsPerWeek != null ? c.workoutsPerWeek.toFixed(1) : '—'}</td>
-          <td class="${dietClass}">${c.dietAdherence != null ? c.dietAdherence + '%' : '—'}</td>
-          <td class="${responseClass}">${c.responseRate != null ? c.responseRate + '%' : '—'}</td>
-          <td class="${activityClass}">${daysSinceText}</td>
-          <td><span class="eng-status ${statusClass}">${statusLabel}</span></td>
-        </tr>`;
+        const adherenceColor = c.dietAdherence >= 70 ? 'var(--accent)' : c.dietAdherence >= 40 ? '#fbbf24' : '#f87171';
+        const adherenceWidth = Math.min(c.dietAdherence || 0, 100);
+
+        return `
+        <div class="eng-client-card">
+          <div class="eng-client-header">
+            <div class="eng-client-name">
+              <span class="eng-status-dot ${statusClass}">${statusIcon}</span>
+              <strong>${esc(c.name)}</strong>
+            </div>
+            <span class="eng-status-label ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="eng-client-metrics">
+            <div class="eng-metric">
+              <span class="eng-metric-value">${c.workoutsPerWeek != null ? c.workoutsPerWeek.toFixed(1) : '—'}</span>
+              <span class="eng-metric-label">tréninky/týden</span>
+            </div>
+            <div class="eng-metric">
+              <span class="eng-metric-value">${c.dietAdherence != null ? c.dietAdherence + '%' : '—'}</span>
+              <span class="eng-metric-label">dieta</span>
+            </div>
+            <div class="eng-metric">
+              <span class="eng-metric-value">${c.responseRate != null ? c.responseRate + '%' : '—'}</span>
+              <span class="eng-metric-label">odpovědi</span>
+            </div>
+            <div class="eng-metric">
+              <span class="eng-metric-value">${daysSinceText}</span>
+              <span class="eng-metric-label">aktivita</span>
+            </div>
+          </div>
+          ${c.dietAdherence != null ? `
+          <div class="eng-progress-bar">
+            <div class="eng-progress-fill" style="width: ${adherenceWidth}%; background: ${adherenceColor};"></div>
+          </div>` : ''}
+        </div>`;
       }).join('');
 
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="6" style="color: #f87171; text-align: center;">${err.message}</td></tr>`;
+      container.innerHTML = `<p style="color: #f87171; text-align: center;">${err.message}</p>`;
     }
   }
 

@@ -779,13 +779,21 @@
     try {
       planAutosavePaused = true;
       clearTimeout(planAutoSaveTimer);
-      const data = await api('zona-admin', { action: 'apply-template', clientId: selectedClientId, templateId });
-      currentPlan = data.plan || createEmptyPlan();
+
+      // Apply template on server
+      await api('zona-admin', { action: 'apply-template', clientId: selectedClientId, templateId });
+
+      // Reload plan fresh from server to ensure we have the latest data
+      const freshData = await api('zona-admin', { action: 'get-plan', clientId: selectedClientId });
+      currentPlan = freshData.plan || createEmptyPlan();
+
+      // Re-render everything
+      planMessage.value = currentPlan.message || '';
       renderPlanDayTabs();
       renderDayEditor();
       closeTemplateModal();
       toast('✅ Šablona aplikována!');
-      setTimeout(() => { planAutosavePaused = false; }, 500);
+      setTimeout(() => { planAutosavePaused = false; }, 1000);
     } catch (err) {
       toast('❌ ' + err.message);
       planAutosavePaused = false;

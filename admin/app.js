@@ -658,24 +658,56 @@
     currentPlan.days[currentDay].exercises = exercises;
   }
 
-  // ===== Save plan =====
-  savePlanBtn.addEventListener('click', async () => {
+  // ===== Save plan (manual + autosave) =====
+  let planAutoSaveTimer = null;
+  let planSaving = false;
+
+  async function savePlan() {
+    if (!selectedClientId || !currentPlan || planSaving) return;
     saveDayToModel();
     currentPlan.message = planMessage.value.trim();
     currentPlan.messageDate = new Date().toISOString();
 
+    planSaving = true;
     savePlanBtn.disabled = true;
     try {
       await api('zona-admin', { action: 'save-plan', clientId: selectedClientId, plan: currentPlan });
-      toast('✅ Plán uložen!');
-      planStatus.textContent = 'Plán uložen!';
+      planStatus.textContent = '✓ Uloženo';
+      planStatus.style.color = 'var(--accent)';
       planStatus.hidden = false;
-      setTimeout(() => { planStatus.hidden = true; }, 3000);
+      setTimeout(() => { planStatus.hidden = true; }, 2000);
     } catch (err) {
       toast('❌ ' + err.message);
     } finally {
+      planSaving = false;
       savePlanBtn.disabled = false;
     }
+  }
+
+  function triggerPlanAutosave() {
+    if (!selectedClientId || !currentPlan) return;
+    clearTimeout(planAutoSaveTimer);
+    planStatus.textContent = 'Ukládám...';
+    planStatus.style.color = 'var(--text-muted)';
+    planStatus.hidden = false;
+    planAutoSaveTimer = setTimeout(savePlan, 2000);
+  }
+
+  // Listen for changes in the plan editor area
+  document.getElementById('tab-plan-editor').addEventListener('input', (e) => {
+    if (e.target.closest('#plan-editor-section')) {
+      triggerPlanAutosave();
+    }
+  });
+  document.getElementById('tab-plan-editor').addEventListener('change', (e) => {
+    if (e.target.closest('#plan-editor-section')) {
+      triggerPlanAutosave();
+    }
+  });
+
+  savePlanBtn.addEventListener('click', () => {
+    clearTimeout(planAutoSaveTimer);
+    savePlan();
   });
 
   // ===== Plan Templates =====

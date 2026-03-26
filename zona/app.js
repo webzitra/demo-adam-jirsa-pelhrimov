@@ -664,6 +664,7 @@
 
       if (day === today) tab.classList.add('today');
       if (dayData && dayData.rest) tab.classList.add('rest');
+      if (dayData && !dayData.rest && dayData.exercises && dayData.exercises.length > 0) tab.classList.add('has-training');
 
       tab.addEventListener('click', () => selectDay(day));
     });

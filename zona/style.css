@@ -895,7 +895,14 @@ img { max-width: 100%; display: block; }
 }
 
 .day-tab.rest {
-  opacity: 0.5;
+  opacity: 0.45;
+}
+.day-tab.has-training {
+  background: var(--bg-card);
+  color: var(--text);
+  font-weight: 700;
+  border-color: var(--accent);
+  opacity: 1;
 }
 
 /* ===== EXERCISE CARDS ===== */

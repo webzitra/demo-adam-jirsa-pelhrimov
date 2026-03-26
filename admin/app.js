@@ -661,6 +661,7 @@
   // ===== Save plan (manual + autosave) =====
   let planAutoSaveTimer = null;
   let planSaving = false;
+  let planAutosavePaused = false;
 
   async function savePlan() {
     if (!selectedClientId || !currentPlan || planSaving) return;
@@ -685,7 +686,7 @@
   }
 
   function triggerPlanAutosave() {
-    if (!selectedClientId || !currentPlan) return;
+    if (!selectedClientId || !currentPlan || planAutosavePaused) return;
     clearTimeout(planAutoSaveTimer);
     planStatus.textContent = 'Ukládám...';
     planStatus.style.color = 'var(--text-muted)';
@@ -776,14 +777,18 @@
 
   window.applyTemplate = async function(templateId) {
     try {
+      planAutosavePaused = true;
+      clearTimeout(planAutoSaveTimer);
       const data = await api('zona-admin', { action: 'apply-template', clientId: selectedClientId, templateId });
       currentPlan = data.plan || createEmptyPlan();
       renderPlanDayTabs();
       renderDayEditor();
       closeTemplateModal();
       toast('✅ Šablona aplikována!');
+      setTimeout(() => { planAutosavePaused = false; }, 500);
     } catch (err) {
       toast('❌ ' + err.message);
+      planAutosavePaused = false;
     }
   };
 

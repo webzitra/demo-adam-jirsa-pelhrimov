@@ -841,7 +841,61 @@
     { name: 'Jahody', cat: 'Ovoce', per100: { cal: 32, p: 0.7, c: 7.7, f: 0.3 } },
     { name: 'Olivový olej', cat: 'Tuky', per100: { cal: 884, p: 0, c: 0, f: 100 } },
     { name: 'Arašídové máslo', cat: 'Tuky', per100: { cal: 588, p: 25, c: 20, f: 50 } },
+    { name: 'Kokosový olej', cat: 'Tuky', per100: { cal: 862, p: 0, c: 0, f: 100 } },
+    { name: 'Máslo', cat: 'Tuky', per100: { cal: 717, p: 0.9, c: 0.1, f: 81 } },
     { name: 'Mandle', cat: 'Ořechy', per100: { cal: 579, p: 21, c: 22, f: 50 } },
+    { name: 'Vlašské ořechy', cat: 'Ořechy', per100: { cal: 654, p: 15, c: 14, f: 65 } },
+    { name: 'Kešu', cat: 'Ořechy', per100: { cal: 553, p: 18, c: 30, f: 44 } },
+    { name: 'Směs ořechů', cat: 'Ořechy', per100: { cal: 607, p: 20, c: 17, f: 54 } },
+    // Mléčné doplněné
+    { name: 'Řecký jogurt (plnotučný)', cat: 'Mléčné', per100: { cal: 97, p: 9, c: 3.6, f: 5 } },
+    { name: 'Řecký jogurt s ovocem', cat: 'Mléčné', per100: { cal: 92, p: 7, c: 11, f: 2 } },
+    { name: 'Mléko plnotučné', cat: 'Mléčné', per100: { cal: 64, p: 3.3, c: 4.8, f: 3.6 } },
+    { name: 'Mléko polotučné', cat: 'Mléčné', per100: { cal: 46, p: 3.3, c: 4.8, f: 1.5 } },
+    { name: 'Mozzarella', cat: 'Mléčné', per100: { cal: 280, p: 28, c: 3.1, f: 17 } },
+    { name: 'Eidam 30%', cat: 'Mléčné', per100: { cal: 260, p: 30, c: 0, f: 15 } },
+    { name: 'Proteínový puding', cat: 'Mléčné', per100: { cal: 80, p: 10, c: 8, f: 1.5 } },
+    // Přílohy doplněné
+    { name: 'Kuskus (vařený)', cat: 'Přílohy', per100: { cal: 112, p: 3.8, c: 23, f: 0.2 } },
+    { name: 'Bulgur (vařený)', cat: 'Přílohy', per100: { cal: 83, p: 3.1, c: 19, f: 0.2 } },
+    { name: 'Quinoa (vařená)', cat: 'Přílohy', per100: { cal: 120, p: 4.4, c: 21, f: 1.9 } },
+    { name: 'Rýžové chlebíčky', cat: 'Přílohy', per100: { cal: 387, p: 7, c: 82, f: 2.8 } },
+    { name: 'Rýžový chléb', cat: 'Přílohy', per100: { cal: 387, p: 7, c: 82, f: 2.8 } },
+    { name: 'Tortilla wrap', cat: 'Přílohy', per100: { cal: 310, p: 8, c: 52, f: 8 } },
+    // Maso doplněné
+    { name: 'Kuřecí maso (obecně)', cat: 'Maso', per100: { cal: 150, p: 21, c: 0, f: 7 } },
+    { name: 'Šunka (kuřecí)', cat: 'Maso', per100: { cal: 107, p: 17, c: 1.5, f: 3.5 } },
+    { name: 'Slanina', cat: 'Maso', per100: { cal: 541, p: 37, c: 1.4, f: 42 } },
+    // Ryby doplněné
+    { name: 'Krevety', cat: 'Ryby', per100: { cal: 99, p: 24, c: 0.2, f: 0.3 } },
+    { name: 'Sardinka', cat: 'Ryby', per100: { cal: 208, p: 25, c: 0, f: 11 } },
+    // Zelenina doplněná
+    { name: 'Okurka', cat: 'Zelenina', per100: { cal: 15, p: 0.7, c: 3.6, f: 0.1 } },
+    { name: 'Paprika', cat: 'Zelenina', per100: { cal: 31, p: 1, c: 6, f: 0.3 } },
+    { name: 'Mrkev', cat: 'Zelenina', per100: { cal: 41, p: 0.9, c: 10, f: 0.2 } },
+    { name: 'Cuketa', cat: 'Zelenina', per100: { cal: 17, p: 1.2, c: 3.1, f: 0.3 } },
+    { name: 'Zelený salát', cat: 'Zelenina', per100: { cal: 15, p: 1.4, c: 2.9, f: 0.2 } },
+    { name: 'Květák', cat: 'Zelenina', per100: { cal: 25, p: 1.9, c: 5, f: 0.3 } },
+    { name: 'Cibule', cat: 'Zelenina', per100: { cal: 40, p: 1.1, c: 9, f: 0.1 } },
+    { name: 'Česnek', cat: 'Zelenina', per100: { cal: 149, p: 6.4, c: 33, f: 0.5 } },
+    { name: 'Pečená zelenina (mix)', cat: 'Zelenina', per100: { cal: 55, p: 1.5, c: 8, f: 2 } },
+    // Ovoce doplněné
+    { name: 'Borůvky', cat: 'Ovoce', per100: { cal: 57, p: 0.7, c: 14, f: 0.3 } },
+    { name: 'Maliny', cat: 'Ovoce', per100: { cal: 52, p: 1.2, c: 12, f: 0.7 } },
+    { name: 'Pomeranč', cat: 'Ovoce', per100: { cal: 47, p: 0.9, c: 12, f: 0.1 } },
+    { name: 'Hruška', cat: 'Ovoce', per100: { cal: 57, p: 0.4, c: 15, f: 0.1 } },
+    { name: 'Kiwi', cat: 'Ovoce', per100: { cal: 61, p: 1.1, c: 15, f: 0.5 } },
+    // Proteinové
+    { name: 'Whey protein isolate (odměrka 30g)', cat: 'Proteiny', per100: { cal: 370, p: 85, c: 3, f: 1 } },
+    { name: 'Casein protein (odměrka 30g)', cat: 'Proteiny', per100: { cal: 360, p: 75, c: 6, f: 4 } },
+    { name: 'Proteinová tyčinka', cat: 'Proteiny', per100: { cal: 350, p: 30, c: 35, f: 12 } },
+    // Luštěniny doplněné
+    { name: 'Fazole (vařené)', cat: 'Luštěniny', per100: { cal: 127, p: 8.7, c: 23, f: 0.5 } },
+    { name: 'Tofu', cat: 'Luštěniny', per100: { cal: 76, p: 8, c: 1.9, f: 4.8 } },
+    // Ostatní
+    { name: 'Med', cat: 'Ostatní', per100: { cal: 304, p: 0.3, c: 82, f: 0 } },
+    { name: 'Džem', cat: 'Ostatní', per100: { cal: 250, p: 0.4, c: 63, f: 0.1 } },
+    { name: 'Hořká čokoláda (70%)', cat: 'Ostatní', per100: { cal: 598, p: 8, c: 46, f: 43 } },
   ];
 
   let currentNutrition = null;
@@ -1016,10 +1070,14 @@
           const mult = amount / 100;
           mealCal += per100.cal * mult; mealP += per100.p * mult; mealCa += per100.c * mult; mealF += per100.f * mult;
         } else {
-          mealCal += parseFloat(row.querySelector('.food-item-cal')?.textContent) || 0;
-          mealP += parseFloat(row.querySelector('.food-item-p')?.textContent) || 0;
-          mealCa += parseFloat(row.querySelector('.food-item-c')?.textContent) || 0;
-          mealF += parseFloat(row.querySelector('.food-item-f')?.textContent) || 0;
+          const calEl = row.querySelector('.food-item-cal');
+          const pEl = row.querySelector('.food-item-p');
+          const cEl = row.querySelector('.food-item-c');
+          const fEl = row.querySelector('.food-item-f');
+          mealCal += parseFloat(calEl?.value ?? calEl?.textContent) || 0;
+          mealP += parseFloat(pEl?.value ?? pEl?.textContent) || 0;
+          mealCa += parseFloat(cEl?.value ?? cEl?.textContent) || 0;
+          mealF += parseFloat(fEl?.value ?? fEl?.textContent) || 0;
         }
       });
 
@@ -1079,25 +1137,27 @@
   function renderFoodItemRow(item, mealIdx, itemIdx) {
     const per100 = item.per100 ? JSON.stringify(item.per100) : '{}';
     const amount = item.amount || '';
+    const isManual = !item.per100 || Object.keys(item.per100 || {}).length === 0;
 
     let dCal = 0, dP = 0, dC = 0, dF = 0;
     if (item.per100 && item.amount) {
       const mult = item.amount / 100;
       dCal = Math.round(item.per100.cal * mult); dP = (item.per100.p * mult).toFixed(1); dC = (item.per100.c * mult).toFixed(1); dF = (item.per100.f * mult).toFixed(1);
-    } else if (item.manual) {
+    } else if (item.manual || isManual) {
       dCal = item.cal || 0; dP = item.p || 0; dC = item.c || 0; dF = item.f || 0;
     }
 
-    return `
-    <div class="food-item-row" data-item-index="${itemIdx}" data-per100='${per100.replace(/'/g, "&#39;")}'>
-      <div class="food-item-name-wrap">
-        <input type="text" value="${escAttr(item.food || '')}" placeholder="Hledej potravinu..." class="food-item-name">
-        <span class="food-item-cat">${esc(item.cat || '')}</span>
-      </div>
-      <div class="food-item-amount-wrap">
-        <input type="number" value="${amount}" placeholder="g" class="food-item-amount" oninput="onFoodAmountChange(this)">
-        <span class="food-item-g">g</span>
-      </div>
+    const macrosHtml = isManual ? `
+      <div class="food-item-macros food-item-macros-manual">
+        <input type="number" class="food-item-cal food-manual-input" value="${dCal}" placeholder="kcal" oninput="onManualMacroChange(this)">
+        <span class="food-item-macro-label">kcal</span>
+        <input type="number" class="food-item-p food-manual-input" value="${dP}" placeholder="B" step="0.1" oninput="onManualMacroChange(this)">
+        <span class="food-item-macro-label">B</span>
+        <input type="number" class="food-item-c food-manual-input" value="${dC}" placeholder="S" step="0.1" oninput="onManualMacroChange(this)">
+        <span class="food-item-macro-label">S</span>
+        <input type="number" class="food-item-f food-manual-input" value="${dF}" placeholder="T" step="0.1" oninput="onManualMacroChange(this)">
+        <span class="food-item-macro-label">T</span>
+      </div>` : `
       <div class="food-item-macros">
         <span class="food-item-cal">${dCal}</span>
         <span class="food-item-macro-label">kcal</span>
@@ -1107,12 +1167,31 @@
         <span class="food-item-macro-label">S</span>
         <span class="food-item-f">${dF}</span>
         <span class="food-item-macro-label">T</span>
+      </div>`;
+
+    return `
+    <div class="food-item-row${isManual ? ' food-item-manual' : ''}" data-item-index="${itemIdx}" data-per100='${per100.replace(/'/g, "&#39;")}'>
+      <div class="food-item-name-wrap">
+        <input type="text" value="${escAttr(item.food || '')}" placeholder="Hledej potravinu..." class="food-item-name">
+        <span class="food-item-cat">${esc(item.cat || '')}</span>
       </div>
+      <div class="food-item-amount-wrap">
+        <input type="number" value="${amount}" placeholder="g" class="food-item-amount" oninput="onFoodAmountChange(this)">
+        <span class="food-item-g">g</span>
+      </div>
+      ${macrosHtml}
       <button class="food-item-remove" onclick="removeFoodItem(${mealIdx}, ${itemIdx})" title="Odebrat">✕</button>
     </div>`;
   }
 
   window.onFoodAmountChange = function(input) { recalcFoodItemMacros(input.closest('.food-item-row')); };
+
+  window.onManualMacroChange = function(input) {
+    // Recalc meal totals when manual macros change
+    const mealCard = input.closest('.meal-card-editor');
+    if (mealCard) recalcMealTotals(mealCard);
+    recalcAllTotals();
+  };
 
   window.addFoodItem = function(mealIdx) {
     saveNutritionToModel();
@@ -1213,10 +1292,14 @@
           item.per100 = per100;
         } else {
           item.manual = true;
-          item.cal = parseFloat(row.querySelector('.food-item-cal')?.textContent) || 0;
-          item.p = parseFloat(row.querySelector('.food-item-p')?.textContent) || 0;
-          item.c = parseFloat(row.querySelector('.food-item-c')?.textContent) || 0;
-          item.f = parseFloat(row.querySelector('.food-item-f')?.textContent) || 0;
+          const calEl = row.querySelector('.food-item-cal');
+          const pEl = row.querySelector('.food-item-p');
+          const cEl = row.querySelector('.food-item-c');
+          const fEl = row.querySelector('.food-item-f');
+          item.cal = parseFloat(calEl?.value ?? calEl?.textContent) || 0;
+          item.p = parseFloat(pEl?.value ?? pEl?.textContent) || 0;
+          item.c = parseFloat(cEl?.value ?? cEl?.textContent) || 0;
+          item.f = parseFloat(fEl?.value ?? fEl?.textContent) || 0;
         }
 
         meal.items.push(item);

@@ -687,6 +687,35 @@
   margin-right: 0.15rem;
 }
 
+/* Manual macro inputs */
+.food-manual-input {
+  width: 48px;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: right;
+  outline: none;
+}
+.food-manual-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+.food-manual-input.food-item-cal { color: var(--accent); width: 52px; }
+.food-manual-input.food-item-p { color: #f87171; }
+.food-manual-input.food-item-c { color: #fbbf24; }
+.food-manual-input.food-item-f { color: #a78bfa; }
+.food-item-manual {
+  border-left: 2px solid var(--text-faint);
+}
+.food-item-macros-manual {
+  flex-wrap: wrap;
+}
+
 .food-item-remove {
   background: none;
   border: none;

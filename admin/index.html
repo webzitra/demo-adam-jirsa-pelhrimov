@@ -205,6 +205,12 @@
             </div>
           </div>
 
+          <!-- Day template buttons -->
+          <div class="template-buttons" style="margin: 0.5rem 0;">
+            <button class="btn-ghost btn-sm" id="save-day-template-btn">💾 Uložit den jako šablonu</button>
+            <button class="btn-ghost btn-sm" id="load-day-template-btn">📂 Načíst denní šablonu</button>
+          </div>
+
           <!-- Exercises list -->
           <div id="exercises-editor" class="exercises-editor"></div>
 
@@ -534,6 +540,18 @@
       <button class="modal-close" onclick="closeTemplateModal()">✕</button>
       <h3 style="margin-bottom: 1rem;">📂 Šablony plánů</h3>
       <div id="template-list">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Template Modal -->
+  <div id="day-template-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeDayTemplateModal()"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeDayTemplateModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">📂 Denní šablony</h3>
+      <div id="day-template-list">
         <p class="text-muted">Načítám...</p>
       </div>
     </div>

@@ -302,6 +302,22 @@ async function saveTemplates(templates) {
   await store.setJSON('plan-templates', { templates, updatedAt: new Date().toISOString() });
 }
 
+// --- Day Templates (single day training templates) ---
+async function getDayTemplates() {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get('day-templates', { type: 'json' });
+    return data?.templates || [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveDayTemplates(templates) {
+  const store = await getZonaStore();
+  await store.setJSON('day-templates', { templates, updatedAt: new Date().toISOString() });
+}
+
 // --- Nutrition Templates ---
 async function getNutritionTemplates() {
   const store = await getZonaStore();
@@ -464,4 +480,6 @@ module.exports = {
   savePayments,
   getNutritionTemplates,
   saveNutritionTemplates,
+  getDayTemplates,
+  saveDayTemplates,
 };

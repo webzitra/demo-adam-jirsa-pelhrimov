@@ -1356,6 +1356,111 @@
     }
   });
 
+  // ===== Day Templates (single day) =====
+  document.getElementById('save-day-template-btn').addEventListener('click', async () => {
+    if (!currentPlan || !currentDay) return toast('Nejdřív načti plán');
+    saveDayToModel();
+
+    const dayData = currentPlan.days[currentDay];
+    if (!dayData || dayData.rest) return toast('Nelze uložit odpočinkový den jako šablonu');
+
+    const name = prompt('Název denní šablony:', dayData.name || '');
+    if (!name) return;
+
+    try {
+      const template = {
+        name,
+        day: JSON.parse(JSON.stringify(dayData)),
+      };
+      await api('zona-admin', { action: 'save-day-template', template });
+      toast('✅ Denní šablona uložena!');
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  });
+
+  document.getElementById('load-day-template-btn').addEventListener('click', async () => {
+    if (!selectedClientId || !currentDay) return toast('Nejdřív vyber klienta');
+    openDayTemplateModal();
+  });
+
+  async function openDayTemplateModal() {
+    const modal = document.getElementById('day-template-modal');
+    const list = document.getElementById('day-template-list');
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    list.innerHTML = '<p class="text-muted">Načítám...</p>';
+
+    try {
+      const data = await api('zona-admin', { action: 'list-day-templates' });
+      const templates = data.templates || [];
+
+      if (templates.length === 0) {
+        list.innerHTML = '<p class="text-muted">Zatím žádné denní šablony. Ulož aktuální den jako šablonu.</p>';
+        return;
+      }
+
+      list.innerHTML = templates.map(t => {
+        const exCount = t.day?.exercises?.length || 0;
+        return `
+        <div class="template-row">
+          <div class="template-info">
+            <span class="template-name">${esc(t.name)}</span>
+            <span class="template-date">${exCount} cviků · ${t.createdAt ? new Date(t.createdAt).toLocaleDateString('cs-CZ') : ''}</span>
+          </div>
+          <div class="template-actions">
+            <button class="btn-primary btn-sm" onclick="applyDayTemplate('${t.id}')">Použít</button>
+            <button class="btn-icon danger" onclick="deleteDayTemplate('${t.id}')">🗑</button>
+          </div>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      list.innerHTML = `<p style="color: #f87171;">${err.message}</p>`;
+    }
+  }
+
+  window.closeDayTemplateModal = function() {
+    document.getElementById('day-template-modal').hidden = true;
+    document.body.style.overflow = '';
+  };
+
+  window.applyDayTemplate = function(templateId) {
+    (async () => {
+      try {
+        planAutosavePaused = true;
+        clearTimeout(planAutoSaveTimer);
+
+        const data = await api('zona-admin', { action: 'list-day-templates' });
+        const tpl = (data.templates || []).find(t => t.id === templateId);
+        if (!tpl) return toast('Šablona nenalezena');
+
+        // Apply to current day only
+        currentPlan.days[currentDay] = JSON.parse(JSON.stringify(tpl.day));
+        renderPlanDayTabs();
+        renderDayEditor();
+        closeDayTemplateModal();
+
+        // Save to server
+        await api('zona-admin', { action: 'save-plan', clientId: selectedClientId, plan: currentPlan });
+        toast('✅ Denní šablona aplikována!');
+        setTimeout(() => { planAutosavePaused = false; }, 3000);
+      } catch (err) {
+        toast('❌ ' + err.message);
+        planAutosavePaused = false;
+      }
+    })();
+  };
+
+  window.deleteDayTemplate = async function(templateId) {
+    try {
+      await api('zona-admin', { action: 'delete-day-template', templateId });
+      openDayTemplateModal();
+      toast('Šablona smazána');
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  };
+
   // ===== Nutrition Templates =====
   document.getElementById('save-nutrition-template-btn').addEventListener('click', async () => {
     if (!currentNutrition) return toast('Nejdřív načti výživu');

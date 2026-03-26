@@ -776,6 +776,16 @@
 
 .food-ac-dropdown {
   top: calc(100% + 2px);
+  min-width: 320px;
+  right: auto;
+}
+.food-ac-dropdown .ac-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.food-ac-dropdown .ac-item {
+  gap: 0.75rem;
 }
 
 /* Mobile adjustments */

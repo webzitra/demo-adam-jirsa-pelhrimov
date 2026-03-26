@@ -13,6 +13,7 @@ const {
   getPayments, savePayments,
   getCheckins,
   getNutritionTemplates, saveNutritionTemplates,
+  getDayTemplates, saveDayTemplates,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -241,6 +242,39 @@ exports.handler = async (event) => {
     const newPlan = { ...existingPlan, days: JSON.parse(JSON.stringify(tpl.days)) };
     await savePlan(clientId, newPlan);
     return jsonResponse(200, { plan: newPlan });
+  }
+
+  // =====================
+  // DAY TEMPLATES (single day)
+  // =====================
+
+  if (action === 'list-day-templates') {
+    const templates = await getDayTemplates();
+    return jsonResponse(200, { templates });
+  }
+
+  if (action === 'save-day-template') {
+    const { template } = body;
+    if (!template || !template.name) {
+      return jsonResponse(400, { error: 'Šablona musí mít název' });
+    }
+    const templates = await getDayTemplates();
+    template.id = `dtpl-${Date.now()}`;
+    template.createdAt = new Date().toISOString();
+    templates.push(template);
+    await saveDayTemplates(templates);
+    return jsonResponse(201, { template });
+  }
+
+  if (action === 'delete-day-template') {
+    const { templateId } = body;
+    if (!templateId) {
+      return jsonResponse(400, { error: 'templateId je povinné' });
+    }
+    let templates = await getDayTemplates();
+    templates = templates.filter(t => t.id !== templateId);
+    await saveDayTemplates(templates);
+    return jsonResponse(200, { success: true });
   }
 
   // =====================

@@ -273,20 +273,77 @@
       });
       document.getElementById('stat-inactive').textContent = inactive.length;
 
-      // Alerts
+      // Alerts — enhanced with priority categories
       const alertsList = document.getElementById('alerts-list');
-      if (inactive.length === 0) {
-        alertsList.innerHTML = '<p style="color: #34d399; font-size: 0.9rem;">✓ Všichni klienti trénují pravidelně!</p>';
+      const alertItems = [];
+
+      // Check-in alerts (>7 days)
+      const checkinAlerts = metrics.filter(m => {
+        if (!m.lastCheckinDate && !m.lastWorkoutDate) return false;
+        const lastDate = m.lastCheckinDate || m.lastWorkoutDate;
+        const days = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
+        return days > 7;
+      });
+      checkinAlerts.forEach(c => {
+        const lastDate = c.lastCheckinDate || c.lastWorkoutDate;
+        const days = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
+        alertItems.push({ priority: 'warning', icon: '\u26a0\ufe0f', name: c.name, id: c.id, text: `check-in v\xedce ne\u017e ${days} dn\xed`, sort: 1 });
+      });
+
+      // Payment expiry alerts (within 7 days) — use payments data if available
+      try {
+        const payAlertData = await api('zona-admin', { action: 'get-payments' });
+        const payAlerts = payAlertData.payments || [];
+        const nowTs = Date.now();
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        const latestPay = {};
+        payAlerts.forEach(p => {
+          if (!latestPay[p.clientId] || new Date(p.paidUntil) > new Date(latestPay[p.clientId].paidUntil)) {
+            latestPay[p.clientId] = p;
+          }
+        });
+        Object.values(latestPay).forEach(p => {
+          const paidUntilTs = new Date(p.paidUntil + 'T23:59:59').getTime();
+          const remaining = paidUntilTs - nowTs;
+          if (remaining > 0 && remaining <= sevenDaysMs) {
+            const clientM = metrics.find(m => m.id === p.clientId);
+            const clientName = clientM ? clientM.name : (clients.find(cc => cc.id === p.clientId)?.name || p.clientId);
+            alertItems.push({ priority: 'urgent', icon: '\ud83d\udcb0', name: clientName, id: p.clientId, text: 'platba brzy vypr\u0161\xed', sort: 0 });
+          }
+        });
+      } catch { /* payments not available */ }
+
+      // Inactive training alerts
+      inactive.forEach(c => {
+        const days = c.lastWorkoutDate
+          ? Math.floor((Date.now() - new Date(c.lastWorkoutDate).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+        alertItems.push({ priority: days !== null && days >= 7 ? 'urgent' : 'warning', icon: '\ud83c\udfcb\ufe0f', name: c.name, id: c.id, text: days !== null ? `${days} dn\xed bez tr\xe9ninku` : 'Je\u0161t\u011b netr\xe9noval/a', sort: days !== null && days >= 7 ? 0 : 2 });
+      });
+
+      // Deduplicate by client id + text, sort by priority
+      const seen = new Set();
+      const uniqueAlerts = alertItems.filter(a => {
+        const key = a.id + '|' + a.text;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).sort((a, b) => a.sort - b.sort);
+
+      if (uniqueAlerts.length === 0) {
+        alertsList.innerHTML = '<p style="color: #34d399; font-size: 0.9rem;">\u2713 V\u0161ichni klienti tr\xe9nuj\xed pravideln\u011b!</p>';
       } else {
-        alertsList.innerHTML = inactive.map(c => {
-          const days = c.lastWorkoutDate
-            ? Math.floor((Date.now() - new Date(c.lastWorkoutDate).getTime()) / (1000 * 60 * 60 * 24))
-            : null;
+        alertsList.innerHTML = uniqueAlerts.map(a => {
+          const bgColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)';
+          const borderColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.3)' : 'rgba(251,191,36,0.3)';
+          const badgeColor = a.priority === 'urgent' ? '#f87171' : '#fbbf24';
+          const badgeText = a.priority === 'urgent' ? 'Urgentní' : 'Pozor';
           return `
-            <div class="alert-row">
-              <span class="alert-name">${esc(c.name)}</span>
-              <span class="alert-detail">${days !== null ? `${days} dní bez tréninku` : 'Ještě netrénoval/a'}</span>
-              <button class="btn-icon" onclick="openChatModal('${c.id}')" title="Napsat zprávu">💬</button>
+            <div class="alert-row" style="background:${bgColor};border:1px solid ${borderColor};border-radius:var(--radius-sm);padding:0.5rem 0.65rem;margin-bottom:0.35rem;">
+              <span style="display:inline-block;font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:var(--radius-full);background:${badgeColor};color:#fff;margin-right:0.4rem;vertical-align:middle;">${badgeText}</span>
+              <span class="alert-name">${a.icon} ${esc(a.name)}</span>
+              <span class="alert-detail" style="color:var(--text-muted);font-size:0.82rem;margin-left:0.3rem;">\u2014 ${esc(a.text)}</span>
+              <button class="btn-icon" onclick="openChatModal('${a.id}')" title="Napsat zpr\xe1vu" style="margin-left:auto;">\ud83d\udcac</button>
             </div>`;
         }).join('');
       }
@@ -310,12 +367,61 @@
               </div>`;
           }).join('');
       }
+      // Revenue summary from payments
+      try {
+        const payData = await api('zona-admin', { action: 'get-payments' });
+        const payments = payData.payments || [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let totalRevenue = 0;
+        let activeRevenue = 0;
+        payments.forEach(p => {
+          totalRevenue += p.amount || 0;
+          const paidDate = new Date(p.paidUntil + 'T23:59:59');
+          if (paidDate >= today) {
+            activeRevenue += p.amount || 0;
+          }
+        });
+
+        // Insert revenue stats card
+        let revenueEl = document.getElementById('overview-revenue-stats');
+        if (!revenueEl) {
+          revenueEl = document.createElement('div');
+          revenueEl.id = 'overview-revenue-stats';
+          revenueEl.style.cssText = 'margin-top:1rem;padding:0.75rem 1rem;background:var(--bg-elevated);border-radius:var(--radius);border:1px solid var(--border);';
+          const alertsSection = document.getElementById('alerts-list').parentElement;
+          alertsSection.parentElement.insertBefore(revenueEl, alertsSection);
+        }
+        revenueEl.innerHTML = `
+          <h4 style="margin:0 0 0.5rem 0;font-size:0.85rem;color:var(--text-muted);">💰 Přehled příjmů</h4>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+            <div>
+              <span style="font-size:1.3rem;font-weight:800;color:var(--accent);">${activeRevenue.toLocaleString('cs-CZ')} Kč</span>
+              <span style="font-size:0.8rem;color:var(--text-muted);display:block;">aktivní platby</span>
+            </div>
+            <div>
+              <span style="font-size:1.3rem;font-weight:800;color:var(--text);">${totalRevenue.toLocaleString('cs-CZ')} Kč</span>
+              <span style="font-size:0.8rem;color:var(--text-muted);display:block;">celkové platby</span>
+            </div>
+            <div>
+              <span style="font-size:1.3rem;font-weight:800;color:${payments.length > 0 ? 'var(--text)' : 'var(--text-muted)'};">${payments.length}</span>
+              <span style="font-size:0.8rem;color:var(--text-muted);display:block;">záznamů plateb</span>
+            </div>
+          </div>
+        `;
+      } catch {
+        // Payments not available, skip revenue stats
+      }
+
     } catch (err) {
       document.getElementById('alerts-list').innerHTML = `<p style="color: #f87171;">${err.message}</p>`;
     }
   }
 
   // ===== Clients =====
+  let clientFilter = 'all'; // 'all', 'active', 'inactive'
+
   async function loadClients() {
     try {
       const data = await api('zona-admin', { action: 'list-clients' });
@@ -333,7 +439,30 @@
       return;
     }
 
-    clientsList.innerHTML = clients.map(c => `
+    // Filter bar
+    const filterBarHtml = `
+      <div class="client-filter-bar" style="display:flex;gap:0.4rem;margin-bottom:0.75rem;flex-wrap:wrap;align-items:center;">
+        <button type="button" class="btn-filter${clientFilter === 'all' ? ' btn-filter-active' : ''}" onclick="setClientFilter('all')">Všichni (${clients.length})</button>
+        <button type="button" class="btn-filter${clientFilter === 'active' ? ' btn-filter-active' : ''}" onclick="setClientFilter('active')">Aktivní</button>
+        <button type="button" class="btn-filter${clientFilter === 'inactive' ? ' btn-filter-active' : ''}" onclick="setClientFilter('inactive')">Neaktivní</button>
+        <button type="button" class="btn-filter" onclick="openBulkMessageModal()" style="margin-left:auto;background:var(--accent);color:#fff;border-color:var(--accent);">📨 Hromadná zpráva</button>
+      </div>
+      <style>
+        .btn-filter { padding:0.3rem 0.7rem; border-radius:var(--radius-full); border:1px solid var(--border); background:var(--bg-elevated); color:var(--text-muted); font-size:0.8rem; cursor:pointer; transition:all 0.15s; }
+        .btn-filter:hover { border-color:var(--accent); color:var(--accent); }
+        .btn-filter-active { background:var(--accent); color:#fff; border-color:var(--accent); }
+      </style>
+    `;
+
+    // Filter clients
+    let filtered = clients;
+    if (clientFilter === 'active') {
+      filtered = clients.filter(c => c.phone || c.notes);
+    } else if (clientFilter === 'inactive') {
+      filtered = clients.filter(c => !c.phone && !c.notes);
+    }
+
+    clientsList.innerHTML = filterBarHtml + filtered.map(c => `
       <div class="client-row" data-id="${c.id}">
         <div class="client-info">
           <span class="client-name">${esc(c.name)}</span>
@@ -347,11 +476,18 @@
           <button class="btn-icon" onclick="showProgress('${c.id}')" title="Progres">📈</button>
           <button class="btn-icon" onclick="showOnboarding('${c.id}')" title="Dotazník">🎯</button>
           <button class="btn-icon" onclick="openChatModal('${c.id}')" title="Chat">💬</button>
+          <button class="btn-icon" onclick="generateReport('${c.id}')" title="Měsíční report">📄</button>
+          <button class="btn-icon" onclick="duplicateFrom('${c.id}')" title="Kopírovat plán od jiného klienta">📥</button>
           <button class="btn-icon danger" onclick="deleteClient('${c.id}')" title="Smazat">🗑</button>
         </div>
       </div>
     `).join('');
   }
+
+  window.setClientFilter = function(filter) {
+    clientFilter = filter;
+    renderClients();
+  };
 
   function renderClientSelect() {
     const options = '<option value="">— Vyber klienta —</option>' +
@@ -389,6 +525,49 @@
       await api('zona-admin', { action: 'delete-client', clientId });
       toast('Klient smazán');
       await loadClients();
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  };
+
+  // ===== Duplicate plan + nutrition from another client =====
+  window.duplicateFrom = async function(targetClientId) {
+    const targetClient = clients.find(c => c.id === targetClientId);
+    const otherClients = clients.filter(c => c.id !== targetClientId);
+    if (otherClients.length === 0) return toast('Žádní další klienti k kopírování');
+
+    const options = otherClients.map(c => c.name).join('\n');
+    const chosen = prompt('Kopírovat plán a výživu od klienta:\n(napiš jméno)\n\n' + options);
+    if (!chosen) return;
+
+    const sourceClient = otherClients.find(c => c.name.toLowerCase().trim() === chosen.toLowerCase().trim());
+    if (!sourceClient) return toast('Klient nenalezen: ' + chosen);
+
+    if (!confirm(`Kopírovat plán a výživu od "${sourceClient.name}" do "${targetClient.name}"? Přepíše aktuální data.`)) return;
+
+    try {
+      // Get source plan
+      let sourcePlan = null;
+      try {
+        const planData = await api('zona-admin', { action: 'get-plan', clientId: sourceClient.id });
+        sourcePlan = planData.plan;
+      } catch {}
+
+      // Get source nutrition
+      let sourceNutrition = null;
+      try {
+        const nutrData = await api('zona-admin', { action: 'get-nutrition', clientId: sourceClient.id });
+        sourceNutrition = nutrData.nutrition;
+      } catch {}
+
+      if (sourcePlan) {
+        await api('zona-admin', { action: 'save-plan', clientId: targetClientId, plan: sourcePlan });
+      }
+      if (sourceNutrition) {
+        await api('zona-admin', { action: 'save-nutrition', clientId: targetClientId, nutrition: sourceNutrition });
+      }
+
+      toast('✅ Plán a výživa zkopírována od ' + sourceClient.name);
     } catch (err) {
       toast('❌ ' + err.message);
     }
@@ -441,6 +620,8 @@
   }
 
   // ===== Day tabs in plan editor =====
+  const DAY_LABELS = { monday: 'Pondělí', tuesday: 'Úterý', wednesday: 'Středa', thursday: 'Čtvrtek', friday: 'Pátek', saturday: 'Sobota', sunday: 'Neděle' };
+
   function renderPlanDayTabs() {
     planDayTabs.querySelectorAll('.day-tab').forEach(tab => {
       const day = tab.dataset.day;
@@ -456,7 +637,39 @@
         renderDayEditor();
       };
     });
+
+    // Copy day toolbar
+    let copyToolbar = document.getElementById('copy-day-toolbar');
+    if (!copyToolbar) {
+      copyToolbar = document.createElement('div');
+      copyToolbar.id = 'copy-day-toolbar';
+      copyToolbar.style.cssText = 'display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;';
+      planDayTabs.parentNode.insertBefore(copyToolbar, planDayTabs.nextSibling);
+    }
+    const dayOptions = DAY_ORDER.map(d => `<option value="${d}">${esc(DAY_LABELS[d])}</option>`).join('');
+    copyToolbar.innerHTML = `
+      <span style="font-size:0.82rem;color:var(--text-muted);">📋 Kopírovat den →</span>
+      <select id="copy-day-target" style="padding:0.3rem 0.5rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);font-size:0.82rem;">
+        ${dayOptions}
+      </select>
+      <button type="button" class="btn-primary btn-sm" onclick="copyCurrentDay()" style="font-size:0.8rem;padding:0.3rem 0.7rem;">Vložit</button>
+    `;
   }
+
+  window.copyCurrentDay = function() {
+    if (!currentPlan || !currentDay) return toast('Nejdřív načti plán');
+    saveDayToModel();
+    const targetDay = document.getElementById('copy-day-target').value;
+    if (targetDay === currentDay) {
+      toast('Nelze kopírovat den sám do sebe');
+      return;
+    }
+    const sourceDayData = currentPlan.days[currentDay];
+    currentPlan.days[targetDay] = JSON.parse(JSON.stringify(sourceDayData));
+    toast('✅ Den zkopírován do ' + DAY_LABELS[targetDay]);
+    renderPlanDayTabs();
+    triggerPlanAutosave();
+  };
 
   // ===== Day editor =====
   function renderDayEditor() {
@@ -480,8 +693,9 @@
 
   function renderExercisesEditor(exercises) {
     exercisesEditor.innerHTML = exercises.map((ex, i) => `
-      <div class="exercise-edit-card" data-index="${i}">
+      <div class="exercise-edit-card" data-index="${i}" draggable="true" style="transition:opacity 0.2s;">
         <div class="exercise-edit-header">
+          <span class="drag-handle" style="cursor:grab;font-size:1.1rem;padding:0 0.3rem;color:var(--text-muted);user-select:none;" title="Přetáhni pro změnu pořadí">☰</span>
           <span class="exercise-edit-number">${i + 1}</span>
           <div class="exercise-edit-name" style="position: relative;">
             <input type="text" value="${escAttr(ex.name)}" placeholder="Začni psát název cviku..." data-field="name" autocomplete="off" data-ac-index="${i}">
@@ -516,6 +730,50 @@
 
     exercisesEditor.querySelectorAll('[data-field="name"]').forEach(input => {
       setupExerciseAutocomplete(input);
+    });
+
+    // Drag & drop reordering
+    let dragSrcIndex = null;
+    exercisesEditor.querySelectorAll('.exercise-edit-card').forEach(card => {
+      card.addEventListener('dragstart', (e) => {
+        dragSrcIndex = parseInt(card.dataset.index);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', dragSrcIndex);
+        card.style.opacity = '0.4';
+      });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '1';
+        exercisesEditor.querySelectorAll('.exercise-edit-card').forEach(c => {
+          c.style.borderTop = '';
+          c.style.borderBottom = '';
+        });
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const targetIndex = parseInt(card.dataset.index);
+        exercisesEditor.querySelectorAll('.exercise-edit-card').forEach(c => {
+          c.style.borderTop = '';
+          c.style.borderBottom = '';
+        });
+        if (targetIndex < dragSrcIndex) {
+          card.style.borderTop = '2px solid var(--accent)';
+        } else if (targetIndex > dragSrcIndex) {
+          card.style.borderBottom = '2px solid var(--accent)';
+        }
+      });
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const toIndex = parseInt(card.dataset.index);
+        if (fromIndex === toIndex) return;
+        saveDayToModel();
+        const dayData = currentPlan.days[currentDay];
+        const moved = dayData.exercises.splice(fromIndex, 1)[0];
+        dayData.exercises.splice(toIndex, 0, moved);
+        renderExercisesEditor(dayData.exercises);
+        triggerPlanAutosave();
+      });
     });
   }
 
@@ -761,6 +1019,7 @@
           </div>
           <div class="template-actions">
             <button class="btn-primary btn-sm" onclick="applyTemplate('${t.id}')">Použít</button>
+            <button class="btn-primary btn-sm" onclick="bulkAssignTemplate('${t.id}')" style="background:var(--accent-hover);font-size:0.75rem;">Přiřadit více klientům</button>
             <button class="btn-icon danger" onclick="deleteTemplate('${t.id}')">🗑</button>
           </div>
         </div>
@@ -773,6 +1032,71 @@
   window.closeTemplateModal = function() {
     document.getElementById('template-modal').hidden = true;
     document.body.style.overflow = '';
+  };
+
+  window.bulkAssignTemplate = function(templateId) {
+    // Show a multi-select client picker modal
+    let bulkModal = document.getElementById('bulk-assign-modal');
+    if (!bulkModal) {
+      bulkModal = document.createElement('div');
+      bulkModal.id = 'bulk-assign-modal';
+      bulkModal.className = 'modal-overlay';
+      bulkModal.innerHTML = `
+        <div class="modal" style="max-width:420px;">
+          <div class="modal-header">
+            <h3>Přiřadit šablonu klientům</h3>
+            <button class="modal-close" onclick="document.getElementById('bulk-assign-modal').hidden=true;document.body.style.overflow='';">✕</button>
+          </div>
+          <div class="modal-body" id="bulk-assign-clients" style="max-height:350px;overflow-y:auto;"></div>
+          <div class="modal-footer" style="display:flex;gap:0.5rem;justify-content:flex-end;padding:0.75rem 1rem;">
+            <button type="button" class="btn-primary btn-sm" id="bulk-assign-select-all" style="font-size:0.8rem;">Vybrat vše</button>
+            <button type="button" class="btn-primary" id="bulk-assign-confirm">Přiřadit</button>
+          </div>
+        </div>`;
+      document.body.appendChild(bulkModal);
+
+      document.getElementById('bulk-assign-select-all').addEventListener('click', () => {
+        const checkboxes = bulkModal.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => { cb.checked = !allChecked; });
+      });
+    }
+
+    const clientsDiv = document.getElementById('bulk-assign-clients');
+    clientsDiv.innerHTML = clients.map(c => `
+      <label style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.5rem;cursor:pointer;border-radius:var(--radius-sm);" onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" value="${c.id}" style="accent-color:var(--accent);">
+        <span>${esc(c.name)}</span>
+      </label>
+    `).join('');
+
+    bulkModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    const confirmBtn = document.getElementById('bulk-assign-confirm');
+    // Remove old listener by replacing
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+    newBtn.addEventListener('click', async () => {
+      const selected = Array.from(bulkModal.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      if (selected.length === 0) return toast('Vyber alespoň jednoho klienta');
+
+      newBtn.disabled = true;
+      newBtn.textContent = 'Přiřazuji...';
+      let successCount = 0;
+      for (const clientId of selected) {
+        try {
+          await api('zona-admin', { action: 'apply-template', clientId, templateId });
+          successCount++;
+        } catch {}
+      }
+      newBtn.disabled = false;
+      newBtn.textContent = 'Přiřadit';
+      bulkModal.hidden = true;
+      document.body.style.overflow = '';
+      closeTemplateModal();
+      toast(`✅ Šablona přiřazena ${successCount} klientům`);
+    });
   };
 
   window.applyTemplate = async function(templateId) {
@@ -1679,6 +2003,15 @@
   };
 
   // ===== Chat modal =====
+  const MESSAGE_TEMPLATES = [
+    "Skvělá práce! Jen tak dál 💪",
+    "Nezapomeň na dnešní trénink 🏋️",
+    "Jak se cítíš po včerejším tréninku?",
+    "Posílám ti aktualizovaný plán, koukni do Zóny 📋",
+    "Máš otázky k jídelníčku?",
+    "Připomínám check-in tento týden 📊",
+  ];
+
   let chatClientId = null;
 
   window.openChatModal = async function(clientId) {
@@ -1723,6 +2056,19 @@
     }).join('');
 
     msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // Render message template chips above input
+    let tplWrap = document.getElementById('chat-templates-wrap');
+    if (!tplWrap) {
+      tplWrap = document.createElement('div');
+      tplWrap.id = 'chat-templates-wrap';
+      tplWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:0.35rem;padding:0.5rem 0.75rem;border-top:1px solid var(--border);';
+      const inputRow = document.getElementById('chat-modal-input').parentElement;
+      inputRow.parentElement.insertBefore(tplWrap, inputRow);
+    }
+    tplWrap.innerHTML = MESSAGE_TEMPLATES.map(t =>
+      `<button type="button" class="chat-tpl-chip" style="font-size:0.75rem;padding:0.25rem 0.6rem;border-radius:var(--radius-full);border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);cursor:pointer;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--bg-elevated)';this.style.color='var(--text)'" onclick="document.getElementById('chat-modal-input').value=this.textContent;document.getElementById('chat-modal-input').focus();">${esc(t)}</button>`
+    ).join('');
   }
 
   document.getElementById('chat-modal-send').addEventListener('click', sendAdminMessage);
@@ -1765,6 +2111,7 @@
       closeOnboardingModal();
       closeChatModal();
       closeTemplateModal();
+      if (typeof closeBulkMessageModal === 'function') closeBulkMessageModal();
     }
   });
 
@@ -2484,6 +2831,259 @@
 
     window._paymentsLoadPayments = loadPayments;
   })();
+
+  // ===== Bulk Messaging Modal =====
+  window.openBulkMessageModal = function() {
+    let modal = document.getElementById('bulk-message-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'bulk-message-modal';
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal" style="max-width:500px;">
+          <div class="modal-header">
+            <h3>\ud83d\udce8 Hromadn\xe1 zpr\xe1va</h3>
+            <button class="modal-close" onclick="closeBulkMessageModal()">\u2715</button>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom:0.5rem;">
+              <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;cursor:pointer;">
+                <input type="checkbox" id="bulk-msg-select-all" style="accent-color:var(--accent);">
+                <strong>Vybrat v\u0161e</strong>
+              </label>
+              <div id="bulk-msg-clients" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem;"></div>
+            </div>
+            <div style="margin-bottom:0.5rem;">
+              <label style="font-size:0.85rem;color:var(--text-muted);display:block;margin-bottom:0.3rem;">Zpr\xe1va</label>
+              <textarea id="bulk-msg-text" rows="4" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-elevated);color:var(--text);font-size:0.9rem;resize:vertical;" placeholder="Napi\u0161 zpr\xe1vu pro v\u0161echny vybran\xe9 klienty..."></textarea>
+            </div>
+            <div id="bulk-msg-progress" hidden style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;"></div>
+          </div>
+          <div class="modal-footer" style="display:flex;gap:0.5rem;justify-content:flex-end;padding:0.75rem 1rem;">
+            <button type="button" class="btn-primary" id="bulk-msg-send-btn">Odeslat v\u0161em</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+
+      document.getElementById('bulk-msg-select-all').addEventListener('change', function() {
+        const checked = this.checked;
+        modal.querySelectorAll('#bulk-msg-clients input[type="checkbox"]').forEach(cb => { cb.checked = checked; });
+      });
+
+      document.getElementById('bulk-msg-send-btn').addEventListener('click', async function() {
+        const selected = Array.from(modal.querySelectorAll('#bulk-msg-clients input[type="checkbox"]:checked')).map(cb => cb.value);
+        const text = document.getElementById('bulk-msg-text').value.trim();
+        if (selected.length === 0) return toast('Vyber alespo\u0148 jednoho klienta');
+        if (!text) return toast('Napi\u0161 zpr\xe1vu');
+
+        const btn = this;
+        const progress = document.getElementById('bulk-msg-progress');
+        btn.disabled = true;
+        progress.hidden = false;
+
+        let sent = 0;
+        let failed = 0;
+        for (const clientId of selected) {
+          progress.textContent = `Odes\xedl\xe1m ${sent + failed + 1}/${selected.length}...`;
+          try {
+            await api('zona-admin', { action: 'send-message', clientId, text });
+            sent++;
+          } catch {
+            failed++;
+          }
+        }
+
+        btn.disabled = false;
+        progress.textContent = `Hotovo: ${sent} odesl\xe1no` + (failed > 0 ? `, ${failed} se\u0161halo` : '');
+        toast(`\u2705 Zpr\xe1va odesl\xe1na ${sent} klient\u016fm` + (failed > 0 ? ` (${failed} chyb)` : ''));
+        if (failed === 0) {
+          setTimeout(() => { closeBulkMessageModal(); }, 1500);
+        }
+      });
+    }
+
+    // Populate client list
+    const clientsDiv = document.getElementById('bulk-msg-clients');
+    clientsDiv.innerHTML = clients.map(c => `
+      <label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0.4rem;cursor:pointer;border-radius:var(--radius-sm);" onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
+        <input type="checkbox" value="${c.id}" style="accent-color:var(--accent);">
+        <span style="font-size:0.9rem;">${esc(c.name)}</span>
+      </label>
+    `).join('');
+
+    document.getElementById('bulk-msg-select-all').checked = false;
+    document.getElementById('bulk-msg-text').value = '';
+    document.getElementById('bulk-msg-progress').hidden = true;
+    document.getElementById('bulk-msg-send-btn').disabled = false;
+
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeBulkMessageModal = function() {
+    const modal = document.getElementById('bulk-message-modal');
+    if (modal) modal.hidden = true;
+    document.body.style.overflow = '';
+  };
+
+  // ===== PDF Report (Printable HTML) =====
+  window.generateReport = async function(clientId) {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return toast('Klient nenalezen');
+
+    toast('Generuji report...');
+
+    let progressEntries = [];
+    let planData = null;
+    let nutritionData = null;
+    let checkinEntries = [];
+
+    try {
+      const pData = await api('zona-admin', { action: 'get-progress', clientId });
+      progressEntries = pData.entries || [];
+    } catch {}
+
+    try {
+      const plData = await api('zona-admin', { action: 'get-plan', clientId });
+      planData = plData.plan || null;
+    } catch {}
+
+    try {
+      const nData = await api('zona-admin', { action: 'get-nutrition', clientId });
+      nutritionData = nData.nutrition || null;
+    } catch {}
+
+    // Filter progress to last 30 days
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentProgress = progressEntries.filter(e => new Date(e.createdAt).getTime() >= thirtyDaysAgo)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    const now = new Date();
+    const dateFrom = new Date(thirtyDaysAgo).toLocaleDateString('cs-CZ');
+    const dateTo = now.toLocaleDateString('cs-CZ');
+
+    // Weight progress
+    let weightHtml = '<p style="color:#888;">Žádné záznamy váhy za posledních 30 dní.</p>';
+    if (recentProgress.length > 0) {
+      const first = recentProgress[0];
+      const last = recentProgress[recentProgress.length - 1];
+      const diff = last.weight - first.weight;
+      const diffSign = diff > 0 ? '+' : '';
+      weightHtml = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
+          <tr>
+            <td style="padding:0.4rem;border:1px solid #ddd;">Počáteční váha</td>
+            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${first.weight} kg</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;border:1px solid #ddd;">Aktuální váha</td>
+            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${last.weight} kg</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;border:1px solid #ddd;">Změna</td>
+            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;color:${diff <= 0 ? '#16a34a' : '#ea580c'};">${diffSign}${diff.toFixed(1)} kg</td>
+          </tr>
+          <tr>
+            <td style="padding:0.4rem;border:1px solid #ddd;">Počet záznamů</td>
+            <td style="padding:0.4rem;border:1px solid #ddd;">${recentProgress.length}</td>
+          </tr>
+        </table>`;
+    }
+
+    // Training plan overview
+    let planHtml = '<p style="color:#888;">Žádný tréninkový plán.</p>';
+    if (planData && planData.days) {
+      const dayEntries = Object.entries(planData.days)
+        .filter(([, d]) => !d.rest && d.exercises && d.exercises.length > 0);
+      if (dayEntries.length > 0) {
+        planHtml = dayEntries.map(([dayKey, d]) => {
+          const label = DAY_LABELS[dayKey] || dayKey;
+          const name = d.name ? ` — ${esc(d.name)}` : '';
+          const exList = d.exercises.map((ex, i) =>
+            `<tr><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;text-align:center;">${i + 1}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.name || '-')}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.sets || '-')}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.reps || '-')}</td></tr>`
+          ).join('');
+          return `
+            <h4 style="margin:0.75rem 0 0.3rem;">${esc(label)}${name}</h4>
+            <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+              <thead><tr style="background:#f3f4f6;"><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">#</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Cvik</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Série</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Opakování</th></tr></thead>
+              <tbody>${exList}</tbody>
+            </table>`;
+        }).join('');
+      }
+    }
+
+    // Nutrition overview
+    let nutritionHtml = '<p style="color:#888;">Žádný nutriční plán.</p>';
+    if (nutritionData) {
+      const cal = nutritionData.calories || 0;
+      const p = nutritionData.protein || 0;
+      const c = nutritionData.carbs || 0;
+      const f = nutritionData.fat || 0;
+      nutritionHtml = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Kalorie</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${cal} kcal</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Bílkoviny</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${p} g</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Sacharidy</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${c} g</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Tuky</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${f} g</td></tr>
+        </table>`;
+      if (nutritionData.meals && nutritionData.meals.length > 0) {
+        nutritionHtml += '<h4 style="margin:0.5rem 0 0.3rem;">Jídla</h4><ul style="margin:0;padding-left:1.2rem;">';
+        nutritionData.meals.forEach(m => {
+          const mCal = m.calories || 0;
+          nutritionHtml += `<li style="margin-bottom:0.2rem;"><strong>${esc(m.name || 'Jídlo')}</strong>${m.time ? ' (' + esc(m.time) + ')' : ''} — ${mCal} kcal</li>`;
+        });
+        nutritionHtml += '</ul>';
+      }
+    }
+
+    // Build the HTML report
+    const reportHtml = `<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>M\u011bs\xed\u010dn\xed report — ${esc(client.name)}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; color: #1a1a1a; }
+    h1 { font-size: 1.6rem; border-bottom: 2px solid #10b981; padding-bottom: 0.5rem; }
+    h2 { font-size: 1.15rem; color: #10b981; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    h3 { font-size: 1rem; margin: 1rem 0 0.3rem; }
+    table { font-size: 0.9rem; }
+    .report-meta { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .report-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; color: #aaa; font-size: 0.8rem; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <h1>\ud83d\udcc4 M\u011bs\xed\u010dn\xed report — ${esc(client.name)}</h1>
+  <div class="report-meta">Obdob\xed: ${dateFrom} \u2013 ${dateTo} &nbsp;|&nbsp; Vygenerov\xe1no: ${now.toLocaleDateString('cs-CZ')} ${now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</div>
+
+  <h2>\u2696\ufe0f V\xe1hov\xfd progres</h2>
+  ${weightHtml}
+
+  <h2>\ud83c\udfcb\ufe0f Tr\xe9ninkov\xfd pl\xe1n</h2>
+  ${planHtml}
+
+  <h2>\ud83e\udd57 V\xfd\u017eiva (makra)</h2>
+  ${nutritionHtml}
+
+  <div class="report-footer">Vygenerov\xe1no z administrace — Adam Jirsa Fitness</div>
+
+  <script>window.onload = function() { window.print(); }<\/script>
+</body>
+</html>`;
+
+    const reportWindow = window.open('', '_blank');
+    if (reportWindow) {
+      reportWindow.document.write(reportHtml);
+      reportWindow.document.close();
+    } else {
+      toast('\u274c Prohl\xed\u017ee\u010d zablokoval vyskakovac\xed okno. Povol pop-up okna.');
+    }
+  };
 
   // ===== Start =====
   init();

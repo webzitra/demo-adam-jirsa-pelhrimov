@@ -220,6 +220,8 @@
   const dashGreeting = document.getElementById('dash-greeting');
   const sectionToday = document.getElementById('section-today');
 
+  var scheduleData = [];
+
   function applyDashboardData(data) {
     planData = data.plan;
     nutritionData = data.nutrition;
@@ -229,6 +231,7 @@
     messagesData = data.messages || [];
     todayWorkoutLog = data.todayLog || {};
     todayNutritionLog = data.todayNutritionLog || {};
+    scheduleData = data.schedule || [];
   }
 
   function cacheDashboard(data) {
@@ -410,6 +413,15 @@
       greetingSub.textContent = 'Tvůj tréninkový plán se připravuje.';
     }
 
+    // Schedule
+    if (scheduleData && scheduleData.length > 0) {
+      var sectionSchedule = document.getElementById('section-schedule');
+      if (sectionSchedule) {
+        sectionSchedule.hidden = false;
+        renderSchedule();
+      }
+    }
+
     // Week view
     if (planData && planData.days) {
       sectionWeek.hidden = false;
@@ -438,6 +450,34 @@
 
     // Message from Adam (legacy — now we have chat)
     // Keep for backwards compat: if plan has message, show it as first chat message
+  }
+
+  // ===== Render schedule =====
+  function renderSchedule() {
+    var content = document.getElementById('schedule-content');
+    if (!content || !scheduleData.length) return;
+
+    var DAY_CZ = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+    var todayStr = new Date().toISOString().split('T')[0];
+
+    content.innerHTML = scheduleData.map(function(s) {
+      var d = new Date(s.date + 'T00:00:00');
+      var dayName = DAY_CZ[d.getDay()];
+      var dateStr = d.getDate() + '.' + (d.getMonth() + 1) + '.';
+      var isToday = s.date === todayStr;
+
+      return '<div class="schedule-card' + (isToday ? ' schedule-today' : '') + '">' +
+        '<div class="schedule-card-date">' +
+          '<span class="schedule-day">' + dayName + '</span>' +
+          '<span class="schedule-datenum">' + dateStr + '</span>' +
+        '</div>' +
+        '<div class="schedule-card-info">' +
+          '<span class="schedule-time">' + s.time + '</span>' +
+          '<span class="schedule-dur">' + s.duration + ' min</span>' +
+        '</div>' +
+        (s.notes ? '<div class="schedule-note">' + s.notes + '</div>' : '') +
+      '</div>';
+    }).join('');
   }
 
   // ===== Render exercises with workout logging =====
@@ -498,6 +538,7 @@
             </div>` : ''}
             ${ex.notes ? `<div class="exercise-notes">${escapeHtml(ex.notes)}</div>` : ''}
             ${ex.videoUrl ? `<button class="exercise-video-btn" data-video="${escapeAttr(ex.videoUrl)}">▶ Ukázka cviku</button>` : ''}
+            <button class="exercise-history-btn" data-exercise-name="${escapeAttr(ex.name)}">📊 Historie</button>
           </div>
         </div>
       </div>`;
@@ -506,6 +547,11 @@
     // Event listeners
     container.querySelectorAll('.exercise-video-btn').forEach(btn => {
       btn.addEventListener('click', () => openVideo(btn.dataset.video));
+    });
+
+    // Exercise history
+    container.querySelectorAll('.exercise-history-btn').forEach(btn => {
+      btn.addEventListener('click', () => openExerciseHistory(btn.dataset.exerciseName));
     });
 
     // Rest timer integration
@@ -1467,6 +1513,51 @@
       document.body.style.overflow = '';
     }
   });
+
+  // ===== Exercise History =====
+  async function openExerciseHistory(exerciseName) {
+    var modal = document.getElementById('exercise-history-modal');
+    var nameSpan = document.getElementById('exercise-history-name');
+    var content = document.getElementById('exercise-history-content');
+
+    nameSpan.textContent = exerciseName;
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    content.innerHTML = '<p class="text-muted">Načítám historii...</p>';
+
+    try {
+      var data = await api('zona-data', { action: 'get-exercise-history', exerciseName: exerciseName }, sessionToken);
+      var history = data.history || [];
+
+      if (history.length === 0) {
+        content.innerHTML = '<p class="text-muted">Zatím žádné záznamy. Začni logovat tréninky!</p>';
+        return;
+      }
+
+      content.innerHTML = '<div class="exercise-history-list">' +
+        history.map(function(h) {
+          var d = new Date(h.date + 'T00:00:00');
+          var dateStr = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
+          var weightStr = h.actualWeight ? h.actualWeight + ' kg' : '—';
+          var setsReps = (h.actualSets || '—') + ' × ' + (h.actualReps || '—');
+          return '<div class="exercise-history-row">' +
+            '<span class="exercise-history-date">' + dateStr + '</span>' +
+            '<span class="exercise-history-detail">' + weightStr + ' · ' + setsReps + '</span>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    } catch (err) {
+      content.innerHTML = '<p style="color: #f87171;">Chyba: ' + (err.message || 'Neznámá chyba') + '</p>';
+    }
+  }
+
+  function closeExerciseHistory() {
+    document.getElementById('exercise-history-modal').hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('exercise-history-close').addEventListener('click', closeExerciseHistory);
+  document.getElementById('exercise-history-backdrop').addEventListener('click', closeExerciseHistory);
 
   // ===== Helpers =====
   function getTodayKey() {

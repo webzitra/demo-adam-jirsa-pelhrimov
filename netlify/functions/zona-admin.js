@@ -12,6 +12,7 @@ const {
   getSchedule, saveSchedule,
   getPayments, savePayments,
   getCheckins,
+  getNutritionTemplates, saveNutritionTemplates,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -240,6 +241,60 @@ exports.handler = async (event) => {
     const newPlan = { ...existingPlan, days: JSON.parse(JSON.stringify(tpl.days)) };
     await savePlan(clientId, newPlan);
     return jsonResponse(200, { plan: newPlan });
+  }
+
+  // =====================
+  // NUTRITION TEMPLATES
+  // =====================
+
+  if (action === 'list-nutrition-templates') {
+    const templates = await getNutritionTemplates();
+    return jsonResponse(200, { templates });
+  }
+
+  if (action === 'save-nutrition-template') {
+    const { template } = body;
+    if (!template || !template.name) {
+      return jsonResponse(400, { error: 'Šablona musí mít název' });
+    }
+    const templates = await getNutritionTemplates();
+    template.id = `ntpl-${Date.now()}`;
+    template.createdAt = new Date().toISOString();
+    templates.push(template);
+    await saveNutritionTemplates(templates);
+    return jsonResponse(201, { template });
+  }
+
+  if (action === 'delete-nutrition-template') {
+    const { templateId } = body;
+    if (!templateId) {
+      return jsonResponse(400, { error: 'templateId je povinné' });
+    }
+    let templates = await getNutritionTemplates();
+    templates = templates.filter(t => t.id !== templateId);
+    await saveNutritionTemplates(templates);
+    return jsonResponse(200, { success: true });
+  }
+
+  if (action === 'apply-nutrition-template') {
+    const { clientId, templateId } = body;
+    if (!clientId || !templateId) {
+      return jsonResponse(400, { error: 'clientId a templateId jsou povinné' });
+    }
+    const templates = await getNutritionTemplates();
+    const tpl = templates.find(t => t.id === templateId);
+    if (!tpl) {
+      return jsonResponse(404, { error: 'Šablona nenalezena' });
+    }
+    const existing = await getNutrition(clientId) || {};
+    const newNutrition = {
+      ...existing,
+      meals: JSON.parse(JSON.stringify(tpl.meals || [])),
+      supplements: JSON.parse(JSON.stringify(tpl.supplements || [])),
+      notes: tpl.notes || '',
+    };
+    await saveNutrition(clientId, newNutrition);
+    return jsonResponse(200, { nutrition: newNutrition });
   }
 
   // =====================

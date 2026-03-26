@@ -128,19 +128,194 @@ async function saveWorkoutLog(clientId, date, log) {
 }
 
 // --- Plan Templates ---
+function getDefaultTemplates() {
+  const ex = (name, sets, reps, rest) => ({ name, sets, reps, rest, videoUrl: '', notes: '' });
+  const restDay = { name: 'Volno', rest: true, exercises: [] };
+
+  return [
+    {
+      id: 'default-ppl', name: 'PPL (Push/Pull/Legs)', description: '6denní split — klasika pro pokročilé',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      days: {
+        monday: { name: 'Push A', rest: false, exercises: [
+          ex('Bench press (rovná lavice)','4','8-10','90s'), ex('Šikmý bench press (činky)','3','10-12','75s'),
+          ex('Peck deck','3','12-15','60s'), ex('Military press (tyč)','4','8-10','90s'),
+          ex('Upažování s jednoručkami','3','12-15','60s'), ex('Tricepsový stahák (lano)','3','12-15','60s'),
+          ex('Francouzský tlak (EZ tyč)','3','10-12','75s')
+        ]},
+        tuesday: { name: 'Pull A', rest: false, exercises: [
+          ex('Shyby nadhmatem','4','6-10','90s'), ex('Veslování v předklonu (tyč)','4','8-10','90s'),
+          ex('Lat pulldown (široký)','3','10-12','75s'), ex('Seated row (kladka)','3','10-12','75s'),
+          ex('Face pulls','3','15-20','60s'), ex('Bicepsový curl (EZ tyč)','3','10-12','60s'),
+          ex('Hammer curl','3','12','60s')
+        ]},
+        wednesday: { name: 'Legs A', rest: false, exercises: [
+          ex('Dřep s tyčí','4','8-10','120s'), ex('Leg press','3','12-15','75s'),
+          ex('Bulharský dřep','3','10-12','75s'), ex('Leg curl','3','10-12','60s'),
+          ex('Leg extension','3','12-15','60s'), ex('Hip thrust','3','10-12','75s'),
+          ex('Lýtka vestoje','4','15-20','45s')
+        ]},
+        thursday: { name: 'Push B', rest: false, exercises: [
+          ex('Šikmý bench press (velká)','4','8-10','90s'), ex('Bench press (činky)','3','10-12','75s'),
+          ex('Kabelový crossover','3','12-15','60s'), ex('Tlak s jednoručkami (ramena)','3','10-12','75s'),
+          ex('Reverse fly','3','12-15','60s'), ex('Close-grip bench press','3','8-10','90s'),
+          ex('Overhead triceps extension','3','10-12','60s')
+        ]},
+        friday: { name: 'Pull B', rest: false, exercises: [
+          ex('Mrtvý tah','4','6-8','120s'), ex('Veslování s jednoručkou','3','10-12','75s'),
+          ex('Lat pulldown (úzký)','3','10-12','75s'), ex('T-bar row','3','8-10','90s'),
+          ex('Hyperextenze','3','12-15','60s'), ex('Preacher curl','3','10-12','60s'),
+          ex('Bicepsový curl na kladce','3','12-15','60s')
+        ]},
+        saturday: { name: 'Legs B', rest: false, exercises: [
+          ex('Front squat','3','8-10','90s'), ex('Výpady chůzí','3','12-16','75s'),
+          ex('Rumunský mrtvý tah','3','10-12','90s'), ex('Leg extension','3','12-15','60s'),
+          ex('Leg curl','3','10-12','60s'), ex('Sumo dřep','3','10-12','90s'),
+          ex('Lýtka vsedě','3','15-20','45s')
+        ]},
+        sunday: restDay
+      }
+    },
+    {
+      id: 'default-upper-lower', name: 'Upper / Lower split', description: '4denní split — ideální pro středně pokročilé',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      days: {
+        monday: { name: 'Upper A', rest: false, exercises: [
+          ex('Bench press (rovná lavice)','4','8-10','90s'), ex('Veslování v předklonu (tyč)','4','8-10','90s'),
+          ex('Military press (tyč)','3','10-12','75s'), ex('Lat pulldown (široký)','3','10-12','75s'),
+          ex('Bicepsový curl (jednoručky)','3','10-12','60s'), ex('Tricepsové kliky na bradlech','3','8-12','75s')
+        ]},
+        tuesday: { name: 'Lower A', rest: false, exercises: [
+          ex('Dřep s tyčí','4','8-10','120s'), ex('Rumunský mrtvý tah','3','10-12','90s'),
+          ex('Leg press','3','12-15','75s'), ex('Leg curl','3','10-12','60s'),
+          ex('Hip thrust','3','10-12','75s'), ex('Lýtka vestoje','4','15-20','45s')
+        ]},
+        wednesday: restDay,
+        thursday: { name: 'Upper B', rest: false, exercises: [
+          ex('Šikmý bench press (činky)','3','10-12','75s'), ex('Shyby nadhmatem','4','6-10','90s'),
+          ex('Tlak s jednoručkami (ramena)','3','10-12','75s'), ex('Seated row (kladka)','3','10-12','75s'),
+          ex('Hammer curl','3','12','60s'), ex('Tricepsový stahák (lano)','3','12-15','60s')
+        ]},
+        friday: { name: 'Lower B', rest: false, exercises: [
+          ex('Mrtvý tah','4','6-8','120s'), ex('Bulharský dřep','3','10-12','75s'),
+          ex('Leg extension','3','12-15','60s'), ex('Leg curl','3','10-12','60s'),
+          ex('Výpady s činkami','3','10-12','75s'), ex('Lýtka vsedě','3','15-20','45s')
+        ]},
+        saturday: restDay,
+        sunday: restDay
+      }
+    },
+    {
+      id: 'default-fullbody', name: 'Full body', description: '3denní celotělový trénink',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      days: {
+        monday: { name: 'Full body A', rest: false, exercises: [
+          ex('Dřep s tyčí','4','8-10','120s'), ex('Bench press (rovná lavice)','4','8-10','90s'),
+          ex('Veslování v předklonu (tyč)','4','8-10','90s'), ex('Military press (tyč)','3','10-12','75s'),
+          ex('Bicepsový curl (EZ tyč)','3','10-12','60s'), ex('Plank','3','45-60s','45s')
+        ]},
+        tuesday: restDay,
+        wednesday: { name: 'Full body B', rest: false, exercises: [
+          ex('Mrtvý tah','4','6-8','120s'), ex('Šikmý bench press (činky)','3','10-12','75s'),
+          ex('Lat pulldown (široký)','3','10-12','75s'), ex('Tlak s jednoručkami (ramena)','3','10-12','75s'),
+          ex('Tricepsový stahák (lano)','3','12-15','60s'), ex('Hanging leg raise','3','10-15','60s')
+        ]},
+        thursday: restDay,
+        friday: { name: 'Full body C', rest: false, exercises: [
+          ex('Leg press','3','12-15','75s'), ex('Bench press (činky)','3','10-12','75s'),
+          ex('Shyby nadhmatem','3','6-10','90s'), ex('Arnold press','3','10-12','75s'),
+          ex('Hammer curl','3','12','60s'), ex('Russian twist','3','20','45s')
+        ]},
+        saturday: restDay,
+        sunday: restDay
+      }
+    },
+    {
+      id: 'default-beginner', name: 'Začátečník', description: '3denní plán pro začínající — základní cviky',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      days: {
+        monday: { name: 'Trénink A', rest: false, exercises: [
+          ex('Dřep s činkami','3','10-12','90s'), ex('Bench press (činky)','3','10-12','75s'),
+          ex('Veslování s jednoručkou','3','10-12','75s'), ex('Kliky na zemi','3','15-20','60s'),
+          ex('Plank','3','45-60s','45s'), ex('Lýtka vestoje','3','15-20','45s')
+        ]},
+        tuesday: restDay,
+        wednesday: { name: 'Trénink B', rest: false, exercises: [
+          ex('Leg press','3','12-15','75s'), ex('Lat pulldown (široký)','3','10-12','75s'),
+          ex('Tlak s jednoručkami (ramena)','3','10-12','75s'), ex('Bicepsový curl (jednoručky)','3','10-12','60s'),
+          ex('Crunches','3','15-20','45s')
+        ]},
+        thursday: restDay,
+        friday: { name: 'Trénink C', rest: false, exercises: [
+          ex('Výpady s činkami','3','10-12','75s'), ex('Bench press (rovná lavice)','3','10-12','90s'),
+          ex('Seated row (kladka)','3','10-12','75s'), ex('Face pulls','3','15-20','60s'),
+          ex('Dead bug','3','10-12','45s'), ex('Hyperextenze','3','12-15','60s')
+        ]},
+        saturday: restDay,
+        sunday: restDay
+      }
+    },
+    {
+      id: 'default-women', name: 'Ženy — zpevnění', description: '4denní plán se zaměřením na nohy, glutes a core',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      days: {
+        monday: { name: 'Lower focus', rest: false, exercises: [
+          ex('Hip thrust','3','10-12','75s'), ex('Bulharský dřep','3','10-12','75s'),
+          ex('Leg press','3','12-15','75s'), ex('Leg curl','3','10-12','60s'),
+          ex('Výpady chůzí','3','12-16','75s'), ex('Plank','3','45-60s','45s')
+        ]},
+        tuesday: { name: 'Upper', rest: false, exercises: [
+          ex('Lat pulldown (široký)','3','10-12','75s'), ex('Bench press (činky)','3','10-12','75s'),
+          ex('Veslování s jednoručkou','3','10-12','75s'), ex('Tlak s jednoručkami (ramena)','3','10-12','75s'),
+          ex('Face pulls','3','15-20','60s'), ex('Tricepsový stahák (lano)','3','12-15','60s')
+        ]},
+        wednesday: restDay,
+        thursday: { name: 'Glutes & Legs', rest: false, exercises: [
+          ex('Sumo dřep','3','10-12','90s'), ex('Hip thrust','3','10-12','75s'),
+          ex('Výpady s činkami','3','10-12','75s'), ex('Leg extension','3','12-15','60s'),
+          ex('Leg curl','3','10-12','60s'), ex('Boční plank','3','30-45s','45s')
+        ]},
+        friday: { name: 'Full body + kondice', rest: false, exercises: [
+          ex('Dřep s činkami','3','10-12','90s'), ex('Kliky na zemi','3','15-20','60s'),
+          ex('Seated row (kladka)','3','10-12','75s'), ex('Kettlebell swing','3','15-20','60s'),
+          ex('Russian twist','3','20','45s'), ex('Burpees','3','10','60s')
+        ]},
+        saturday: restDay,
+        sunday: restDay
+      }
+    }
+  ];
+}
+
 async function getTemplates() {
   const store = await getZonaStore();
   try {
     const data = await store.get('plan-templates', { type: 'json' });
+    const templates = data?.templates || [];
+    if (templates.length > 0) return templates;
+  } catch {}
+  return getDefaultTemplates();
+}
+
+async function saveTemplates(templates) {
+  const store = await getZonaStore();
+  await store.setJSON('plan-templates', { templates, updatedAt: new Date().toISOString() });
+}
+
+// --- Nutrition Templates ---
+async function getNutritionTemplates() {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get('nutrition-templates', { type: 'json' });
     return data?.templates || [];
   } catch {
     return [];
   }
 }
 
-async function saveTemplates(templates) {
+async function saveNutritionTemplates(templates) {
   const store = await getZonaStore();
-  await store.setJSON('plan-templates', { templates, updatedAt: new Date().toISOString() });
+  await store.setJSON('nutrition-templates', { templates, updatedAt: new Date().toISOString() });
 }
 
 // --- Onboarding ---
@@ -287,4 +462,6 @@ module.exports = {
   saveSchedule,
   getPayments,
   savePayments,
+  getNutritionTemplates,
+  saveNutritionTemplates,
 };

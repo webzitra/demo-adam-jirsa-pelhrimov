@@ -1231,6 +1231,100 @@
     }
   });
 
+  // ===== Nutrition Templates =====
+  document.getElementById('save-nutrition-template-btn').addEventListener('click', async () => {
+    if (!currentNutrition) return toast('Nejdřív načti výživu');
+    saveNutritionToModel();
+
+    const name = prompt('Název šablony výživy:', '');
+    if (!name) return;
+
+    try {
+      const template = {
+        name,
+        meals: JSON.parse(JSON.stringify(currentNutrition.meals || [])),
+        supplements: JSON.parse(JSON.stringify(currentNutrition.supplements || [])),
+        notes: currentNutrition.notes || '',
+      };
+      await api('zona-admin', { action: 'save-nutrition-template', template });
+      toast('✅ Šablona výživy uložena!');
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  });
+
+  document.getElementById('load-nutrition-template-btn').addEventListener('click', async () => {
+    if (!selectedNutrClientId) return toast('Nejdřív vyber klienta');
+    openNutritionTemplateModal();
+  });
+
+  async function openNutritionTemplateModal() {
+    const modal = document.getElementById('nutrition-template-modal');
+    const list = document.getElementById('nutrition-template-list');
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    list.innerHTML = '<p class="text-muted">Načítám...</p>';
+
+    try {
+      const data = await api('zona-admin', { action: 'list-nutrition-templates' });
+      const templates = data.templates || [];
+
+      if (templates.length === 0) {
+        list.innerHTML = '<p class="text-muted">Zatím žádné šablony. Ulož aktuální výživu jako šablonu.</p>';
+        return;
+      }
+
+      list.innerHTML = templates.map(t => `
+        <div class="template-row">
+          <div class="template-info">
+            <span class="template-name">${esc(t.name)}</span>
+            <span class="template-date">${t.createdAt ? new Date(t.createdAt).toLocaleDateString('cs-CZ') : ''}</span>
+          </div>
+          <div class="template-actions">
+            <button class="btn-primary btn-sm" onclick="applyNutritionTemplate('${t.id}')">Použít</button>
+            <button class="btn-icon danger" onclick="deleteNutritionTemplate('${t.id}')">🗑</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      list.innerHTML = `<p style="color: #f87171;">${err.message}</p>`;
+    }
+  }
+
+  window.closeNutritionTemplateModal = function() {
+    document.getElementById('nutrition-template-modal').hidden = true;
+    document.body.style.overflow = '';
+  };
+
+  window.applyNutritionTemplate = async function(templateId) {
+    if (!confirm('Nahradit aktuální výživu šablonou?')) return;
+
+    try {
+      const data = await api('zona-admin', { action: 'apply-nutrition-template', clientId: selectedNutrClientId, templateId });
+      currentNutrition = data.nutrition || createEmptyNutrition();
+      nutrNotes.value = currentNutrition.notes || '';
+      renderMealsEditor(currentNutrition.meals || []);
+      renderSupplementsEditor(currentNutrition.supplements || []);
+      recalcAllTotals();
+      closeNutritionTemplateModal();
+      toast('✅ Šablona výživy aplikována!');
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  };
+
+  window.deleteNutritionTemplate = async function(templateId) {
+    if (!confirm('Smazat šablonu výživy?')) return;
+
+    try {
+      await api('zona-admin', { action: 'delete-nutrition-template', templateId });
+      openNutritionTemplateModal();
+      toast('Šablona smazána');
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  };
+
   // ===== Progress modal =====
   window.showProgress = async function(clientId) {
     const client = clients.find(c => c.id === clientId);

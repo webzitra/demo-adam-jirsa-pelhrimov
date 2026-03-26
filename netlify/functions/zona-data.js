@@ -5,6 +5,7 @@ const {
   getMessages, addMessage,
   getNutritionLog, saveNutritionLog,
   getCheckins, addCheckin,
+  getSchedule,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -179,7 +180,28 @@ exports.handler = async (event) => {
   // --- Get dashboard (all data at once) ---
   if (action === 'dashboard') {
     const today = new Date().toISOString().split('T')[0];
-    const [plan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog, checkins] = await Promise.all([
+
+    // Calculate current and next week keys for schedule
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diffToMonday = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    function calcWeekKey(mon) {
+      const jan4 = new Date(mon.getFullYear(), 0, 4);
+      const days = Math.round((mon - jan4) / 86400000);
+      const weekNum = Math.ceil((days + jan4.getDay()) / 7);
+      return `${mon.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+    }
+
+    const thisWeekKey = calcWeekKey(monday);
+    const nextMonday = new Date(monday);
+    nextMonday.setDate(nextMonday.getDate() + 7);
+    const nextWeekKey = calcWeekKey(nextMonday);
+
+    const [plan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog, checkins, thisWeekSessions, nextWeekSessions] = await Promise.all([
       getPlan(clientId),
       getNutrition(clientId),
       getProgress(clientId),
@@ -188,7 +210,14 @@ exports.handler = async (event) => {
       getMessages(clientId),
       getNutritionLog(clientId, today),
       getCheckins(clientId),
+      getSchedule(thisWeekKey),
+      getSchedule(nextWeekKey),
     ]);
+
+    // Filter schedule to this client's future sessions only
+    const mySessions = [...thisWeekSessions, ...nextWeekSessions]
+      .filter(s => s.clientId === clientId && s.date >= today)
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
     const { passwordHash, ...safeClient } = client;
 
@@ -202,7 +231,47 @@ exports.handler = async (event) => {
       onboarding,
       messages: messages.slice(-50),
       checkins: checkins.slice(-20),
+      schedule: mySessions,
     });
+  }
+
+  // --- Exercise history (progressive overload tracking) ---
+  if (action === 'get-exercise-history') {
+    const { exerciseName } = body;
+    if (!exerciseName) {
+      return jsonResponse(400, { error: 'exerciseName je povinné' });
+    }
+
+    const plan = await getPlan(clientId);
+    const lookbackDays = 90;
+    const history = [];
+    const now = new Date();
+
+    for (let i = 0; i < lookbackDays; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+
+      try {
+        const log = await getWorkoutLog(clientId, dateStr);
+        if (log && log.exercises && log.day && plan?.days?.[log.day]) {
+          const dayExercises = plan.days[log.day].exercises || [];
+          log.exercises.forEach(le => {
+            const planEx = dayExercises[le.index];
+            if (planEx && planEx.name === exerciseName && le.done) {
+              history.push({
+                date: dateStr,
+                actualWeight: le.actualWeight || '',
+                actualSets: le.actualSets || '',
+                actualReps: le.actualReps || '',
+              });
+            }
+          });
+        }
+      } catch {}
+    }
+
+    return jsonResponse(200, { exerciseName, history: history.reverse() });
   }
 
   return jsonResponse(400, { error: 'Neznámá akce' });

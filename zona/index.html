@@ -261,6 +261,18 @@
       <div class="badges-row" id="badges-row"></div>
     </section>
 
+    <!-- Upcoming scheduled sessions -->
+    <section class="dash-section" id="section-schedule" hidden>
+      <div class="section-header">
+        <h3>📅 Nadcházející tréninky</h3>
+      </div>
+      <div class="section-body">
+        <div id="schedule-content">
+          <p class="text-muted">Žádné naplánované tréninky.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Today's training card -->
     <section class="dash-section" id="section-today" hidden>
       <div class="section-header">
@@ -496,6 +508,11 @@
             <span class="customize-toggle-label">📊 Statistiky</span>
           </label>
           <label class="customize-toggle">
+            <input type="checkbox" data-section="section-schedule" checked>
+            <span class="customize-toggle-slider"></span>
+            <span class="customize-toggle-label">📅 Nadcházející tréninky</span>
+          </label>
+          <label class="customize-toggle">
             <input type="checkbox" data-section="section-today" checked>
             <span class="customize-toggle-slider"></span>
             <span class="customize-toggle-label">🏋️ Dnešní trénink</span>
@@ -627,7 +644,19 @@
     </div>
   </div>
 
-  <script src="app.js?v=12"></script>
+  <!-- Exercise History Modal -->
+  <div id="exercise-history-modal" class="modal" hidden>
+    <div class="modal-backdrop" id="exercise-history-backdrop"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" id="exercise-history-close">✕</button>
+      <h3 style="margin-bottom: 1rem;">📊 <span id="exercise-history-name" style="color: var(--accent);"></span></h3>
+      <div id="exercise-history-content">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=13"></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {

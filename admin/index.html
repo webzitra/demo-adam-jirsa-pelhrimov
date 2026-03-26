@@ -241,6 +241,12 @@
       <section class="admin-card" id="nutrition-editor-section" hidden>
         <h3>🥗 Výživa pro: <span id="nutr-client-name" style="color: var(--accent);"></span></h3>
 
+        <!-- Nutrition template buttons -->
+        <div class="template-buttons" style="margin-bottom: 1rem;">
+          <button class="btn-ghost btn-sm" id="save-nutrition-template-btn">💾 Uložit jako šablonu</button>
+          <button class="btn-ghost btn-sm" id="load-nutrition-template-btn">📂 Načíst šablonu</button>
+        </div>
+
         <!-- Macros (auto-calculated from meals) -->
         <div class="nutrition-totals-bar">
           <div class="nutrition-total-item">
@@ -592,6 +598,18 @@
     </div>
   </div>
 
-  <script src="app.js?v=8"></script>
+  <!-- Nutrition Template Modal -->
+  <div id="nutrition-template-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeNutritionTemplateModal()"></div>
+    <div class="modal-content" style="max-width: 500px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeNutritionTemplateModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">📂 Šablony výživy</h3>
+      <div id="nutrition-template-list">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=9"></script>
 </body>
 </html>

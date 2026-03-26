@@ -1203,6 +1203,33 @@
   margin: 0;
 }
 
+/* ===== Client picker ===== */
+.client-picker {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.client-picker .form-group {
+  flex: 2;
+}
+.client-picker .btn-primary {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+.client-picker-card {
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .client-picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .client-picker .btn-primary {
+    width: 100%;
+  }
+}
+
 /* Notification badge position fix */
 .dash-notif-btn {
   position: relative;
@@ -1754,10 +1781,38 @@
 
 /* Mobile global */
 @media (max-width: 600px) {
+  /* --- Header: compact 2-row layout --- */
+  #admin-screen .dash-header {
+    flex-wrap: wrap;
+    padding: 0.5rem 0.75rem;
+    gap: 0.25rem;
+  }
+  #admin-screen .dash-header-left {
+    order: 1;
+  }
+  #admin-screen .dash-header-right {
+    order: 2;
+    gap: 0.35rem;
+  }
+  #admin-screen .dash-header-right .btn-ghost.btn-sm {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.72rem;
+  }
+  #admin-screen .dash-logo {
+    font-size: 1rem;
+  }
+
+  /* --- Tabs: smaller on mobile --- */
   .admin-tabs-wrap {
     padding: 0.5rem 0.75rem 0;
-    top: 48px;
+    top: 44px;
   }
+  .admin-tab {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.72rem;
+  }
+
+  /* --- Content --- */
   .admin-content {
     padding: 1rem 0.85rem 3rem;
   }
@@ -1774,4 +1829,5 @@
   .overview-stat-value {
     font-size: 1.6rem;
   }
+
 }

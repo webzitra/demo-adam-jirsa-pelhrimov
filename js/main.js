@@ -212,7 +212,7 @@
         firstAccordion.style.maxHeight = firstAccordion.scrollHeight + 'px';
     }
 
-    // --- Contact form (Netlify Forms) ---
+    // --- Contact form (via API → email) ---
     var form = document.querySelector('.contact-form');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -224,15 +224,22 @@
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
             }
-            var formData = new FormData(form);
-            formData.append('form-name', form.getAttribute('name'));
-            fetch('/', {
+            var payload = {
+                name: (form.querySelector('[name="name"]') || {}).value || '',
+                email: (form.querySelector('[name="email"]') || {}).value || '',
+                phone: (form.querySelector('[name="phone"]') || {}).value || '',
+                service: (form.querySelector('[name="service"]') || {}).value || '',
+                message: (form.querySelector('[name="message"]') || {}).value || '',
+                website: (form.querySelector('[name="website"]') || {}).value || '',
+                formName: form.getAttribute('name') || 'kontakt',
+            };
+            fetch('/api/contact-form', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(formData).toString()
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             }).then(function(response) {
                 if (response.ok) {
-                    if (btn) btn.textContent = '✓ Odesláno!';
+                    if (btn) btn.textContent = 'Odesláno!';
                     form.reset();
                     setTimeout(function() {
                         if (btn) {

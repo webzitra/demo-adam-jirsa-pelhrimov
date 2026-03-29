@@ -44,7 +44,7 @@ async function sendEmail({ to, subject, html }) {
 
 // --- Notification: New client registered ---
 async function notifyNewRegistration(client) {
-  const adminEmail = process.env.NOTIFICATION_EMAIL || 'jirsaadam2003@seznam.cz';
+  const adminEmail = process.env.NOTIFICATION_EMAIL || 'jirsafitness@gmail.com';
 
   return sendEmail({
     to: adminEmail,
@@ -84,7 +84,7 @@ async function sendWelcomeEmail(client) {
             <li>Začneš trénovat!</li>
           </ol>
         </div>
-        <p>Pokud máš jakékoliv dotazy, napiš mi na <a href="mailto:jirsaadam2003@seznam.cz" style="color: #56C8E0;">jirsaadam2003@seznam.cz</a> nebo zavolej na <a href="tel:+420731171777" style="color: #56C8E0;">731 171 777</a>.</p>
+        <p>Pokud máš jakékoliv dotazy, napiš mi na <a href="mailto:jirsafitness@gmail.com" style="color: #56C8E0;">jirsafitness@gmail.com</a> nebo zavolej na <a href="tel:+420731613480" style="color: #56C8E0;">731 613 480</a>.</p>
         <p style="margin-top: 20px;">Těším se na spolupráci!<br><strong>Adam Jirsa</strong></p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="color: #999; font-size: 12px;">Tento email byl odeslán automaticky z adamjirsa.cz</p>

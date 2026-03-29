@@ -245,8 +245,11 @@
       return;
     }
 
+    // Honeypot field
+    const website = document.getElementById('reg-website')?.value || '';
+
     try {
-      const data = await api('zona-auth', { action: 'register', name, email, password, phone });
+      const data = await api('zona-auth', { action: 'register', name, email, password, phone, website });
       sessionToken = data.sessionToken;
       localStorage.setItem('zona_token', sessionToken);
       clientData = data.client;

@@ -59,9 +59,13 @@
       </div>
 
       <form id="register-form" class="login-form" autocomplete="on">
+        <!-- Honeypot anti-spam (hidden from users, bots fill it) -->
+        <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+          <input type="text" id="reg-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="form-group">
           <label for="reg-name">Jméno a příjmení</label>
-          <input type="text" id="reg-name" name="name" required autocomplete="name" placeholder="Jan Novák">
+          <input type="text" id="reg-name" name="name" required autocomplete="name" placeholder="Jan Novák" maxlength="100">
         </div>
         <div class="form-group">
           <label for="reg-email">Email</label>

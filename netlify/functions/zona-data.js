@@ -59,19 +59,32 @@ exports.handler = async (event) => {
 
   // --- Add progress entry ---
   if (action === 'add-progress') {
-    const { weight, notes, photo } = body;
-    if (!weight) {
-      return jsonResponse(400, { error: 'Váha je povinná' });
+    const { weight, notes, photo, measurements } = body;
+    if (!weight && !measurements) {
+      return jsonResponse(400, { error: 'Váha nebo míry jsou povinné' });
     }
 
     const entry = {
-      weight: parseFloat(weight),
+      weight: weight ? parseFloat(weight) : null,
       notes: notes || '',
     };
 
+    // Body measurements (all optional, in cm)
+    if (measurements && typeof measurements === 'object') {
+      const VALID_KEYS = ['belly', 'waist', 'neck', 'chest', 'biceps', 'forearm', 'thigh', 'calf', 'glutes'];
+      const clean = {};
+      for (const key of VALID_KEYS) {
+        if (measurements[key] != null && measurements[key] !== '') {
+          clean[key] = parseFloat(measurements[key]) || 0;
+        }
+      }
+      if (Object.keys(clean).length > 0) {
+        entry.measurements = clean;
+      }
+    }
+
     // Photo: accept base64 JPEG, max ~500KB
     if (photo && typeof photo === 'string' && photo.startsWith('data:image/')) {
-      // Rough size check (~500KB base64)
       if (photo.length > 700000) {
         return jsonResponse(400, { error: 'Fotka je příliš velká (max 500 KB)' });
       }

@@ -416,6 +416,22 @@
                 <input type="text" id="progress-notes" placeholder="Po tréninku, ráno nalačno...">
               </div>
             </div>
+            <!-- Body measurements (collapsible) -->
+            <details class="measurements-details" id="measurements-toggle">
+              <summary style="cursor:pointer;font-weight:600;font-size:0.85rem;color:var(--accent);margin:0.5rem 0;">+ Zaznamenat tělesné míry (cm)</summary>
+              <div class="measurements-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem 0.6rem;margin:0.5rem 0;">
+                <div class="form-group"><label>Břicho</label><input type="number" id="m-belly" step="0.1" min="30" max="200" placeholder="cm"></div>
+                <div class="form-group"><label>Pas</label><input type="number" id="m-waist" step="0.1" min="30" max="200" placeholder="cm"></div>
+                <div class="form-group"><label>Krk</label><input type="number" id="m-neck" step="0.1" min="20" max="80" placeholder="cm"></div>
+                <div class="form-group"><label>Hrudník</label><input type="number" id="m-chest" step="0.1" min="50" max="200" placeholder="cm"></div>
+                <div class="form-group"><label>Biceps</label><input type="number" id="m-biceps" step="0.1" min="15" max="70" placeholder="cm"></div>
+                <div class="form-group"><label>Předloktí</label><input type="number" id="m-forearm" step="0.1" min="15" max="50" placeholder="cm"></div>
+                <div class="form-group"><label>Stehna</label><input type="number" id="m-thigh" step="0.1" min="30" max="100" placeholder="cm"></div>
+                <div class="form-group"><label>Lýtka</label><input type="number" id="m-calf" step="0.1" min="20" max="70" placeholder="cm"></div>
+                <div class="form-group"><label>Zadek</label><input type="number" id="m-glutes" step="0.1" min="50" max="200" placeholder="cm"></div>
+              </div>
+            </details>
+
             <!-- Photo upload -->
             <div class="photo-upload-area" id="photo-upload-area">
               <input type="file" id="progress-photo" accept="image/*" capture="environment" hidden>
@@ -435,6 +451,13 @@
         <!-- Weight chart (SVG line) -->
         <div id="progress-chart" class="progress-chart">
           <svg id="weight-svg" class="weight-svg" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+        </div>
+
+        <!-- Measurements chart (SVG multi-line) -->
+        <div id="measurements-chart" class="progress-chart" hidden>
+          <h4 style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.3rem;">Tělesné míry</h4>
+          <svg id="measurements-svg" class="weight-svg" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+          <div id="measurements-legend" style="display:flex;flex-wrap:wrap;gap:0.4rem 0.8rem;font-size:0.75rem;margin-top:0.3rem;"></div>
         </div>
 
         <!-- History list -->

@@ -1134,26 +1134,37 @@
     });
   }
 
+  const MEASUREMENT_KEYS = ['belly','waist','neck','chest','biceps','forearm','thigh','calf','glutes'];
+  const MEASUREMENT_LABELS = { belly:'Břicho', waist:'Pas', neck:'Krk', chest:'Hrudník', biceps:'Biceps', forearm:'Předloktí', thigh:'Stehna', calf:'Lýtka', glutes:'Zadek' };
+  const MEASUREMENT_COLORS = { belly:'#f87171', waist:'#fb923c', neck:'#a78bfa', chest:'#56C8E0', biceps:'#34d399', forearm:'#fbbf24', thigh:'#f472b6', calf:'#818cf8', glutes:'#22d3ee' };
+
   progressForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const weight = document.getElementById('progress-weight').value;
     const notes = document.getElementById('progress-notes').value.trim();
+
+    // Collect measurements
+    const measurements = {};
+    MEASUREMENT_KEYS.forEach(key => {
+      const val = document.getElementById('m-' + key)?.value;
+      if (val) measurements[key] = parseFloat(val);
+    });
 
     const btn = document.getElementById('progress-submit-btn');
     btn.disabled = true;
     btn.textContent = pendingPhotoBase64 ? 'Nahrávám fotku...' : 'Ukládám...';
 
     try {
-      const payload = { action: 'add-progress', weight, notes };
-      if (pendingPhotoBase64) {
-        payload.photo = pendingPhotoBase64;
-      }
+      const payload = { action: 'add-progress', weight: weight || null, notes };
+      if (Object.keys(measurements).length > 0) payload.measurements = measurements;
+      if (pendingPhotoBase64) payload.photo = pendingPhotoBase64;
 
       await api('zona-data', payload, sessionToken);
 
       progressData.push({
-        weight: parseFloat(weight),
+        weight: weight ? parseFloat(weight) : null,
         notes,
+        measurements: Object.keys(measurements).length > 0 ? measurements : undefined,
         photo: pendingPhotoBase64 || null,
         createdAt: new Date().toISOString(),
       });
@@ -1164,6 +1175,9 @@
       photoTrigger.style.display = '';
       progressFormWrap.hidden = true;
       toggleProgressBtn.textContent = '+ Zaznamenat';
+      // Close measurements details
+      const mToggle = document.getElementById('measurements-toggle');
+      if (mToggle) mToggle.removeAttribute('open');
       renderProgress();
     } catch (err) {
       alert('Chyba: ' + err.message);
@@ -1292,6 +1306,8 @@
     const hasPhotos = progressData.some(e => e.photo);
     comparePhotosBtn.hidden = !hasPhotos;
 
+    renderMeasurementsChart();
+
     if (!progressData || progressData.length === 0) {
       progressChart.innerHTML = `
         <div class="chart-empty">
@@ -1393,10 +1409,11 @@
       historyHtml += `
         <div class="progress-entry" style="animation: fadeIn 0.3s ease ${i * 0.05}s both;">
           ${entry.photo ? `<img src="${entry.photo}" class="progress-entry-photo" data-photo-index="${i}" alt="Progress foto">` : ''}
-          <div class="progress-entry-weight">${entry.weight}<small>kg</small></div>
+          ${entry.weight ? `<div class="progress-entry-weight">${entry.weight}<small>kg</small></div>` : ''}
           <div class="progress-entry-info">
             <div class="progress-entry-date">${dateStr}</div>
             ${entry.notes ? `<div class="progress-entry-notes">${escapeHtml(entry.notes)}</div>` : ''}
+            ${entry.measurements ? `<div style="display:flex;flex-wrap:wrap;gap:0.2rem 0.5rem;font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem;">${Object.entries(entry.measurements).map(([k,v]) => `<span>${MEASUREMENT_LABELS[k] || k}: <strong>${v}</strong></span>`).join('')}</div>` : ''}
           </div>
           ${diffHtml}
         </div>`;
@@ -1409,6 +1426,97 @@
         openPhotoModal(img.src, img.closest('.progress-entry').querySelector('.progress-entry-date')?.textContent || '');
       });
     });
+  }
+
+  // ===== Measurements chart (SVG multi-line) =====
+  function renderMeasurementsChart() {
+    const container = document.getElementById('measurements-chart');
+    const svg = document.getElementById('measurements-svg');
+    const legend = document.getElementById('measurements-legend');
+    if (!container || !svg) return;
+
+    // Filter entries that have measurements
+    const entries = progressData
+      .filter(e => e.measurements && Object.keys(e.measurements).length > 0)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .slice(-15);
+
+    if (entries.length < 2) {
+      container.hidden = true;
+      return;
+    }
+    container.hidden = false;
+
+    // Find which keys have data
+    const activeKeys = MEASUREMENT_KEYS.filter(key =>
+      entries.some(e => e.measurements[key] != null)
+    );
+    if (activeKeys.length === 0) { container.hidden = true; return; }
+
+    const W = 600, H = 200, PAD_L = 45, PAD_R = 15, PAD_T = 15, PAD_B = 30;
+    const plotW = W - PAD_L - PAD_R;
+    const plotH = H - PAD_T - PAD_B;
+
+    // Find min/max across all active measurement values
+    let allVals = [];
+    entries.forEach(e => activeKeys.forEach(k => {
+      if (e.measurements[k] != null) allVals.push(e.measurements[k]);
+    }));
+    const minVal = Math.min(...allVals) - 2;
+    const maxVal = Math.max(...allVals) + 2;
+    const range = maxVal - minVal || 1;
+
+    function x(i) { return PAD_L + (i / (entries.length - 1)) * plotW; }
+    function y(v) { return PAD_T + plotH - ((v - minVal) / range) * plotH; }
+
+    let svgHtml = '';
+
+    // Grid lines
+    for (let i = 0; i <= 4; i++) {
+      const val = minVal + (range * i / 4);
+      const yy = y(val);
+      svgHtml += `<line x1="${PAD_L}" y1="${yy}" x2="${W - PAD_R}" y2="${yy}" stroke="var(--border)" stroke-width="0.5"/>`;
+      svgHtml += `<text x="${PAD_L - 5}" y="${yy + 3}" text-anchor="end" fill="var(--text-muted)" font-size="10">${Math.round(val)}</text>`;
+    }
+
+    // Date labels
+    entries.forEach((e, i) => {
+      if (i % Math.max(1, Math.floor(entries.length / 5)) === 0 || i === entries.length - 1) {
+        const d = new Date(e.createdAt);
+        svgHtml += `<text x="${x(i)}" y="${H - 5}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${d.getDate()}.${d.getMonth() + 1}.</text>`;
+      }
+    });
+
+    // Draw lines for each measurement
+    activeKeys.forEach(key => {
+      const color = MEASUREMENT_COLORS[key];
+      const points = [];
+      entries.forEach((e, i) => {
+        if (e.measurements[key] != null) {
+          points.push({ x: x(i), y: y(e.measurements[key]), val: e.measurements[key] });
+        }
+      });
+      if (points.length < 2) return;
+
+      const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+      svgHtml += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+      // Dots
+      points.forEach(p => {
+        svgHtml += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${color}"/>`;
+      });
+
+      // Latest value label
+      const last = points[points.length - 1];
+      svgHtml += `<text x="${last.x + 5}" y="${last.y - 5}" fill="${color}" font-size="10" font-weight="600">${last.val}</text>`;
+    });
+
+    svg.innerHTML = svgHtml;
+
+    // Legend
+    legend.innerHTML = activeKeys.map(key =>
+      `<span style="display:inline-flex;align-items:center;gap:0.2rem;"><span style="width:10px;height:3px;background:${MEASUREMENT_COLORS[key]};border-radius:2px;"></span>${MEASUREMENT_LABELS[key]}</span>`
+    ).join('');
   }
 
   // ===== Check-in history =====

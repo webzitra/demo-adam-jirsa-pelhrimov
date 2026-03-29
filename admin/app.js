@@ -1923,6 +1923,88 @@
         </div>
       `;
 
+      // --- Measurements chart & table ---
+      const M_KEYS = ['belly','waist','neck','chest','biceps','forearm','thigh','calf','glutes'];
+      const M_LABELS = { belly:'Břicho', waist:'Pas', neck:'Krk', chest:'Hrudník', biceps:'Biceps', forearm:'Předloktí', thigh:'Stehna', calf:'Lýtka', glutes:'Zadek' };
+      const M_COLORS = { belly:'#f87171', waist:'#fb923c', neck:'#a78bfa', chest:'#56C8E0', biceps:'#34d399', forearm:'#fbbf24', thigh:'#f472b6', calf:'#818cf8', glutes:'#22d3ee' };
+
+      const measEntries = sorted.filter(e => e.measurements && Object.keys(e.measurements).length > 0);
+      const activeKeys = M_KEYS.filter(k => measEntries.some(e => e.measurements[k] != null));
+
+      if (activeKeys.length > 0 && measEntries.length >= 1) {
+        // Start vs Latest comparison table
+        const firstM = measEntries[0].measurements;
+        const lastM = measEntries[measEntries.length - 1].measurements;
+        const isMultiple = measEntries.length > 1;
+
+        html += `<h4 style="margin:1.2rem 0 0.4rem;font-size:0.95rem;color:var(--text-primary);">Tělesné míry</h4>`;
+        html += '<div style="overflow-x:auto;"><table style="width:100%;font-size:0.82rem;border-collapse:collapse;margin-bottom:0.75rem;">';
+        html += `<tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:0.4rem 0.5rem;color:var(--text-muted);">Míra</th>
+          <th style="text-align:center;padding:0.4rem 0.5rem;color:var(--text-muted);">Start</th>
+          ${isMultiple ? '<th style="text-align:center;padding:0.4rem 0.5rem;color:var(--text-muted);">Aktuální</th><th style="text-align:center;padding:0.4rem 0.5rem;color:var(--text-muted);">Změna</th>' : ''}
+        </tr>`;
+        activeKeys.forEach(k => {
+          const sv = firstM[k];
+          const lv = lastM[k];
+          let changeHtml = '';
+          if (isMultiple && sv != null && lv != null) {
+            const d = lv - sv;
+            const sign = d > 0 ? '+' : '';
+            const col = d < 0 ? '#34d399' : d > 0 ? '#fb923c' : 'var(--text-muted)';
+            changeHtml = `<td style="text-align:center;padding:0.4rem 0.5rem;font-weight:600;color:${col};">${sign}${d.toFixed(1)}</td>`;
+          }
+          html += `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:0.4rem 0.5rem;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${M_COLORS[k]};margin-right:0.3rem;"></span>${M_LABELS[k]}</td>
+            <td style="text-align:center;padding:0.4rem 0.5rem;">${sv != null ? sv + ' cm' : '—'}</td>
+            ${isMultiple ? `<td style="text-align:center;padding:0.4rem 0.5rem;font-weight:600;">${lv != null ? lv + ' cm' : '—'}</td>${changeHtml}` : ''}
+          </tr>`;
+        });
+        html += '</table></div>';
+
+        // SVG Chart (if 2+ data points)
+        if (measEntries.length >= 2) {
+          const W = 560, H = 200, PL = 40, PR = 15, PT = 15, PB = 25;
+          const pW = W - PL - PR, pH = H - PT - PB;
+          let allV = [];
+          measEntries.forEach(e => activeKeys.forEach(k => { if (e.measurements[k] != null) allV.push(e.measurements[k]); }));
+          const mn = Math.min(...allV) - 2, mx = Math.max(...allV) + 2, rng = mx - mn || 1;
+          const xp = (i) => PL + (i / (measEntries.length - 1)) * pW;
+          const yp = (v) => PT + pH - ((v - mn) / rng) * pH;
+
+          let svgC = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin:0.5rem 0;">`;
+          // Grid
+          for (let i = 0; i <= 3; i++) {
+            const v = mn + rng * i / 3, yy = yp(v);
+            svgC += `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="var(--border)" stroke-width="0.5"/>`;
+            svgC += `<text x="${PL-4}" y="${yy+3}" text-anchor="end" fill="var(--text-muted)" font-size="9">${Math.round(v)}</text>`;
+          }
+          // Lines
+          activeKeys.forEach(k => {
+            const pts = [];
+            measEntries.forEach((e, i) => { if (e.measurements[k] != null) pts.push({ x: xp(i), y: yp(e.measurements[k]) }); });
+            if (pts.length < 2) return;
+            svgC += `<path d="${pts.map((p, i) => `${i?'L':'M'}${p.x},${p.y}`).join(' ')}" fill="none" stroke="${M_COLORS[k]}" stroke-width="2" stroke-linecap="round"/>`;
+            pts.forEach(p => { svgC += `<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="${M_COLORS[k]}"/>`; });
+          });
+          // Date labels
+          measEntries.forEach((e, i) => {
+            if (i === 0 || i === measEntries.length - 1 || i % Math.max(1, Math.floor(measEntries.length / 4)) === 0) {
+              const d = new Date(e.createdAt);
+              svgC += `<text x="${xp(i)}" y="${H-4}" text-anchor="middle" fill="var(--text-muted)" font-size="8">${d.getDate()}.${d.getMonth()+1}.</text>`;
+            }
+          });
+          svgC += '</svg>';
+          html += svgC;
+
+          // Legend
+          html += '<div style="display:flex;flex-wrap:wrap;gap:0.3rem 0.7rem;font-size:0.72rem;margin-bottom:0.5rem;">';
+          activeKeys.forEach(k => { html += `<span><span style="display:inline-block;width:10px;height:3px;background:${M_COLORS[k]};border-radius:2px;vertical-align:middle;margin-right:0.2rem;"></span>${M_LABELS[k]}</span>`; });
+          html += '</div>';
+        }
+      }
+
+      // --- Weight history entries ---
       html += '<div style="display: flex; flex-direction: column; gap: 0.35rem;">';
       [...sorted].reverse().forEach((entry) => {
         const date = new Date(entry.createdAt);
@@ -1930,7 +2012,7 @@
 
         let entryDiff = '';
         const idx = sorted.indexOf(entry);
-        if (idx > 0) {
+        if (idx > 0 && entry.weight && sorted[idx - 1].weight) {
           const d = entry.weight - sorted[idx - 1].weight;
           if (d !== 0) {
             const s = d > 0 ? '+' : '';
@@ -1938,12 +2020,15 @@
           }
         }
 
+        const measHtml = entry.measurements ? Object.entries(entry.measurements).map(([k, v]) => `<span style="font-size:0.7rem;color:var(--text-muted);">${M_LABELS[k] || k}: ${v}</span>`).join(' · ') : '';
+
         html += `
-          <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: var(--bg-elevated); border-radius: var(--radius-sm);">
-            <span style="font-weight: 700; color: var(--accent); min-width: 60px;">${entry.weight} kg</span>
+          <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: var(--bg-elevated); border-radius: var(--radius-sm); flex-wrap: wrap;">
+            ${entry.weight ? `<span style="font-weight: 700; color: var(--accent); min-width: 60px;">${entry.weight} kg</span>` : ''}
             <span style="flex: 1; font-size: 0.8rem; color: var(--text-muted);">${dateStr}</span>
             ${entry.notes ? `<span style="font-size: 0.75rem; color: var(--text-faint);">${esc(entry.notes)}</span>` : ''}
             ${entryDiff}
+            ${measHtml ? `<div style="width:100%;padding-top:0.2rem;">${measHtml}</div>` : ''}
           </div>`;
       });
       html += '</div>';

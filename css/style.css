@@ -448,6 +448,7 @@ section {
 
 /* White text when over dark hero */
 .navbar:not(.scrolled) .navbar-logo { color: #ffffff; }
+.navbar:not(.scrolled) .navbar-logo img { filter: brightness(0) invert(1); }
 .navbar:not(.scrolled) .navbar-toggle span { background: #ffffff; }
 .navbar:not(.scrolled) .navbar-links a { color: rgba(255, 255, 255, 0.7); }
 .navbar:not(.scrolled) .navbar-links a:hover,

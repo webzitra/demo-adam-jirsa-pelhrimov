@@ -2587,6 +2587,8 @@ section {
   }
 
   /* Navbar — mobile */
+  .navbar-logo img { height: 32px !important; }
+
   .navbar-links {
     display: none !important;
   }

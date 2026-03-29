@@ -979,6 +979,8 @@ section {
 }
 
 .page-online .navbar.scrolled .navbar-logo { color: #ffffff; }
+.page-online .navbar.scrolled .navbar-logo img.logo-dark { display: none !important; }
+.page-online .navbar.scrolled .navbar-logo img.logo-white { display: inline-block !important; }
 .page-online .navbar.scrolled .navbar-toggle span { background: #ffffff; }
 .page-online .navbar.scrolled .navbar-links a { color: rgba(255, 255, 255, 0.7); }
 .page-online .navbar.scrolled .navbar-links a:hover,

@@ -1,6 +1,26 @@
 (function() {
     'use strict';
 
+    // --- Form validation helper ---
+    function shakeField(el) {
+        if (!el) return;
+        el.focus();
+        el.style.borderColor = '#f87171';
+        el.style.animation = 'shake 0.4s ease';
+        setTimeout(function() {
+            el.style.borderColor = '';
+            el.style.animation = '';
+        }, 1500);
+    }
+
+    // Add shake keyframes
+    if (!document.getElementById('shake-style')) {
+        var style = document.createElement('style');
+        style.id = 'shake-style';
+        style.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';
+        document.head.appendChild(style);
+    }
+
     // --- Navbar scroll ---
     var navbar = document.querySelector('.navbar');
     var navToggle = document.querySelector('.navbar-toggle');
@@ -217,6 +237,25 @@
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Validation
+            var nameVal = (form.querySelector('[name="name"]') || {}).value || '';
+            var emailVal = (form.querySelector('[name="email"]') || {}).value || '';
+            var phoneVal = (form.querySelector('[name="phone"]') || {}).value || '';
+
+            if (!nameVal.trim()) {
+                shakeField(form.querySelector('[name="name"]'));
+                return;
+            }
+            if (!emailVal.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+                shakeField(form.querySelector('[name="email"]'));
+                return;
+            }
+            if (!phoneVal.trim()) {
+                shakeField(form.querySelector('[name="phone"]'));
+                return;
+            }
+
             var btn = form.querySelector('button[type="submit"]');
             var originalText = btn ? btn.textContent : '';
             if (btn) {

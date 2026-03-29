@@ -5,7 +5,7 @@
  */
 
 const RESEND_API = 'https://api.resend.com/emails';
-const FROM_EMAIL = 'Adam Jirsa Web <noreply@adamjirsa.cz>';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Adam Jirsa Web <onboarding@resend.dev>';
 
 async function sendEmail({ to, subject, html }) {
   const apiKey = process.env.RESEND_API_KEY;

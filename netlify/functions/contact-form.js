@@ -73,10 +73,11 @@ exports.handler = async (event) => {
   });
 
   if (result.error && !result.skipped) {
+    console.error('Contact form email failed:', JSON.stringify(result));
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Nepodařilo se odeslat. Zkuste to znovu.' }),
+      body: JSON.stringify({ error: 'Nepodařilo se odeslat. Zkuste to znovu.', detail: result.error }),
     };
   }
 

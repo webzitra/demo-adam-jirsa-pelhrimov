@@ -31,8 +31,8 @@ async function sendEmail({ to, subject, html }) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.error('Resend error:', err);
-      return { error: err };
+      console.error('Resend error:', res.status, err);
+      return { error: err, status: res.status };
     }
 
     return await res.json();

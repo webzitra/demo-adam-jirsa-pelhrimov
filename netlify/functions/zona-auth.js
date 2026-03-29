@@ -244,9 +244,9 @@ exports.handler = async (event) => {
 
     // Send emails (non-blocking — don't wait for delivery)
     const safeClient = sanitizeClient(newClient);
+    // Welcome email disabled until domain verified in Resend
     Promise.allSettled([
       notifyNewRegistration(safeClient),
-      sendWelcomeEmail(safeClient),
     ]).catch(() => {});
 
     return jsonResponse(201, {

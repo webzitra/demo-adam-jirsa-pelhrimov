@@ -44,7 +44,7 @@ async function sendEmail({ to, subject, html }) {
 
 // --- Notification: New client registered ---
 async function notifyNewRegistration(client) {
-  const adminEmail = process.env.NOTIFICATION_EMAIL || 'jirsafitness@gmail.com';
+  const adminEmail = process.env.NOTIFICATION_EMAIL || 'lukas.palecek2@gmail.com';
 
   return sendEmail({
     to: adminEmail,

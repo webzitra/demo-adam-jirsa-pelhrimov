@@ -51,7 +51,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const adminEmail = process.env.NOTIFICATION_EMAIL || 'jirsafitness@gmail.com';
+  const adminEmail = process.env.NOTIFICATION_EMAIL || 'lukas.palecek2@gmail.com';
   const serviceName = service || 'Neuvedeno';
 
   const result = await sendEmail({

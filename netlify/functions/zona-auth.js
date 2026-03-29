@@ -1,10 +1,11 @@
+const crypto = require('crypto');
 const {
   hashPassword, verifyPassword,
   createSession, verifySession,
   verifyAdmin, createAdminSession,
   jsonResponse, parseAuth,
 } = require('./lib/zona-auth');
-const { getClientByEmail, getClientById } = require('./lib/zona-store');
+const { getClientByEmail, getClientById, getAllClients, saveAllClients } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
   // CORS preflight
@@ -98,6 +99,52 @@ exports.handler = async (event) => {
       return jsonResponse(401, { error: 'Neplatná admin session' });
     }
     return jsonResponse(200, { valid: true });
+  }
+
+  // --- Client self-registration ---
+  if (action === 'register') {
+    const { name, email, password, phone } = body;
+    if (!name || !email || !password) {
+      return jsonResponse(400, { error: 'Jméno, email a heslo jsou povinné' });
+    }
+
+    if (password.length < 6) {
+      return jsonResponse(400, { error: 'Heslo musí mít alespoň 6 znaků' });
+    }
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return jsonResponse(400, { error: 'Neplatný formát emailu' });
+    }
+
+    const existing = await getClientByEmail(email);
+    if (existing) {
+      return jsonResponse(409, { error: 'Účet s tímto emailem již existuje. Zkus se přihlásit.' });
+    }
+
+    const clients = await getAllClients();
+    const newClient = {
+      id: `klient-${crypto.randomBytes(4).toString('hex')}`,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      passwordHash: hashPassword(password),
+      phone: phone || '',
+      notes: '',
+      active: true,
+      selfRegistered: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    clients.push(newClient);
+    await saveAllClients(clients);
+
+    // Auto-login after registration
+    const sessionToken = createSession(newClient.id);
+
+    return jsonResponse(201, {
+      sessionToken,
+      client: sanitizeClient(newClient),
+    });
   }
 
   return jsonResponse(400, { error: 'Neznámá akce' });

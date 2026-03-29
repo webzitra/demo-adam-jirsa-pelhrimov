@@ -313,6 +313,12 @@
         });
       } catch { /* payments not available */ }
 
+      // New self-registered clients alerts
+      const newClients = (data.clientMetrics || []).filter(m => m.selfRegistered);
+      newClients.forEach(c => {
+        alertItems.push({ priority: 'info', icon: '🆕', name: c.name, id: c.id, text: 'nová registrace z webu', sort: -1 });
+      });
+
       // Inactive training alerts
       inactive.forEach(c => {
         const days = c.lastWorkoutDate
@@ -334,10 +340,10 @@
         alertsList.innerHTML = '<p style="color: #34d399; font-size: 0.9rem;">\u2713 V\u0161ichni klienti tr\xe9nuj\xed pravideln\u011b!</p>';
       } else {
         alertsList.innerHTML = uniqueAlerts.map(a => {
-          const bgColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)';
-          const borderColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.3)' : 'rgba(251,191,36,0.3)';
-          const badgeColor = a.priority === 'urgent' ? '#f87171' : '#fbbf24';
-          const badgeText = a.priority === 'urgent' ? 'Urgentní' : 'Pozor';
+          const bgColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.1)' : a.priority === 'info' ? 'rgba(86,200,224,0.1)' : 'rgba(251,191,36,0.1)';
+          const borderColor = a.priority === 'urgent' ? 'rgba(248,113,113,0.3)' : a.priority === 'info' ? 'rgba(86,200,224,0.3)' : 'rgba(251,191,36,0.3)';
+          const badgeColor = a.priority === 'urgent' ? '#f87171' : a.priority === 'info' ? '#56C8E0' : '#fbbf24';
+          const badgeText = a.priority === 'urgent' ? 'Urgentní' : a.priority === 'info' ? 'Nový' : 'Pozor';
           return `
             <div class="alert-row" style="background:${bgColor};border:1px solid ${borderColor};border-radius:var(--radius-sm);padding:0.5rem 0.65rem;margin-bottom:0.35rem;">
               <span style="display:inline-block;font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:var(--radius-full);background:${badgeColor};color:#fff;margin-right:0.4rem;vertical-align:middle;">${badgeText}</span>
@@ -465,7 +471,7 @@
     clientsList.innerHTML = filterBarHtml + filtered.map(c => `
       <div class="client-row" data-id="${c.id}">
         <div class="client-info">
-          <span class="client-name">${esc(c.name)}</span>
+          <span class="client-name">${esc(c.name)}${c.selfRegistered ? ' <span style="font-size:0.65rem;background:var(--accent);color:#fff;padding:0.1rem 0.4rem;border-radius:var(--radius-full);font-weight:700;vertical-align:middle;margin-left:0.3rem;">z webu</span>' : ''}</span>
           <span class="client-email">${esc(c.email)}</span>
           ${c.phone ? `<span class="client-meta">📞 ${esc(c.phone)}</span>` : ''}
           ${c.notes ? `<span class="client-meta">${esc(c.notes)}</span>` : ''}

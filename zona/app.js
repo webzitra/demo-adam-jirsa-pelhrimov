@@ -51,7 +51,12 @@
   const comparePhotosBtn = document.getElementById('compare-photos-btn');
 
   // ===== Theme toggle =====
-  const allThemeToggles = document.querySelectorAll('#login-theme-toggle, #onboarding-theme-toggle, #profile-theme-toggle');
+  const registerScreen = document.getElementById('register-screen');
+  const registerForm = document.getElementById('register-form');
+  const registerError = document.getElementById('register-error');
+  const registerBtn = document.getElementById('register-btn');
+
+  const allThemeToggles = document.querySelectorAll('#login-theme-toggle, #onboarding-theme-toggle, #profile-theme-toggle, #register-theme-toggle');
   const profileThemeIcon = document.getElementById('profile-theme-icon');
   function updateThemeIcons() {
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -163,9 +168,20 @@
   // ===== Screen management =====
   function showScreen(name) {
     loginScreen.classList.toggle('active', name === 'login');
+    registerScreen.classList.toggle('active', name === 'register');
     dashScreen.classList.toggle('active', name === 'dashboard');
     onboardingScreen.classList.toggle('active', name === 'onboarding');
   }
+
+  // ===== Login ↔ Register toggle =====
+  document.getElementById('show-register').addEventListener('click', (e) => {
+    e.preventDefault();
+    showScreen('register');
+  });
+  document.getElementById('show-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    showScreen('login');
+  });
 
   // ===== Auto-login =====
   async function tryAutoLogin() {
@@ -200,6 +216,46 @@
       loginError.hidden = false;
     } finally {
       loginBtn.disabled = false;
+    }
+  });
+
+  // ===== Register =====
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerError.hidden = true;
+    registerBtn.disabled = true;
+
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const password2 = document.getElementById('reg-password2').value;
+
+    if (password !== password2) {
+      registerError.textContent = 'Hesla se neshodují';
+      registerError.hidden = false;
+      registerBtn.disabled = false;
+      return;
+    }
+
+    if (password.length < 6) {
+      registerError.textContent = 'Heslo musí mít alespoň 6 znaků';
+      registerError.hidden = false;
+      registerBtn.disabled = false;
+      return;
+    }
+
+    try {
+      const data = await api('zona-auth', { action: 'register', name, email, password, phone });
+      sessionToken = data.sessionToken;
+      localStorage.setItem('zona_token', sessionToken);
+      clientData = data.client;
+      await loadDashboard();
+    } catch (err) {
+      registerError.textContent = err.message;
+      registerError.hidden = false;
+    } finally {
+      registerBtn.disabled = false;
     }
   });
 

@@ -499,6 +499,9 @@
       renderSupplements();
     }
 
+    // Documents / PDFs
+    loadDocuments();
+
     // Stats overview + progress
     renderStats();
     renderProgress();
@@ -994,6 +997,49 @@
       });
     });
   }
+
+  // ===== Documents / PDFs =====
+  async function loadDocuments() {
+    const section = document.getElementById('section-documents');
+    const container = document.getElementById('documents-content');
+    if (!section || !container) return;
+
+    try {
+      const data = await api('zona-data', { action: 'get-pdfs' }, sessionToken);
+      const pdfs = data.pdfs || [];
+      if (pdfs.length === 0) {
+        section.hidden = true;
+        return;
+      }
+
+      section.hidden = false;
+      container.innerHTML = pdfs.map(p => {
+        const typeLabel = p.type === 'plan' ? 'Trénink' : p.type === 'nutrition' ? 'Výživa' : 'Dokument';
+        const typeColor = p.type === 'plan' ? '#56C8E0' : p.type === 'nutrition' ? '#34d399' : '#fbbf24';
+        return `
+          <div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0.75rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.4rem;cursor:pointer;transition:border-color 0.2s;" onclick="downloadClientPdf('${p.id}','${p.name.replace(/'/g, "\\'")}')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${typeColor}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${typeLabel} &middot; ${new Date(p.uploadedAt).toLocaleDateString('cs')}</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>`;
+      }).join('');
+    } catch {
+      section.hidden = true;
+    }
+  }
+
+  window.downloadClientPdf = async function(pdfId, name) {
+    try {
+      const data = await api('zona-data', { action: 'download-pdf', pdfId }, sessionToken);
+      const link = document.createElement('a');
+      link.href = data.pdf.data;
+      link.download = name || 'dokument.pdf';
+      link.click();
+    } catch { /* silent */ }
+  };
 
   // ===== Auto-save nutrition log (debounced) =====
   let nutritionSaveTimer = null;

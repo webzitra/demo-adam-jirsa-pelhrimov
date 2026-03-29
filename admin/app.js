@@ -3091,6 +3091,229 @@
     }
   };
 
+  // =====================
+  // PDF UPLOAD & EXPORT
+  // =====================
+
+  // --- PDF Upload (plan) ---
+  const uploadPlanPdfBtn = document.getElementById('upload-plan-pdf-btn');
+  const planPdfInput = document.getElementById('plan-pdf-input');
+  const planPdfsList = document.getElementById('plan-pdfs-list');
+
+  if (uploadPlanPdfBtn) {
+    uploadPlanPdfBtn.addEventListener('click', () => {
+      if (!selectedClientId) { toast('Nejdříve vyber klienta'); return; }
+      planPdfInput.click();
+    });
+  }
+  if (planPdfInput) {
+    planPdfInput.addEventListener('change', async () => {
+      const file = planPdfInput.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { toast('PDF je příliš velké (max 2 MB)'); planPdfInput.value = ''; return; }
+      await uploadPdf(file, selectedClientId, 'plan');
+      planPdfInput.value = '';
+      loadPdfsList(selectedClientId, planPdfsList);
+    });
+  }
+
+  // --- PDF Upload (nutrition) ---
+  const uploadNutrPdfBtn = document.getElementById('upload-nutrition-pdf-btn');
+  const nutrPdfInput = document.getElementById('nutrition-pdf-input');
+  const nutrPdfsList = document.getElementById('nutrition-pdfs-list');
+
+  if (uploadNutrPdfBtn) {
+    uploadNutrPdfBtn.addEventListener('click', () => {
+      if (!selectedNutrClientId) { toast('Nejdříve vyber klienta'); return; }
+      nutrPdfInput.click();
+    });
+  }
+  if (nutrPdfInput) {
+    nutrPdfInput.addEventListener('change', async () => {
+      const file = nutrPdfInput.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { toast('PDF je příliš velké (max 2 MB)'); nutrPdfInput.value = ''; return; }
+      await uploadPdf(file, selectedNutrClientId, 'nutrition');
+      nutrPdfInput.value = '';
+      loadPdfsList(selectedNutrClientId, nutrPdfsList);
+    });
+  }
+
+  async function uploadPdf(file, clientId, type) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          await api('zona-admin', { action: 'upload-pdf', clientId, pdfData: reader.result, pdfName: file.name, pdfType: type });
+          toast('PDF nahráno!');
+        } catch (err) {
+          toast('Chyba: ' + err.message);
+        }
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function loadPdfsList(clientId, container) {
+    if (!container || !clientId) return;
+    try {
+      const data = await api('zona-admin', { action: 'get-pdfs', clientId });
+      const pdfs = data.pdfs || [];
+      if (pdfs.length === 0) { container.innerHTML = ''; return; }
+      container.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.3rem;">Nahrané dokumenty:</p>' +
+        pdfs.map(p => `
+          <div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0.5rem;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:0.25rem;font-size:0.85rem;">
+            <span style="flex:1;">${esc(p.name)}</span>
+            <span style="color:var(--text-muted);font-size:0.75rem;">${new Date(p.uploadedAt).toLocaleDateString('cs')}</span>
+            <button class="btn-icon" onclick="downloadAdminPdf('${clientId}','${p.id}','${esc(p.name)}')" title="Stáhnout">⬇</button>
+            <button class="btn-icon danger" onclick="deleteAdminPdf('${clientId}','${p.id}','${container.id}')" title="Smazat">🗑</button>
+          </div>
+        `).join('');
+    } catch { container.innerHTML = ''; }
+  }
+
+  window.downloadAdminPdf = async function(clientId, pdfId, name) {
+    try {
+      const data = await api('zona-admin', { action: 'download-pdf', clientId, pdfId });
+      const link = document.createElement('a');
+      link.href = data.pdf.data;
+      link.download = name || 'dokument.pdf';
+      link.click();
+    } catch (err) { toast('Chyba: ' + err.message); }
+  };
+
+  window.deleteAdminPdf = async function(clientId, pdfId, containerId) {
+    if (!confirm('Smazat tento dokument?')) return;
+    try {
+      await api('zona-admin', { action: 'delete-pdf', clientId, pdfId });
+      toast('Dokument smazán');
+      loadPdfsList(clientId, document.getElementById(containerId));
+    } catch (err) { toast('Chyba: ' + err.message); }
+  };
+
+  // --- Auto-load PDFs when plan/nutrition client is selected ---
+  const origLoadPlanBtn = document.getElementById('load-plan-btn');
+  if (origLoadPlanBtn) {
+    const origClick = origLoadPlanBtn.onclick;
+    origLoadPlanBtn.addEventListener('click', () => {
+      setTimeout(() => { if (selectedClientId) loadPdfsList(selectedClientId, planPdfsList); }, 500);
+    });
+  }
+
+  // --- Export Plan as PDF (print view) ---
+  const exportPlanPdfBtn = document.getElementById('export-plan-pdf-btn');
+  if (exportPlanPdfBtn) {
+    exportPlanPdfBtn.addEventListener('click', () => {
+      if (!currentPlan || !selectedClientId) { toast('Nejdříve načti plán klienta'); return; }
+      saveDayToModel();
+      const clientName = clients.find(c => c.id === selectedClientId)?.name || '';
+      const days = currentPlan.days || {};
+      const dayNames = { monday: 'Pondělí', tuesday: 'Úterý', wednesday: 'Středa', thursday: 'Čtvrtek', friday: 'Pátek', saturday: 'Sobota', sunday: 'Neděle' };
+
+      let html = `<html><head><title>Tréninkový plán — ${esc(clientName)}</title>
+        <style>
+          body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #222; }
+          h1 { color: #56C8E0; font-size: 1.6rem; border-bottom: 2px solid #56C8E0; padding-bottom: 8px; }
+          h2 { font-size: 1.1rem; margin: 1.2rem 0 0.4rem; color: #333; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; font-size: 0.9rem; }
+          th, td { padding: 6px 10px; border: 1px solid #ddd; text-align: left; }
+          th { background: #f5f5f5; font-weight: 600; }
+          .rest { color: #999; font-style: italic; }
+          .footer { margin-top: 2rem; font-size: 0.8rem; color: #999; border-top: 1px solid #eee; padding-top: 0.5rem; }
+          @media print { body { padding: 0; } }
+        </style></head><body>`;
+      html += `<h1>Tréninkový plán — ${esc(clientName)}</h1>`;
+      if (currentPlan.message) html += `<p><strong>Zpráva:</strong> ${esc(currentPlan.message)}</p>`;
+
+      for (const [key, label] of Object.entries(dayNames)) {
+        const day = days[key];
+        if (!day) continue;
+        html += `<h2>${label}: ${esc(day.name || '')}</h2>`;
+        if (day.rest) { html += '<p class="rest">Odpočinkový den</p>'; continue; }
+        if (!day.exercises || day.exercises.length === 0) { html += '<p class="rest">Žádné cviky</p>'; continue; }
+        html += '<table><tr><th>Cvik</th><th>Série</th><th>Opakování</th><th>Pauza</th><th>Poznámky</th></tr>';
+        day.exercises.forEach(ex => {
+          html += `<tr><td>${esc(ex.name)}</td><td>${esc(ex.sets)}</td><td>${esc(ex.reps)}</td><td>${esc(ex.rest)}</td><td>${esc(ex.notes || '')}</td></tr>`;
+        });
+        html += '</table>';
+      }
+      html += `<div class="footer">Adam Jirsa Fitness | adamjirsa.cz | Vygenerováno ${new Date().toLocaleDateString('cs')}</div>`;
+      html += '</body></html>';
+
+      const w = window.open('', '_blank');
+      if (w) { w.document.write(html); w.document.close(); w.print(); }
+      else { toast('Povol vyskakovací okna'); }
+    });
+  }
+
+  // --- Export Nutrition as PDF (print view) ---
+  const exportNutrPdfBtn = document.getElementById('export-nutrition-pdf-btn');
+  if (exportNutrPdfBtn) {
+    exportNutrPdfBtn.addEventListener('click', () => {
+      if (!currentNutrition || !selectedNutrClientId) { toast('Nejdříve načti výživu klienta'); return; }
+      saveNutritionToModel();
+      const clientName = clients.find(c => c.id === selectedNutrClientId)?.name || '';
+
+      let html = `<html><head><title>Výživový plán — ${esc(clientName)}</title>
+        <style>
+          body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #222; }
+          h1 { color: #56C8E0; font-size: 1.6rem; border-bottom: 2px solid #56C8E0; padding-bottom: 8px; }
+          h2 { font-size: 1.1rem; margin: 1.2rem 0 0.4rem; color: #333; }
+          .macros { display: flex; gap: 1rem; margin: 0.75rem 0; }
+          .macro { background: #f5f5f5; padding: 8px 16px; border-radius: 6px; text-align: center; }
+          .macro strong { display: block; font-size: 1.2rem; color: #56C8E0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 0.5rem; font-size: 0.9rem; }
+          th, td { padding: 6px 10px; border: 1px solid #ddd; text-align: left; }
+          th { background: #f5f5f5; font-weight: 600; }
+          .supp { background: #f9f9f9; padding: 6px 12px; border-radius: 4px; margin: 2px 0; font-size: 0.9rem; }
+          .notes { background: #fff8e1; padding: 10px; border-radius: 6px; margin: 1rem 0; font-size: 0.9rem; }
+          .footer { margin-top: 2rem; font-size: 0.8rem; color: #999; border-top: 1px solid #eee; padding-top: 0.5rem; }
+          @media print { body { padding: 0; } }
+        </style></head><body>`;
+      html += `<h1>Výživový plán — ${esc(clientName)}</h1>`;
+      html += '<div class="macros">';
+      html += `<div class="macro"><strong>${currentNutrition.calories || 0}</strong>kcal</div>`;
+      html += `<div class="macro"><strong>${currentNutrition.protein || 0}g</strong>bílkoviny</div>`;
+      html += `<div class="macro"><strong>${currentNutrition.carbs || 0}g</strong>sacharidy</div>`;
+      html += `<div class="macro"><strong>${currentNutrition.fat || 0}g</strong>tuky</div>`;
+      html += '</div>';
+
+      const meals = currentNutrition.meals || [];
+      meals.forEach(meal => {
+        html += `<h2>${esc(meal.name || 'Jídlo')}${meal.time ? ' (' + esc(meal.time) + ')' : ''}</h2>`;
+        if (meal.items && meal.items.length > 0) {
+          html += '<table><tr><th>Potravina</th><th>Množství</th><th>kcal</th><th>B</th><th>S</th><th>T</th></tr>';
+          meal.items.forEach(item => {
+            const cal = item.manual ? (item.cal || 0) : (item.per100 ? Math.round(item.per100.cal * item.amount / 100) : 0);
+            const p = item.manual ? (item.p || 0) : (item.per100 ? Math.round(item.per100.p * item.amount / 100) : 0);
+            const c = item.manual ? (item.c || 0) : (item.per100 ? Math.round(item.per100.c * item.amount / 100) : 0);
+            const f = item.manual ? (item.f || 0) : (item.per100 ? Math.round(item.per100.f * item.amount / 100) : 0);
+            html += `<tr><td>${esc(item.food)}</td><td>${item.amount}g</td><td>${cal}</td><td>${p}</td><td>${c}</td><td>${f}</td></tr>`;
+          });
+          html += '</table>';
+        }
+      });
+
+      const supps = currentNutrition.supplements || [];
+      if (supps.length > 0) {
+        html += '<h2>Suplementace</h2>';
+        supps.forEach(s => { html += `<div class="supp"><strong>${esc(s.name)}</strong> — ${esc(s.dosage || '')}</div>`; });
+      }
+
+      if (currentNutrition.notes) {
+        html += `<div class="notes"><strong>Poznámky:</strong><br>${esc(currentNutrition.notes)}</div>`;
+      }
+
+      html += `<div class="footer">Adam Jirsa Fitness | adamjirsa.cz | Vygenerováno ${new Date().toLocaleDateString('cs')}</div>`;
+      html += '</body></html>';
+
+      const w = window.open('', '_blank');
+      if (w) { w.document.write(html); w.document.close(); w.print(); }
+      else { toast('Povol vyskakovací okna'); }
+    });
+  }
+
   // ===== Start =====
   init();
 

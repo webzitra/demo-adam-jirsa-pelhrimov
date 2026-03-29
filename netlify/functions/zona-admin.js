@@ -14,6 +14,7 @@ const {
   getCheckins,
   getNutritionTemplates, saveNutritionTemplates,
   getDayTemplates, saveDayTemplates,
+  getPdfs, savePdfs,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -622,6 +623,72 @@ exports.handler = async (event) => {
       },
       clients: clientResults,
     });
+  }
+
+  // =====================
+  // PDF DOCUMENTS
+  // =====================
+
+  if (action === 'upload-pdf') {
+    const { clientId, pdfData, pdfName, pdfType } = body;
+    if (!clientId || !pdfData || !pdfName) {
+      return jsonResponse(400, { error: 'clientId, pdfData a pdfName jsou povinné' });
+    }
+    if (typeof pdfData !== 'string' || !pdfData.startsWith('data:application/pdf')) {
+      return jsonResponse(400, { error: 'Neplatný formát — pouze PDF soubory' });
+    }
+    // Max ~2MB base64
+    if (pdfData.length > 2800000) {
+      return jsonResponse(400, { error: 'PDF je příliš velké (max 2 MB)' });
+    }
+
+    const pdfs = await getPdfs(clientId);
+    if (pdfs.length >= 10) {
+      return jsonResponse(400, { error: 'Maximálně 10 dokumentů na klienta' });
+    }
+
+    pdfs.push({
+      id: `pdf-${crypto.randomBytes(4).toString('hex')}`,
+      name: pdfName.slice(0, 100),
+      type: pdfType || 'other',
+      data: pdfData,
+      uploadedAt: new Date().toISOString(),
+    });
+
+    await savePdfs(clientId, pdfs);
+    return jsonResponse(201, { success: true, count: pdfs.length });
+  }
+
+  if (action === 'get-pdfs') {
+    const { clientId } = body;
+    if (!clientId) return jsonResponse(400, { error: 'clientId je povinné' });
+
+    const pdfs = await getPdfs(clientId);
+    // Return list without data (too large)
+    const list = pdfs.map(({ data, ...rest }) => rest);
+    return jsonResponse(200, { pdfs: list });
+  }
+
+  if (action === 'download-pdf') {
+    const { clientId, pdfId } = body;
+    if (!clientId || !pdfId) return jsonResponse(400, { error: 'clientId a pdfId jsou povinné' });
+
+    const pdfs = await getPdfs(clientId);
+    const pdf = pdfs.find(p => p.id === pdfId);
+    if (!pdf) return jsonResponse(404, { error: 'PDF nenalezeno' });
+
+    return jsonResponse(200, { pdf });
+  }
+
+  if (action === 'delete-pdf') {
+    const { clientId, pdfId } = body;
+    if (!clientId || !pdfId) return jsonResponse(400, { error: 'clientId a pdfId jsou povinné' });
+
+    let pdfs = await getPdfs(clientId);
+    pdfs = pdfs.filter(p => p.id !== pdfId);
+    await savePdfs(clientId, pdfs);
+
+    return jsonResponse(200, { success: true });
   }
 
   return jsonResponse(400, { error: 'Neznámá akce' });

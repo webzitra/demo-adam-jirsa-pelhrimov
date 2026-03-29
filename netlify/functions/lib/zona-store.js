@@ -451,6 +451,22 @@ async function savePayments(payments) {
   await store.setJSON('payments', { payments, updatedAt: new Date().toISOString() });
 }
 
+// --- PDF Documents ---
+async function getPdfs(clientId) {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get(`pdfs:${clientId}`, { type: 'json' });
+    return data?.pdfs || [];
+  } catch {
+    return [];
+  }
+}
+
+async function savePdfs(clientId, pdfs) {
+  const store = await getZonaStore();
+  await store.setJSON(`pdfs:${clientId}`, { pdfs, updatedAt: new Date().toISOString() });
+}
+
 module.exports = {
   getAllClients,
   saveAllClients,
@@ -482,4 +498,6 @@ module.exports = {
   saveNutritionTemplates,
   getDayTemplates,
   saveDayTemplates,
+  getPdfs,
+  savePdfs,
 };

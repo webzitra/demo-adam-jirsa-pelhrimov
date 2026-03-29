@@ -6,6 +6,7 @@ const {
   getNutritionLog, saveNutritionLog,
   getCheckins, addCheckin,
   getSchedule,
+  getPdfs,
 } = require('./lib/zona-store');
 
 exports.handler = async (event) => {
@@ -272,6 +273,25 @@ exports.handler = async (event) => {
     }
 
     return jsonResponse(200, { exerciseName, history: history.reverse() });
+  }
+
+  // --- Get my PDF documents (list without data) ---
+  if (action === 'get-pdfs') {
+    const pdfs = await getPdfs(clientId);
+    const list = pdfs.map(({ data, ...rest }) => rest);
+    return jsonResponse(200, { pdfs: list });
+  }
+
+  // --- Download specific PDF ---
+  if (action === 'download-pdf') {
+    const { pdfId } = body;
+    if (!pdfId) return jsonResponse(400, { error: 'pdfId je povinné' });
+
+    const pdfs = await getPdfs(clientId);
+    const pdf = pdfs.find(p => p.id === pdfId);
+    if (!pdf) return jsonResponse(404, { error: 'Dokument nenalezen' });
+
+    return jsonResponse(200, { pdf });
   }
 
   return jsonResponse(400, { error: 'Neznámá akce' });

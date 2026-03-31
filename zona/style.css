@@ -2337,6 +2337,13 @@ img { max-width: 100%; display: block; }
   color: #fff;
 }
 
+[data-theme="light"] .day-tab.today:not(.active) {
+  background: rgba(86, 200, 224, 0.15);
+  color: var(--accent);
+  font-weight: 700;
+  border-color: var(--accent);
+}
+
 [data-theme="light"] .exercise-meta-tag.sets-tag {
   background: rgba(8, 145, 178, 0.08);
 }

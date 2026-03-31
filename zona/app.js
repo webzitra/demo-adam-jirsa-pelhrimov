@@ -753,42 +753,49 @@
     autoSaveWorkout();
   }
 
-  // --- Workout autosave (instant on blur/change) ---
-  let workoutSaveQueue = Promise.resolve();
-  function autoSaveWorkout() {
+  // --- Workout autosave (reliable — no data loss) ---
+  let _saving = false;
+  let _saveAgain = false;
+
+  async function autoSaveWorkout() {
     if (!workoutDirty) return;
-    workoutSaveQueue = workoutSaveQueue.then(async () => {
-      if (!workoutDirty) return;
-      const today = new Date().toISOString().split('T')[0];
-      const todayKey = getTodayKey();
-      todayWorkoutLog.date = today;
-      todayWorkoutLog.day = todayKey;
+    if (_saving) { _saveAgain = true; return; }
+    _saving = true;
 
-      // Mark completed if all exercises done
-      const dayData = planData?.days?.[todayKey];
-      if (dayData?.exercises) {
-        const total = dayData.exercises.length;
-        const done = (todayWorkoutLog.exercises || []).filter(e => e.done).length;
-        if (done === total && total > 0) {
-          todayWorkoutLog.completedAt = new Date().toISOString();
-        }
+    const today = new Date().toISOString().split('T')[0];
+    const todayKey = getTodayKey();
+    todayWorkoutLog.date = today;
+    todayWorkoutLog.day = todayKey;
+
+    // Mark completed if all exercises done
+    const dayData = planData?.days?.[todayKey];
+    if (dayData?.exercises) {
+      const total = dayData.exercises.length;
+      const done = (todayWorkoutLog.exercises || []).filter(e => e.done).length;
+      if (done === total && total > 0) {
+        todayWorkoutLog.completedAt = new Date().toISOString();
       }
+    }
 
-      try {
-        await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
-        workoutDirty = false;
-        workoutSaveBar.hidden = true;
-      } catch { /* silent */ }
-    });
+    try {
+      await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
+      workoutDirty = false;
+      workoutSaveBar.hidden = true;
+    } catch { /* silent */ }
+
+    _saving = false;
+    // If new data came in while saving, save again with latest state
+    if (_saveAgain) {
+      _saveAgain = false;
+      autoSaveWorkout();
+    }
   }
 
-  // Save when leaving page or app goes to background
-  // Save when app goes to background or page closes
+  // Save on background/close + safety net every 3s
   document.addEventListener('visibilitychange', () => { if (document.hidden) autoSaveWorkout(); });
   window.addEventListener('beforeunload', () => autoSaveWorkout());
   window.addEventListener('pagehide', () => autoSaveWorkout());
-  // Safety net: save every 5 seconds if dirty
-  setInterval(() => { if (workoutDirty) autoSaveWorkout(); }, 5000);
+  setInterval(() => { if (workoutDirty) autoSaveWorkout(); }, 3000);
 
   function updateWorkoutSaveBar(totalExercises) {
     const checked = document.querySelectorAll('#today-content .exercise-check:checked').length;

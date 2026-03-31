@@ -2321,6 +2321,12 @@ img { max-width: 100%; display: block; }
   --header-bg: rgba(245, 245, 247, 0.88);
 }
 
+/* Logo theme switching */
+.logo-light-mode { display: none; }
+.logo-dark-mode { display: inline-block; }
+[data-theme="light"] .logo-light-mode { display: inline-block; }
+[data-theme="light"] .logo-dark-mode { display: none; }
+
 [data-theme="light"] .login-container {
   background:
     radial-gradient(ellipse at 50% 20%, rgba(8, 145, 178, 0.05) 0%, transparent 60%),

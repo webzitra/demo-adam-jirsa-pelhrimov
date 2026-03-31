@@ -670,18 +670,47 @@
         });
       });
 
-      // Per-set input listeners — save on every input + blur
+      // Per-set input listeners — save on every input + blur + auto-check
       container.querySelectorAll('.set-input').forEach(input => {
         input.addEventListener('input', () => {
           const exIdx = parseInt(input.dataset.exercise);
           const setIdx = parseInt(input.dataset.set);
           const field = input.dataset.field;
           updateSetLogLocal(exIdx, setIdx, field, input.value);
+          // Auto-check exercise when all sets have weight+reps
+          autoCheckExercise(container, exIdx, exercises);
         });
         input.addEventListener('blur', () => autoSaveWorkout());
       });
 
       updateWorkoutSaveBar(exercises.length);
+    }
+  }
+
+  function autoCheckExercise(container, exIdx, exercises) {
+    const ex = exercises[exIdx];
+    if (!ex) return;
+    const numSets = parseSetCount(ex.sets);
+    const setInputs = container.querySelectorAll(`.set-input[data-exercise="${exIdx}"]`);
+    // Check if all sets have both weight and reps filled
+    let filledSets = 0;
+    const setData = {};
+    setInputs.forEach(inp => {
+      const s = inp.dataset.set;
+      const f = inp.dataset.field;
+      if (!setData[s]) setData[s] = {};
+      setData[s][f] = inp.value.trim();
+    });
+    for (let s = 0; s < numSets; s++) {
+      if (setData[s]?.weight && setData[s]?.reps) filledSets++;
+    }
+
+    const cb = container.querySelector(`.exercise-check[data-index="${exIdx}"]`);
+    if (!cb) return;
+
+    if (filledSets === numSets && !cb.checked) {
+      cb.checked = true;
+      cb.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 

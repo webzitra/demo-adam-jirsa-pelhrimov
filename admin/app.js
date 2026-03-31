@@ -719,6 +719,10 @@
             <input type="text" value="${escAttr(ex.reps)}" placeholder="10-12" data-field="reps">
           </div>
           <div class="exercise-field-group">
+            <label>Váha (kg)</label>
+            <input type="text" value="${escAttr(ex.weight || '')}" placeholder="60" data-field="weight">
+          </div>
+          <div class="exercise-field-group">
             <label>Odpočinek</label>
             <input type="text" value="${escAttr(ex.rest)}" placeholder="90s" data-field="rest">
           </div>

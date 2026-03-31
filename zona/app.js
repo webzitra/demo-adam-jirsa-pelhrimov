@@ -670,7 +670,7 @@
         });
       });
 
-      // Per-set input listeners
+      // Per-set input listeners — save on every input + blur
       container.querySelectorAll('.set-input').forEach(input => {
         input.addEventListener('input', () => {
           const exIdx = parseInt(input.dataset.exercise);
@@ -678,6 +678,7 @@
           const field = input.dataset.field;
           updateSetLogLocal(exIdx, setIdx, field, input.value);
         });
+        input.addEventListener('blur', () => autoSaveWorkout());
       });
 
       updateWorkoutSaveBar(exercises.length);
@@ -717,27 +718,27 @@
     autoSaveWorkout();
   }
 
-  // --- Workout autosave (debounced 2s) ---
-  let workoutAutoSaveTimer = null;
-  function autoSaveWorkout() {
-    if (workoutAutoSaveTimer) clearTimeout(workoutAutoSaveTimer);
-    workoutAutoSaveTimer = setTimeout(async () => {
-      if (!workoutDirty) return;
-      const today = new Date().toISOString().split('T')[0];
-      const todayKey = getTodayKey();
-      todayWorkoutLog.date = today;
-      todayWorkoutLog.day = todayKey;
+  // --- Workout autosave (instant on blur/change) ---
+  let workoutSaving = false;
+  async function autoSaveWorkout() {
+    if (!workoutDirty || workoutSaving) return;
+    workoutSaving = true;
+    const today = new Date().toISOString().split('T')[0];
+    const todayKey = getTodayKey();
+    todayWorkoutLog.date = today;
+    todayWorkoutLog.day = todayKey;
 
-      try {
-        await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
-        workoutDirty = false;
-        workoutSaveBar.hidden = true;
-        // Brief "saved" feedback
-        workoutSaveBtn.textContent = '✓ Uloženo';
-        setTimeout(() => { workoutSaveBtn.textContent = '💾 Uložit trénink'; }, 1000);
-      } catch { /* silent — manual save still available */ }
-    }, 2000);
+    try {
+      await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
+      workoutDirty = false;
+      workoutSaveBar.hidden = true;
+    } catch { /* silent */ }
+    workoutSaving = false;
   }
+
+  // Save when leaving page or app goes to background
+  document.addEventListener('visibilitychange', () => { if (document.hidden) autoSaveWorkout(); });
+  window.addEventListener('beforeunload', () => autoSaveWorkout());
 
   function updateWorkoutSaveBar(totalExercises) {
     const checked = document.querySelectorAll('#today-content .exercise-check:checked').length;

@@ -748,21 +748,32 @@
   }
 
   // --- Workout autosave (instant on blur/change) ---
-  let workoutSaving = false;
-  async function autoSaveWorkout() {
-    if (!workoutDirty || workoutSaving) return;
-    workoutSaving = true;
-    const today = new Date().toISOString().split('T')[0];
-    const todayKey = getTodayKey();
-    todayWorkoutLog.date = today;
-    todayWorkoutLog.day = todayKey;
+  let workoutSaveQueue = Promise.resolve();
+  function autoSaveWorkout() {
+    if (!workoutDirty) return;
+    workoutSaveQueue = workoutSaveQueue.then(async () => {
+      if (!workoutDirty) return;
+      const today = new Date().toISOString().split('T')[0];
+      const todayKey = getTodayKey();
+      todayWorkoutLog.date = today;
+      todayWorkoutLog.day = todayKey;
 
-    try {
-      await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
-      workoutDirty = false;
-      workoutSaveBar.hidden = true;
-    } catch { /* silent */ }
-    workoutSaving = false;
+      // Mark completed if all exercises done
+      const dayData = planData?.days?.[todayKey];
+      if (dayData?.exercises) {
+        const total = dayData.exercises.length;
+        const done = (todayWorkoutLog.exercises || []).filter(e => e.done).length;
+        if (done === total && total > 0) {
+          todayWorkoutLog.completedAt = new Date().toISOString();
+        }
+      }
+
+      try {
+        await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
+        workoutDirty = false;
+        workoutSaveBar.hidden = true;
+      } catch { /* silent */ }
+    });
   }
 
   // Save when leaving page or app goes to background

@@ -2682,10 +2682,16 @@ img { max-width: 100%; display: block; }
   width: 100%;
 }
 
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .onboarding-step h3 {
   font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   text-align: center;
 }
 

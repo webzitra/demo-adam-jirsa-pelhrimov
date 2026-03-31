@@ -1354,9 +1354,8 @@
       photoTrigger.style.display = '';
       progressFormWrap.hidden = true;
       toggleProgressBtn.textContent = '+ Zaznamenat';
-      // Close measurements details
-      const mToggle = document.getElementById('measurements-toggle');
-      if (mToggle) mToggle.removeAttribute('open');
+      // Clear measurement inputs
+      document.querySelectorAll('#measurements-toggle input').forEach(i => { i.value = ''; });
       renderProgress();
     } catch (err) {
       alert('Chyba: ' + err.message);

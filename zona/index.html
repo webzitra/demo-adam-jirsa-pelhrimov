@@ -136,6 +136,18 @@
               <input type="number" id="ob-age" min="10" max="99" placeholder="28">
             </div>
           </div>
+          <h4 style="margin-top:1rem;font-size:0.95rem;text-align:center;">Tělesné míry (cm) <span style="opacity:0.5;font-weight:400;font-size:0.8rem;">— nepovinné</span></h4>
+          <div class="measurements-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem 0.6rem;margin-top:0.5rem;">
+            <div class="form-group"><label>Břicho</label><input type="number" id="ob-m-belly" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Pas</label><input type="number" id="ob-m-waist" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Krk</label><input type="number" id="ob-m-neck" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Hrudník</label><input type="number" id="ob-m-chest" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Biceps</label><input type="number" id="ob-m-biceps" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Předloktí</label><input type="number" id="ob-m-forearm" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Stehna</label><input type="number" id="ob-m-thigh" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Lýtka</label><input type="number" id="ob-m-calf" step="0.1" placeholder="cm"></div>
+            <div class="form-group"><label>Zadek</label><input type="number" id="ob-m-glutes" step="0.1" placeholder="cm"></div>
+          </div>
         </div>
 
         <!-- Step 3: Training -->
@@ -505,6 +517,22 @@
               <input type="number" id="checkin-weight" name="weight" step="0.1" min="30" max="300" placeholder="83.5" class="checkin-input">
             </div>
 
+            <!-- Measurements -->
+            <details class="measurements-details">
+              <summary style="cursor:pointer;font-weight:600;font-size:0.85rem;color:var(--accent);margin:0.5rem 0;">+ Zaznamenat tělesné míry (cm)</summary>
+              <div class="measurements-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem 0.6rem;margin:0.5rem 0;">
+                <div class="form-group"><label>Břicho</label><input type="number" id="ci-m-belly" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Pas</label><input type="number" id="ci-m-waist" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Krk</label><input type="number" id="ci-m-neck" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Hrudník</label><input type="number" id="ci-m-chest" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Biceps</label><input type="number" id="ci-m-biceps" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Předloktí</label><input type="number" id="ci-m-forearm" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Stehna</label><input type="number" id="ci-m-thigh" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Lýtka</label><input type="number" id="ci-m-calf" step="0.1" placeholder="cm"></div>
+                <div class="form-group"><label>Zadek</label><input type="number" id="ci-m-glutes" step="0.1" placeholder="cm"></div>
+              </div>
+            </details>
+
             <!-- Energy -->
             <div class="checkin-field">
               <label>Energie a nálada</label>
@@ -739,7 +767,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {

@@ -144,7 +144,7 @@ exports.handler = async (event) => {
 
   // --- Submit weekly check-in ---
   if (action === 'submit-checkin') {
-    const { trainingRating, dietAdherence, weight, energy, notes, photo } = body;
+    const { trainingRating, dietAdherence, weight, energy, notes, photo, measurements } = body;
 
     const entry = {
       trainingRating: parseInt(trainingRating) || 0,
@@ -153,6 +153,17 @@ exports.handler = async (event) => {
       energy: energy || null,
       notes: notes || '',
     };
+
+    if (measurements && typeof measurements === 'object') {
+      const VALID_KEYS = ['belly', 'waist', 'neck', 'chest', 'biceps', 'forearm', 'thigh', 'calf', 'glutes'];
+      const clean = {};
+      for (const key of VALID_KEYS) {
+        if (measurements[key] != null && measurements[key] !== '') {
+          clean[key] = parseFloat(measurements[key]) || 0;
+        }
+      }
+      if (Object.keys(clean).length > 0) entry.measurements = clean;
+    }
 
     if (photo && typeof photo === 'string' && photo.startsWith('data:image/')) {
       if (photo.length > 700000) {

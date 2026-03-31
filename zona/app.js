@@ -407,6 +407,13 @@
       const goal = document.querySelector('[name="goal"]:checked')?.value || '';
       const location = document.querySelector('[name="location"]:checked')?.value || '';
 
+      // Collect measurements from onboarding
+      const obMeasurements = {};
+      MEASUREMENT_KEYS.forEach(key => {
+        const val = document.getElementById('ob-m-' + key)?.value;
+        if (val) obMeasurements[key] = parseFloat(val);
+      });
+
       const obData = {
         goal,
         weight: document.getElementById('ob-weight')?.value || '',
@@ -419,6 +426,7 @@
         allergies: document.getElementById('ob-allergies')?.value?.trim() || '',
         motivation: document.getElementById('ob-motivation')?.value?.trim() || '',
         deadline: document.getElementById('ob-deadline')?.value?.trim() || '',
+        measurements: Object.keys(obMeasurements).length > 0 ? obMeasurements : undefined,
       };
 
       obNextBtn.disabled = true;
@@ -426,6 +434,12 @@
 
       try {
         await api('zona-data', { action: 'save-onboarding', data: obData }, sessionToken);
+        // Also save initial measurements as first progress entry
+        if (obData.weight || (obData.measurements && Object.keys(obData.measurements).length > 0)) {
+          const progressPayload = { action: 'add-progress', weight: obData.weight || null, notes: 'Vstupní měření' };
+          if (obData.measurements) progressPayload.measurements = obData.measurements;
+          await api('zona-data', progressPayload, sessionToken).catch(() => {});
+        }
         onboardingData = obData;
         showScreen('dashboard');
         if (dashLoading) dashLoading.hidden = true;
@@ -2091,6 +2105,13 @@
         checkinSubmitBtn.disabled = true;
         checkinSubmitBtn.textContent = 'Odesílám...';
 
+        // Collect check-in measurements
+        const ciMeasurements = {};
+        MEASUREMENT_KEYS.forEach(key => {
+          const val = document.getElementById('ci-m-' + key)?.value;
+          if (val) ciMeasurements[key] = parseFloat(val);
+        });
+
         const formData = {
           action: 'submit-checkin',
           trainingRating: parseInt(ratingInput.value) || 0,
@@ -2098,6 +2119,7 @@
           weight: parseFloat(document.getElementById('checkin-weight').value) || null,
           energy: energyInput.value || null,
           notes: document.getElementById('checkin-notes').value.trim() || null,
+          measurements: Object.keys(ciMeasurements).length > 0 ? ciMeasurements : undefined,
         };
 
         // Photo as base64
@@ -2109,6 +2131,12 @@
           const result = await api('zona-data', formData, sessionToken);
           if (result.entries) checkinData = result.entries;
           else checkinData.push({ ...formData, createdAt: new Date().toISOString() });
+          // Also save measurements + weight as progress entry
+          if (formData.weight || formData.measurements) {
+            const pp = { action: 'add-progress', weight: formData.weight, notes: 'Týdenní check-in' };
+            if (formData.measurements) pp.measurements = formData.measurements;
+            api('zona-data', pp, sessionToken).catch(() => {});
+          }
           renderCheckinHistory();
           renderStats();
           checkinForm.reset();

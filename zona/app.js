@@ -670,17 +670,23 @@
         });
       });
 
-      // Per-set input listeners — save on every input + blur + auto-check
+      // Per-set input listeners — save on input (debounced 500ms) + instant on blur
+      let inputSaveTimer = null;
       container.querySelectorAll('.set-input').forEach(input => {
         input.addEventListener('input', () => {
           const exIdx = parseInt(input.dataset.exercise);
           const setIdx = parseInt(input.dataset.set);
           const field = input.dataset.field;
           updateSetLogLocal(exIdx, setIdx, field, input.value);
-          // Auto-check exercise when all sets have weight+reps
           autoCheckExercise(container, exIdx, exercises);
+          // Save 500ms after last keystroke
+          if (inputSaveTimer) clearTimeout(inputSaveTimer);
+          inputSaveTimer = setTimeout(() => autoSaveWorkout(), 500);
         });
-        input.addEventListener('blur', () => autoSaveWorkout());
+        input.addEventListener('blur', () => {
+          if (inputSaveTimer) { clearTimeout(inputSaveTimer); inputSaveTimer = null; }
+          autoSaveWorkout();
+        });
       });
 
       updateWorkoutSaveBar(exercises.length);
@@ -777,8 +783,12 @@
   }
 
   // Save when leaving page or app goes to background
+  // Save when app goes to background or page closes
   document.addEventListener('visibilitychange', () => { if (document.hidden) autoSaveWorkout(); });
   window.addEventListener('beforeunload', () => autoSaveWorkout());
+  window.addEventListener('pagehide', () => autoSaveWorkout());
+  // Safety net: save every 5 seconds if dirty
+  setInterval(() => { if (workoutDirty) autoSaveWorkout(); }, 5000);
 
   function updateWorkoutSaveBar(totalExercises) {
     const checked = document.querySelectorAll('#today-content .exercise-check:checked').length;

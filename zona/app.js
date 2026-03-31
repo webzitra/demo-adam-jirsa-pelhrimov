@@ -666,6 +666,7 @@
 
           updateWorkoutLogLocal(idx, 'done', e.target.checked);
           updateWorkoutSaveBar(exercises.length);
+          autoSaveWorkout();
         });
       });
 
@@ -713,6 +714,29 @@
     entry.actualReps = reps.join('/');
 
     workoutDirty = true;
+    autoSaveWorkout();
+  }
+
+  // --- Workout autosave (debounced 2s) ---
+  let workoutAutoSaveTimer = null;
+  function autoSaveWorkout() {
+    if (workoutAutoSaveTimer) clearTimeout(workoutAutoSaveTimer);
+    workoutAutoSaveTimer = setTimeout(async () => {
+      if (!workoutDirty) return;
+      const today = new Date().toISOString().split('T')[0];
+      const todayKey = getTodayKey();
+      todayWorkoutLog.date = today;
+      todayWorkoutLog.day = todayKey;
+
+      try {
+        await api('zona-data', { action: 'save-workout-log', date: today, log: todayWorkoutLog }, sessionToken);
+        workoutDirty = false;
+        workoutSaveBar.hidden = true;
+        // Brief "saved" feedback
+        workoutSaveBtn.textContent = '✓ Uloženo';
+        setTimeout(() => { workoutSaveBtn.textContent = '💾 Uložit trénink'; }, 1000);
+      } catch { /* silent — manual save still available */ }
+    }, 2000);
   }
 
   function updateWorkoutSaveBar(totalExercises) {

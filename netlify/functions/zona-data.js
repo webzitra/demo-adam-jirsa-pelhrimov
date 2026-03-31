@@ -233,6 +233,18 @@ exports.handler = async (event) => {
       .filter(s => s.clientId === clientId && s.date >= today)
       .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
+    // Last 7 days workout logs (for progressive overload display)
+    const recentLogs = {};
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const log = await getWorkoutLog(clientId, dateStr);
+      if (log && log.exercises && log.exercises.length > 0) {
+        recentLogs[dateStr] = log;
+      }
+    }
+
     const { passwordHash, ...safeClient } = client;
 
     return jsonResponse(200, {
@@ -246,6 +258,7 @@ exports.handler = async (event) => {
       messages: messages.slice(-50),
       checkins: checkins.slice(-20),
       schedule: mySessions,
+      recentLogs,
     });
   }
 

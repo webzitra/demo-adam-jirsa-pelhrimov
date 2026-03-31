@@ -474,7 +474,7 @@
           <span class="client-name">${esc(c.name)}${c.selfRegistered ? ' <span style="font-size:0.65rem;background:var(--accent);color:#fff;padding:0.1rem 0.4rem;border-radius:var(--radius-full);font-weight:700;vertical-align:middle;margin-left:0.3rem;">z webu</span>' : ''}</span>
           <span class="client-email">${esc(c.email)}</span>
           ${c.phone ? `<span class="client-meta">📞 ${esc(c.phone)}</span>` : ''}
-          ${c.notes ? `<span class="client-meta">${esc(c.notes)}</span>` : ''}
+          ${c.stickyNote ? `<div class="client-sticky-note">${esc(c.stickyNote)}</div>` : ''}
         </div>
         <div class="client-actions">
           <button class="btn-icon" onclick="editPlan('${c.id}')" title="Tréninkový plán">📋</button>
@@ -484,6 +484,7 @@
           <button class="btn-icon" onclick="openChatModal('${c.id}')" title="Chat">💬</button>
           <button class="btn-icon" onclick="generateReport('${c.id}')" title="Měsíční report">📄</button>
           <button class="btn-icon" onclick="duplicateFrom('${c.id}')" title="Kopírovat plán od jiného klienta">📥</button>
+          <button class="btn-icon" onclick="editStickyNote('${c.id}')" title="Poznámka">📌</button>
           <button class="btn-icon danger" onclick="deleteClient('${c.id}')" title="Smazat">🗑</button>
         </div>
       </div>
@@ -3402,6 +3403,24 @@
       else { toast('Povol vyskakovací okna'); }
     });
   }
+
+  // ===== Sticky Notes =====
+  window.editStickyNote = function(clientId) {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+    const current = client.stickyNote || '';
+    const note = prompt('Poznámka ke klientovi ' + client.name + ':', current);
+    if (note === null) return; // cancelled
+
+    // Update via API
+    api('zona-admin', { action: 'update-client', clientId, stickyNote: note.trim() })
+      .then(() => {
+        client.stickyNote = note.trim();
+        renderClients();
+        toast('Poznámka uložena');
+      })
+      .catch(err => toast('Chyba: ' + err.message));
+  };
 
   // ===== Start =====
   init();

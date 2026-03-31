@@ -90,7 +90,7 @@ exports.handler = async (event) => {
 
   // --- Update client ---
   if (action === 'update-client') {
-    const { clientId, name, email, phone, notes, active, password } = body;
+    const { clientId, name, email, phone, notes, active, password, stickyNote } = body;
     if (!clientId) {
       return jsonResponse(400, { error: 'clientId je povinné' });
     }
@@ -106,6 +106,7 @@ exports.handler = async (event) => {
     if (phone !== undefined) clients[idx].phone = phone;
     if (notes !== undefined) clients[idx].notes = notes;
     if (active !== undefined) clients[idx].active = active;
+    if (stickyNote !== undefined) clients[idx].stickyNote = stickyNote;
     if (password) clients[idx].passwordHash = hashPassword(password);
     clients[idx].updatedAt = new Date().toISOString();
 

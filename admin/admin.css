@@ -234,6 +234,17 @@
   color: var(--text-faint);
 }
 
+.client-sticky-note {
+  font-size: 0.78rem;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border-left: 2px solid #fbbf24;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.3rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  line-height: 1.4;
+}
+
 .client-actions {
   display: flex;
   gap: 0.35rem;

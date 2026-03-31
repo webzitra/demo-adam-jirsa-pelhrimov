@@ -15,6 +15,7 @@
   let workoutDirty = false;
   let todayNutritionLog = {};
   let nutritionDirty = false;
+  let recentWorkoutLogs = {};
 
   // ===== DOM refs =====
   const loginScreen = document.getElementById('login-screen');
@@ -291,6 +292,7 @@
     todayWorkoutLog = data.todayLog || {};
     todayNutritionLog = data.todayNutritionLog || {};
     scheduleData = data.schedule || [];
+    recentWorkoutLogs = data.recentLogs || {};
   }
 
   function cacheDashboard(data) {
@@ -542,6 +544,47 @@
     }).join('');
   }
 
+  // ===== Last performance lookup (progressive overload) =====
+  function getLastPerformance(exerciseName) {
+    if (!recentWorkoutLogs || !planData?.days) return null;
+    // Search recent logs for matching exercise
+    const dates = Object.keys(recentWorkoutLogs).sort().reverse();
+    for (const date of dates) {
+      const log = recentWorkoutLogs[date];
+      if (!log?.exercises || !log.day) continue;
+      const dayExercises = planData.days[log.day]?.exercises || [];
+      for (const le of log.exercises) {
+        const planEx = dayExercises[le.index];
+        if (planEx && planEx.name === exerciseName && le.done) {
+          // Return per-set data if available, otherwise summary
+          if (le.sets && le.sets.length > 0) {
+            const filled = le.sets.filter(s => s.weight || s.reps);
+            if (filled.length > 0) return { sets: filled, date };
+          }
+          if (le.actualWeight) {
+            return { summary: `${le.actualWeight}kg × ${le.actualReps || '?'}`, date };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function renderLastPerformance(exerciseName) {
+    const last = getLastPerformance(exerciseName);
+    if (!last) return '';
+
+    let text = '';
+    if (last.sets) {
+      text = last.sets.map((s, i) => `${s.weight || '?'}×${s.reps || '?'}`).join('  ');
+    } else if (last.summary) {
+      text = last.summary;
+    }
+    if (!text) return '';
+
+    return `<div class="exercise-last-perf">Minule: ${escapeHtml(text)}</div>`;
+  }
+
   // ===== Per-set logging rows =====
   function parseSetCount(setsStr) {
     if (!setsStr) return 3;
@@ -615,6 +658,7 @@
               ${ex.rest ? `<span class="exercise-meta-tag rest-tag" data-rest="${escapeAttr(ex.rest)}" title="Spustit odpočinkový časovač">⏱ ${escapeHtml(ex.rest)}</span>` : ''}
               ${ex.weight ? `<span class="exercise-meta-tag">🏋 ${escapeHtml(ex.weight)}</span>` : ''}
             </div>
+            ${isToday ? renderLastPerformance(ex.name) : ''}
             ${isToday ? renderSetRows(ex, i, logEntry) : ''}
             ${ex.notes ? `<div class="exercise-notes">${escapeHtml(ex.notes)}</div>` : ''}
             ${ex.videoUrl ? `<button class="exercise-video-btn" data-video="${escapeAttr(ex.videoUrl)}">▶ Ukázka cviku</button>` : ''}

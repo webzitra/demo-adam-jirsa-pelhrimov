@@ -2542,6 +2542,16 @@ img { max-width: 100%; display: block; }
   color: var(--text-faint);
 }
 
+/* Last performance hint (progressive overload) */
+.exercise-last-perf {
+  font-size: 0.75rem;
+  color: var(--accent);
+  opacity: 0.8;
+  margin: 0.3rem 0 0.1rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 /* Per-set logging rows */
 .exercise-sets-block {
   margin-top: 0.5rem;

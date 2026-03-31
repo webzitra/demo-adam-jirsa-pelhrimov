@@ -2529,6 +2529,61 @@ img { max-width: 100%; display: block; }
   color: var(--text-faint);
 }
 
+/* Per-set logging rows */
+.exercise-sets-block {
+  margin-top: 0.5rem;
+}
+
+.exercise-sets-header {
+  display: grid;
+  grid-template-columns: 2rem 1fr 1fr;
+  gap: 0.35rem;
+  font-size: 0.6rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  padding: 0 0.1rem 0.15rem;
+}
+
+.exercise-set-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 1fr;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+  align-items: center;
+}
+
+.set-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+}
+
+.set-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.5rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition);
+  text-align: center;
+}
+
+.set-input:focus {
+  border-color: var(--accent);
+}
+
+.set-input::placeholder {
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}
+
 /* Workout save bar */
 .workout-save-bar {
   position: fixed;

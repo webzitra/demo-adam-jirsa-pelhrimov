@@ -278,6 +278,7 @@ exports.handler = async (event) => {
                 actualWeight: le.actualWeight || '',
                 actualSets: le.actualSets || '',
                 actualReps: le.actualReps || '',
+                sets: le.sets || null,
               });
             }
           });

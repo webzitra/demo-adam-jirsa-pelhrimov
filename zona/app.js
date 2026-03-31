@@ -542,6 +542,38 @@
     }).join('');
   }
 
+  // ===== Per-set logging rows =====
+  function parseSetCount(setsStr) {
+    if (!setsStr) return 3;
+    const n = parseInt(setsStr);
+    return (n > 0 && n <= 10) ? n : 3;
+  }
+
+  function parseRepsPlaceholder(repsStr) {
+    return repsStr || '';
+  }
+
+  function renderSetRows(ex, exerciseIndex, logEntry) {
+    const numSets = parseSetCount(ex.sets);
+    const sets = logEntry?.sets || [];
+    const repsHint = parseRepsPlaceholder(ex.reps);
+
+    let html = '<div class="exercise-sets-block">';
+    html += '<div class="exercise-sets-header"><span>Série</span><span>Váha (kg)</span><span>Opak.</span></div>';
+
+    for (let s = 0; s < numSets; s++) {
+      const setData = sets[s] || {};
+      html += `
+        <div class="exercise-set-row" data-exercise="${exerciseIndex}" data-set="${s}">
+          <span class="set-number">${s + 1}.</span>
+          <input type="text" inputmode="decimal" class="set-input set-weight" data-exercise="${exerciseIndex}" data-set="${s}" data-field="weight" value="${escapeAttr(setData.weight || '')}" placeholder="kg">
+          <input type="text" inputmode="numeric" class="set-input set-reps" data-exercise="${exerciseIndex}" data-set="${s}" data-field="reps" value="${escapeAttr(setData.reps || '')}" placeholder="${escapeAttr(repsHint)}">
+        </div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
   // ===== Render exercises with workout logging =====
   function renderExercises(container, exercises, dayKey) {
     if (!exercises || exercises.length === 0) {
@@ -583,21 +615,7 @@
               ${ex.rest ? `<span class="exercise-meta-tag rest-tag" data-rest="${escapeAttr(ex.rest)}" title="Spustit odpočinkový časovač">⏱ ${escapeHtml(ex.rest)}</span>` : ''}
               ${ex.weight ? `<span class="exercise-meta-tag">🏋 ${escapeHtml(ex.weight)}</span>` : ''}
             </div>
-            ${isToday ? `
-            <div class="exercise-actual-row">
-              <div class="exercise-actual-field">
-                <label>Váha</label>
-                <input type="text" class="exercise-actual-input" data-actual="weight" data-index="${i}" value="${escapeAttr(logEntry?.actualWeight || '')}" placeholder="${ex.weight || 'kg'}">
-              </div>
-              <div class="exercise-actual-field">
-                <label>Série</label>
-                <input type="text" class="exercise-actual-input" data-actual="sets" data-index="${i}" value="${escapeAttr(logEntry?.actualSets || '')}" placeholder="${ex.sets || ''}">
-              </div>
-              <div class="exercise-actual-field">
-                <label>Opak.</label>
-                <input type="text" class="exercise-actual-input" data-actual="reps" data-index="${i}" value="${escapeAttr(logEntry?.actualReps || '')}" placeholder="${ex.reps || ''}">
-              </div>
-            </div>` : ''}
+            ${isToday ? renderSetRows(ex, i, logEntry) : ''}
             ${ex.notes ? `<div class="exercise-notes">${escapeHtml(ex.notes)}</div>` : ''}
             ${ex.videoUrl ? `<button class="exercise-video-btn" data-video="${escapeAttr(ex.videoUrl)}">▶ Ukázka cviku</button>` : ''}
             <button class="exercise-history-btn" data-exercise-name="${escapeAttr(ex.name)}">📊 Historie</button>
@@ -651,13 +669,13 @@
         });
       });
 
-      // Actual input listeners
-      container.querySelectorAll('.exercise-actual-input').forEach(input => {
+      // Per-set input listeners
+      container.querySelectorAll('.set-input').forEach(input => {
         input.addEventListener('input', () => {
-          const idx = parseInt(input.dataset.index);
-          const field = input.dataset.actual;
-          const fieldMap = { weight: 'actualWeight', sets: 'actualSets', reps: 'actualReps' };
-          updateWorkoutLogLocal(idx, fieldMap[field], input.value);
+          const exIdx = parseInt(input.dataset.exercise);
+          const setIdx = parseInt(input.dataset.set);
+          const field = input.dataset.field;
+          updateSetLogLocal(exIdx, setIdx, field, input.value);
         });
       });
 
@@ -669,10 +687,31 @@
     if (!todayWorkoutLog.exercises) todayWorkoutLog.exercises = [];
     let entry = todayWorkoutLog.exercises.find(e => e.index === exerciseIndex);
     if (!entry) {
-      entry = { index: exerciseIndex, done: false, actualSets: '', actualReps: '', actualWeight: '', notes: '' };
+      entry = { index: exerciseIndex, done: false, sets: [], notes: '' };
       todayWorkoutLog.exercises.push(entry);
     }
     entry[field] = value;
+    workoutDirty = true;
+  }
+
+  function updateSetLogLocal(exerciseIndex, setIndex, field, value) {
+    if (!todayWorkoutLog.exercises) todayWorkoutLog.exercises = [];
+    let entry = todayWorkoutLog.exercises.find(e => e.index === exerciseIndex);
+    if (!entry) {
+      entry = { index: exerciseIndex, done: false, sets: [], notes: '' };
+      todayWorkoutLog.exercises.push(entry);
+    }
+    if (!entry.sets) entry.sets = [];
+    while (entry.sets.length <= setIndex) entry.sets.push({});
+    entry.sets[setIndex][field] = value;
+
+    // Backward compat: generate summary fields
+    const weights = entry.sets.filter(s => s.weight).map(s => s.weight);
+    const reps = entry.sets.filter(s => s.reps).map(s => s.reps);
+    entry.actualWeight = weights.join('/');
+    entry.actualSets = String(entry.sets.filter(s => s.weight || s.reps).length);
+    entry.actualReps = reps.join('/');
+
     workoutDirty = true;
   }
 
@@ -1752,6 +1791,19 @@
         history.map(function(h) {
           var d = new Date(h.date + 'T00:00:00');
           var dateStr = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
+
+          // Per-set display if available
+          if (h.sets && Array.isArray(h.sets) && h.sets.length > 0) {
+            var setsHtml = h.sets.map(function(s, si) {
+              return '<span style="font-size:0.8rem;">' + (si + 1) + '. ' + (s.weight || '—') + 'kg × ' + (s.reps || '—') + '</span>';
+            }).join(' &nbsp; ');
+            return '<div class="exercise-history-row" style="flex-wrap:wrap;">' +
+              '<span class="exercise-history-date">' + dateStr + '</span>' +
+              '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' + setsHtml + '</div>' +
+            '</div>';
+          }
+
+          // Backward compat: old format
           var weightStr = h.actualWeight ? h.actualWeight + ' kg' : '—';
           var setsReps = (h.actualSets || '—') + ' × ' + (h.actualReps || '—');
           return '<div class="exercise-history-row">' +

@@ -282,6 +282,8 @@
 
   var scheduleData = [];
 
+  var trainerComments = {};
+
   function applyDashboardData(data) {
     planData = data.plan;
     nutritionData = data.nutrition;
@@ -293,6 +295,7 @@
     todayNutritionLog = data.todayNutritionLog || {};
     scheduleData = data.schedule || [];
     recentWorkoutLogs = data.recentLogs || {};
+    trainerComments = data.recentComments || {};
   }
 
   function cacheDashboard(data) {
@@ -949,6 +952,27 @@
     exerciseContainer.className = 'exercises-list';
     dayExercises.appendChild(exerciseContainer);
     renderExercises(exerciseContainer, dayData.exercises || [], day);
+
+    // Show trainer comments for recent workout logs
+    const logDates = Object.keys(recentWorkoutLogs || {}).filter(d => {
+      const log = recentWorkoutLogs[d];
+      return log && log.day === day;
+    }).sort().reverse();
+    for (const dateStr of logDates) {
+      const comments = trainerComments[dateStr];
+      if (comments && comments.length > 0) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const dateLabel = d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+        const commentsEl = document.createElement('div');
+        commentsEl.className = 'trainer-comments-section';
+        commentsEl.innerHTML = `
+          <div style="margin-top:0.75rem;padding:0.6rem 0.75rem;background:rgba(86,200,224,0.08);border-radius:var(--radius-md);border-left:3px solid var(--accent);">
+            <p style="font-size:0.75rem;color:var(--accent);font-weight:600;margin-bottom:0.3rem;">💬 Komentář trenéra (${dateLabel})</p>
+            ${comments.map(c => `<p style="font-size:0.85rem;margin:0.15rem 0;">${escapeHtml(c.text)}</p>`).join('')}
+          </div>`;
+        dayExercises.appendChild(commentsEl);
+      }
+    }
   }
 
   // ===== Nutrition =====

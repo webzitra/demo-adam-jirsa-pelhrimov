@@ -66,6 +66,54 @@ async function savePlan(clientId, plan) {
   });
 }
 
+// --- Week-specific Plans ---
+async function getWeekPlan(clientId, weekKey) {
+  const store = await getZonaStore();
+  try {
+    return await store.get(`weekplan:${clientId}:${weekKey}`, { type: 'json' });
+  } catch {
+    return null;
+  }
+}
+
+async function saveWeekPlan(clientId, weekKey, plan) {
+  const store = await getZonaStore();
+  await store.setJSON(`weekplan:${clientId}:${weekKey}`, {
+    ...plan,
+    clientId,
+    weekKey,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+async function deleteWeekPlan(clientId, weekKey) {
+  const store = await getZonaStore();
+  try {
+    await store.delete(`weekplan:${clientId}:${weekKey}`);
+  } catch {}
+}
+
+// --- Workout Comments (admin feedback on client logs) ---
+async function getWorkoutComments(clientId, date) {
+  const store = await getZonaStore();
+  try {
+    const data = await store.get(`workout-comments:${clientId}:${date}`, { type: 'json' });
+    return data?.comments || [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveWorkoutComments(clientId, date, comments) {
+  const store = await getZonaStore();
+  await store.setJSON(`workout-comments:${clientId}:${date}`, {
+    comments,
+    clientId,
+    date,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 // --- Nutrition Plans ---
 async function getNutrition(clientId) {
   const store = await getZonaStore();
@@ -474,12 +522,17 @@ module.exports = {
   getClientById,
   getPlan,
   savePlan,
+  getWeekPlan,
+  saveWeekPlan,
+  deleteWeekPlan,
   getNutrition,
   saveNutrition,
   getProgress,
   addProgressEntry,
   getWorkoutLog,
   saveWorkoutLog,
+  getWorkoutComments,
+  saveWorkoutComments,
   getTemplates,
   saveTemplates,
   getOnboarding,

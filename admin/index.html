@@ -6,8 +6,8 @@
   <title>Admin — Adam Jirsa</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
-  <link rel="stylesheet" href="/zona/style.css?v=15">
-  <link rel="stylesheet" href="admin.css?v=9">
+  <link rel="stylesheet" href="/zona/style.css?v=16">
+  <link rel="stylesheet" href="admin.css?v=10">
   <script>
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
   </script>
@@ -63,6 +63,7 @@
         <button class="admin-tab" data-tab="plan-editor">📋 Trénink</button>
         <button class="admin-tab" data-tab="nutrition-editor">🥗 Výživa</button>
 
+        <button class="admin-tab" data-tab="workout-logs">🏋️ Logy</button>
         <button class="admin-tab" data-tab="schedule">📅 Rozvrh</button>
         <button class="admin-tab" data-tab="payments">💰 Platby</button>
         <button class="admin-tab" data-tab="engagement">📈 Report</button>
@@ -167,6 +168,21 @@
       <!-- Plan editor -->
       <section class="admin-card" id="plan-editor-section" hidden>
         <h3>📋 Tréninkový plán pro: <span id="plan-client-name" style="color: var(--accent);"></span></h3>
+
+        <!-- Week navigation -->
+        <div class="week-nav" id="plan-week-nav" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button class="btn-ghost btn-sm" id="plan-prev-week">← Předchozí</button>
+          <button class="btn-ghost btn-sm" id="plan-this-week" style="font-weight:700;">Tento týden</button>
+          <button class="btn-ghost btn-sm" id="plan-next-week">Další →</button>
+          <span id="plan-week-label" style="font-size:0.85rem;color:var(--text-muted);margin-left:0.5rem;"></span>
+          <span id="plan-week-type-badge" style="font-size:0.72rem;padding:0.15rem 0.5rem;border-radius:var(--radius-full);font-weight:600;margin-left:0.3rem;"></span>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button class="btn-ghost btn-sm" id="copy-from-base-btn" title="Kopírovat základní šablonu do tohoto týdne">📋 Kopírovat ze šablony</button>
+          <button class="btn-ghost btn-sm" id="copy-from-last-week-btn" title="Kopírovat plán z minulého týdne">📋 Kopírovat z minulého týdne</button>
+          <button class="btn-ghost btn-sm" id="edit-base-plan-btn" title="Upravit základní šablonu (výchozí plán)">⚙️ Upravit šablonu</button>
+          <button class="btn-ghost btn-sm" id="delete-week-plan-btn" title="Smazat plán pro tento týden (vrátí se k šabloně)" style="color:#f87171;" hidden>🗑 Smazat týdenní plán</button>
+        </div>
 
         <!-- Template buttons -->
         <div class="template-buttons" style="margin-bottom: 1rem;">
@@ -315,6 +331,35 @@
     </div>
     <!-- ===== TAB: My Website ===== -->
     <!-- Web tab removed — editor not yet available -->
+
+    <!-- ===== TAB: Workout Logs ===== -->
+    <div class="admin-content" id="tab-workout-logs" hidden>
+      <section class="admin-card client-picker-card">
+        <div class="client-picker">
+          <div class="form-group">
+            <label>Vyber klienta</label>
+            <select id="wlog-client-select" class="form-select">
+              <option value="">— Vyber klienta —</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="load-wlogs-btn">Načíst logy</button>
+        </div>
+      </section>
+
+      <section class="admin-card" id="wlog-section" hidden>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+          <h3 style="margin:0;">🏋️ Tréninky: <span id="wlog-client-name" style="color:var(--accent);"></span></h3>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <button class="btn-ghost btn-sm" id="wlog-prev-week">← Předchozí</button>
+            <span id="wlog-week-label" style="font-size:0.85rem;color:var(--text-muted);"></span>
+            <button class="btn-ghost btn-sm" id="wlog-next-week">Další →</button>
+          </div>
+        </div>
+        <div id="wlog-content">
+          <p class="text-muted">Načítám...</p>
+        </div>
+      </section>
+    </div>
 
     <!-- ===== TAB: Schedule ===== -->
     <div class="admin-content" id="tab-schedule" hidden>
@@ -567,6 +612,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

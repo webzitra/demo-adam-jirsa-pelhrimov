@@ -7,8 +7,43 @@
   let currentPlan = null;
   let selectedClientId = null;
   let currentDay = 'monday';
+  let currentPlanWeekOffset = 0; // 0 = this week, -1 = last week, +1 = next week
+  let currentPlanMode = 'week'; // 'week' or 'base'
+  let basePlanCache = null; // cache of the base/template plan
 
   const DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  // ===== Week helpers =====
+  function getMonday(offset) {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diffToMonday = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diffToMonday + (offset * 7));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+
+  function calcWeekKey(monday) {
+    const thu = new Date(monday);
+    thu.setDate(thu.getDate() + 3);
+    const jan4 = new Date(thu.getFullYear(), 0, 4);
+    const days = Math.round((thu - jan4) / 86400000);
+    const weekNum = Math.ceil((days + jan4.getDay()) / 7);
+    return `${thu.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+  }
+
+  function getWeekKeyForOffset(offset) {
+    return calcWeekKey(getMonday(offset));
+  }
+
+  function formatWeekRange(offset) {
+    const mon = getMonday(offset);
+    const sun = new Date(mon);
+    sun.setDate(sun.getDate() + 6);
+    const fmtDate = (d) => `${d.getDate()}.${d.getMonth() + 1}.`;
+    return `${fmtDate(mon)} – ${fmtDate(sun)} ${sun.getFullYear()}`;
+  }
 
   // ===== Theme toggle =====
   const allThemeToggles = document.querySelectorAll('#theme-toggle, #login-theme-toggle');
@@ -121,6 +156,7 @@
   const tabPlanEditor = document.getElementById('tab-plan-editor');
   const tabNutritionEditor = document.getElementById('tab-nutrition-editor');
   const tabMyWebsite = document.getElementById('tab-my-website');
+  const tabWorkoutLogs = document.getElementById('tab-workout-logs');
   const tabSchedule = document.getElementById('tab-schedule');
   const tabPayments = document.getElementById('tab-payments');
 
@@ -209,7 +245,7 @@
 
   // ===== Tabs =====
   const tabEngagement = document.getElementById('tab-engagement');
-  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
+  const allTabs = { overview: tabOverview, clients: tabClients, 'plan-editor': tabPlanEditor, 'nutrition-editor': tabNutritionEditor, 'workout-logs': tabWorkoutLogs, 'schedule': tabSchedule, 'payments': tabPayments, 'engagement': tabEngagement };
 
   // Tab scroll hint (fade on right when more tabs are hidden)
   const tabsScrollEl = document.getElementById('admin-tabs-scroll');
@@ -479,6 +515,7 @@
         <div class="client-actions">
           <button class="btn-icon" onclick="editPlan('${c.id}')" title="Tréninkový plán">📋</button>
           <button class="btn-icon" onclick="editNutrition('${c.id}')" title="Výživa">🥗</button>
+          <button class="btn-icon" onclick="viewWorkoutLogs('${c.id}')" title="Tréninky (logy)">🏋️</button>
           <button class="btn-icon" onclick="showProgress('${c.id}')" title="Progres">📈</button>
           <button class="btn-icon" onclick="showOnboarding('${c.id}')" title="Dotazník">🎯</button>
           <button class="btn-icon" onclick="openChatModal('${c.id}')" title="Chat">💬</button>
@@ -501,6 +538,7 @@
       clients.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
     planClientSelect.innerHTML = options;
     document.getElementById('nutr-client-select').innerHTML = options;
+    document.getElementById('wlog-client-select').innerHTML = options;
   }
 
   // ===== Add client =====
@@ -604,18 +642,81 @@
     const client = clients.find(c => c.id === clientId);
     planClientName.textContent = client?.name || clientId;
     planEditorSection.hidden = false;
+    currentPlanWeekOffset = 0;
+    currentPlanMode = 'week';
 
+    await loadPlanForWeek();
+  }
+
+  async function loadPlanForWeek() {
+    if (!selectedClientId) return;
+    planAutosavePaused = true;
+    clearTimeout(planAutoSaveTimer);
+
+    const weekKey = getWeekKeyForOffset(currentPlanWeekOffset);
+
+    // Always load base plan for cache
     try {
-      const data = await api('zona-admin', { action: 'get-plan', clientId });
-      currentPlan = data.plan || createEmptyPlan();
+      const baseData = await api('zona-admin', { action: 'get-plan', clientId: selectedClientId });
+      basePlanCache = baseData.plan || createEmptyPlan();
     } catch {
-      currentPlan = createEmptyPlan();
+      basePlanCache = createEmptyPlan();
+    }
+
+    if (currentPlanMode === 'base') {
+      currentPlan = JSON.parse(JSON.stringify(basePlanCache));
+    } else {
+      // Try week-specific plan, fall back to base
+      try {
+        const weekData = await api('zona-admin', { action: 'get-week-plan', clientId: selectedClientId, weekKey });
+        if (weekData.plan) {
+          currentPlan = weekData.plan;
+        } else {
+          currentPlan = JSON.parse(JSON.stringify(basePlanCache));
+        }
+      } catch {
+        currentPlan = JSON.parse(JSON.stringify(basePlanCache));
+      }
     }
 
     planMessage.value = currentPlan.message || '';
     currentDay = 'monday';
     renderPlanDayTabs();
     renderDayEditor();
+    updateWeekNavUI();
+
+    planAutosavePaused = false;
+  }
+
+  function updateWeekNavUI() {
+    const weekLabel = document.getElementById('plan-week-label');
+    const weekBadge = document.getElementById('plan-week-type-badge');
+    const deleteBtn = document.getElementById('delete-week-plan-btn');
+    const copyBaseBtn = document.getElementById('copy-from-base-btn');
+    const copyLastBtn = document.getElementById('copy-from-last-week-btn');
+    const editBaseBtn = document.getElementById('edit-base-plan-btn');
+
+    if (currentPlanMode === 'base') {
+      weekLabel.textContent = '⚙️ Základní šablona (výchozí plán)';
+      weekBadge.textContent = 'ŠABLONA';
+      weekBadge.style.background = 'rgba(168, 85, 247, 0.15)';
+      weekBadge.style.color = '#a855f7';
+      deleteBtn.hidden = true;
+      copyBaseBtn.hidden = true;
+      copyLastBtn.hidden = true;
+      editBaseBtn.textContent = '← Zpět na týden';
+    } else {
+      const weekKey = getWeekKeyForOffset(currentPlanWeekOffset);
+      weekLabel.textContent = formatWeekRange(currentPlanWeekOffset) + ' (' + weekKey + ')';
+      const isWeekSpecific = currentPlan.weekKey === weekKey;
+      weekBadge.textContent = isWeekSpecific ? 'TÝDENNÍ PLÁN' : 'ZE ŠABLONY';
+      weekBadge.style.background = isWeekSpecific ? 'rgba(52, 211, 153, 0.15)' : 'rgba(251, 146, 60, 0.15)';
+      weekBadge.style.color = isWeekSpecific ? '#34d399' : '#fb923c';
+      deleteBtn.hidden = !isWeekSpecific;
+      copyBaseBtn.hidden = false;
+      copyLastBtn.hidden = false;
+      editBaseBtn.textContent = '⚙️ Upravit šablonu';
+    }
   }
 
   function createEmptyPlan() {
@@ -941,7 +1042,14 @@
     planSaving = true;
     savePlanBtn.disabled = true;
     try {
-      await api('zona-admin', { action: 'save-plan', clientId: selectedClientId, plan: currentPlan });
+      if (currentPlanMode === 'base') {
+        await api('zona-admin', { action: 'save-plan', clientId: selectedClientId, plan: currentPlan });
+      } else {
+        const weekKey = getWeekKeyForOffset(currentPlanWeekOffset);
+        await api('zona-admin', { action: 'save-week-plan', clientId: selectedClientId, weekKey, plan: currentPlan });
+        currentPlan.weekKey = weekKey;
+        updateWeekNavUI();
+      }
       planStatus.textContent = '✓ Uloženo';
       planStatus.style.color = 'var(--accent)';
       planStatus.hidden = false;
@@ -978,6 +1086,76 @@
   savePlanBtn.addEventListener('click', () => {
     clearTimeout(planAutoSaveTimer);
     savePlan();
+  });
+
+  // ===== Week plan navigation =====
+  document.getElementById('plan-prev-week').addEventListener('click', () => {
+    if (!selectedClientId || currentPlanMode === 'base') return;
+    currentPlanWeekOffset--;
+    loadPlanForWeek();
+  });
+  document.getElementById('plan-next-week').addEventListener('click', () => {
+    if (!selectedClientId || currentPlanMode === 'base') return;
+    currentPlanWeekOffset++;
+    loadPlanForWeek();
+  });
+  document.getElementById('plan-this-week').addEventListener('click', () => {
+    if (!selectedClientId) return;
+    currentPlanMode = 'week';
+    currentPlanWeekOffset = 0;
+    loadPlanForWeek();
+  });
+  document.getElementById('edit-base-plan-btn').addEventListener('click', () => {
+    if (!selectedClientId) return;
+    if (currentPlanMode === 'base') {
+      currentPlanMode = 'week';
+    } else {
+      currentPlanMode = 'base';
+    }
+    loadPlanForWeek();
+  });
+  document.getElementById('copy-from-base-btn').addEventListener('click', () => {
+    if (!selectedClientId || !basePlanCache || currentPlanMode === 'base') return;
+    currentPlan = JSON.parse(JSON.stringify(basePlanCache));
+    planMessage.value = currentPlan.message || '';
+    currentDay = 'monday';
+    renderPlanDayTabs();
+    renderDayEditor();
+    toast('✅ Šablona zkopírována do tohoto týdne');
+    triggerPlanAutosave();
+  });
+  document.getElementById('copy-from-last-week-btn').addEventListener('click', async () => {
+    if (!selectedClientId || currentPlanMode === 'base') return;
+    const lastWeekKey = getWeekKeyForOffset(currentPlanWeekOffset - 1);
+    try {
+      const data = await api('zona-admin', { action: 'get-week-plan', clientId: selectedClientId, weekKey: lastWeekKey });
+      if (data.plan) {
+        currentPlan = JSON.parse(JSON.stringify(data.plan));
+        delete currentPlan.weekKey;
+      } else {
+        currentPlan = JSON.parse(JSON.stringify(basePlanCache));
+      }
+      planMessage.value = currentPlan.message || '';
+      currentDay = 'monday';
+      renderPlanDayTabs();
+      renderDayEditor();
+      toast('✅ Plán z minulého týdne zkopírován');
+      triggerPlanAutosave();
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  });
+  document.getElementById('delete-week-plan-btn').addEventListener('click', async () => {
+    if (!selectedClientId || currentPlanMode === 'base') return;
+    if (!confirm('Smazat týdenní plán? Klient uvidí základní šablonu.')) return;
+    const weekKey = getWeekKeyForOffset(currentPlanWeekOffset);
+    try {
+      await api('zona-admin', { action: 'delete-week-plan', clientId: selectedClientId, weekKey });
+      toast('✅ Týdenní plán smazán');
+      await loadPlanForWeek();
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
   });
 
   // ===== Plan Templates =====
@@ -3421,6 +3599,246 @@
       })
       .catch(err => toast('Chyba: ' + err.message));
   };
+
+  // ===== Workout Logs Viewer =====
+  (function() {
+    const wlogClientSelect = document.getElementById('wlog-client-select');
+    const loadWlogsBtn = document.getElementById('load-wlogs-btn');
+    const wlogSection = document.getElementById('wlog-section');
+    const wlogClientName = document.getElementById('wlog-client-name');
+    const wlogContent = document.getElementById('wlog-content');
+    const wlogWeekLabel = document.getElementById('wlog-week-label');
+
+    let wlogClientId = null;
+    let wlogWeekOffset = 0;
+
+    const DAY_CZ_SHORT = { monday: 'Po', tuesday: 'Út', wednesday: 'St', thursday: 'Čt', friday: 'Pá', saturday: 'So', sunday: 'Ne' };
+
+    window.viewWorkoutLogs = function(clientId) {
+      switchTab('workout-logs');
+      wlogClientSelect.value = clientId;
+      wlogClientId = clientId;
+      wlogWeekOffset = 0;
+      loadWorkoutLogs();
+    };
+
+    loadWlogsBtn.addEventListener('click', () => {
+      const clientId = wlogClientSelect.value;
+      if (!clientId) return toast('Vyber klienta');
+      wlogClientId = clientId;
+      wlogWeekOffset = 0;
+      loadWorkoutLogs();
+    });
+
+    wlogClientSelect.addEventListener('change', () => {
+      const clientId = wlogClientSelect.value;
+      if (clientId) {
+        wlogClientId = clientId;
+        wlogWeekOffset = 0;
+        loadWorkoutLogs();
+      }
+    });
+
+    document.getElementById('wlog-prev-week').addEventListener('click', () => {
+      if (!wlogClientId) return;
+      wlogWeekOffset--;
+      loadWorkoutLogs();
+    });
+    document.getElementById('wlog-next-week').addEventListener('click', () => {
+      if (!wlogClientId) return;
+      wlogWeekOffset++;
+      loadWorkoutLogs();
+    });
+
+    async function loadWorkoutLogs() {
+      if (!wlogClientId) return;
+      const client = clients.find(c => c.id === wlogClientId);
+      wlogClientName.textContent = client?.name || wlogClientId;
+      wlogSection.hidden = false;
+      wlogContent.innerHTML = '<p class="text-muted">Načítám...</p>';
+      wlogWeekLabel.textContent = formatWeekRange(wlogWeekOffset);
+
+      const mon = getMonday(wlogWeekOffset);
+      const sun = new Date(mon);
+      sun.setDate(sun.getDate() + 6);
+      const dateFrom = mon.toISOString().split('T')[0];
+      const dateTo = sun.toISOString().split('T')[0];
+
+      try {
+        const [logsData, planData] = await Promise.all([
+          api('zona-admin', { action: 'get-workout-logs-range', clientId: wlogClientId, dateFrom, dateTo }),
+          api('zona-admin', { action: 'get-plan', clientId: wlogClientId }),
+        ]);
+
+        const logs = logsData.logs || {};
+        const plan = planData.plan;
+        renderWorkoutLogs(logs, plan, mon);
+      } catch (err) {
+        wlogContent.innerHTML = `<p style="color:#f87171;">Chyba: ${esc(err.message)}</p>`;
+      }
+    }
+
+    function renderWorkoutLogs(logs, plan, monday) {
+      let html = '';
+      const today = new Date().toISOString().split('T')[0];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayKey = DAY_ORDER[i];
+        const dayCz = DAY_CZ_SHORT[dayKey];
+        const dateLabel = `${dayCz} ${date.getDate()}.${date.getMonth() + 1}.`;
+        const isToday = dateStr === today;
+
+        const log = logs[dateStr];
+        const dayPlan = plan?.days?.[dayKey];
+
+        html += `<div class="wlog-day-card${isToday ? ' wlog-today' : ''}${log?.completedAt ? ' wlog-completed' : ''}" data-date="${dateStr}">`;
+        html += `<div class="wlog-day-header">`;
+        html += `<span class="wlog-day-label">${dateLabel}${isToday ? ' <span style="font-size:0.7rem;background:var(--accent);color:#fff;padding:0.1rem 0.4rem;border-radius:var(--radius-full);">dnes</span>' : ''}</span>`;
+
+        if (log?.completedAt) {
+          const t = new Date(log.completedAt);
+          html += `<span style="font-size:0.75rem;color:#34d399;font-weight:600;">✅ Dokončeno ${t.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span>`;
+        } else if (log?.exercises?.length > 0) {
+          const done = log.exercises.filter(e => e.done).length;
+          const total = log.exercises.length;
+          html += `<span style="font-size:0.75rem;color:#fb923c;font-weight:600;">⏳ ${done}/${total} cviků</span>`;
+        } else if (dayPlan?.rest) {
+          html += `<span style="font-size:0.75rem;color:var(--text-muted);">😴 Odpočinek</span>`;
+        } else {
+          html += `<span style="font-size:0.75rem;color:var(--text-muted);">— Bez záznamu</span>`;
+        }
+
+        if (dayPlan?.name) {
+          html += `<span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">${esc(dayPlan.name)}</span>`;
+        }
+        html += `</div>`;
+
+        // Exercise details
+        if (log?.exercises && log.exercises.length > 0) {
+          const planExercises = dayPlan?.exercises || [];
+
+          html += '<div class="wlog-exercises">';
+          for (const entry of log.exercises) {
+            const planEx = planExercises[entry.index];
+            const exName = planEx?.name || `Cvik #${entry.index + 1}`;
+
+            html += `<div class="wlog-exercise${entry.done ? ' wlog-ex-done' : ''}">`;
+            html += `<div class="wlog-ex-header">`;
+            html += `<span class="wlog-ex-check">${entry.done ? '✅' : '⬜'}</span>`;
+            html += `<span class="wlog-ex-name">${esc(exName)}</span>`;
+            if (planEx) {
+              html += `<span class="wlog-ex-plan">${esc(planEx.sets || '')}×${esc(planEx.reps || '')}${planEx.weight ? ' @ ' + esc(planEx.weight) + 'kg' : ''}</span>`;
+            }
+            html += `</div>`;
+
+            // Per-set data
+            if (entry.sets && entry.sets.length > 0) {
+              const filledSets = entry.sets.filter(s => s.weight || s.reps);
+              if (filledSets.length > 0) {
+                html += '<div class="wlog-sets">';
+                entry.sets.forEach((s, si) => {
+                  if (s.weight || s.reps) {
+                    html += `<span class="wlog-set">${si + 1}. <strong>${s.weight || '?'}</strong>kg × <strong>${s.reps || '?'}</strong></span>`;
+                  }
+                });
+                html += '</div>';
+              }
+            } else if (entry.actualWeight) {
+              html += `<div class="wlog-sets"><span class="wlog-set">${esc(entry.actualWeight)}kg × ${esc(entry.actualReps || '?')}</span></div>`;
+            }
+
+            if (entry.notes) {
+              html += `<div class="wlog-ex-note">📝 ${esc(entry.notes)}</div>`;
+            }
+
+            html += `</div>`;
+          }
+          html += '</div>';
+        }
+
+        // Comments section
+        html += `<div class="wlog-comments" id="wlog-comments-${dateStr}">`;
+        html += `<div class="wlog-comments-list" id="wlog-comments-list-${dateStr}"></div>`;
+        html += `<div class="wlog-comment-form" style="display:flex;gap:0.4rem;margin-top:0.4rem;">`;
+        html += `<input type="text" class="wlog-comment-input" id="wlog-ci-${dateStr}" placeholder="Napiš komentář k tréninku..." maxlength="500" style="flex:1;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text);font-size:0.82rem;">`;
+        html += `<button class="btn-primary btn-sm" onclick="submitWorkoutComment('${wlogClientId}','${dateStr}')" style="font-size:0.8rem;">💬</button>`;
+        html += `</div></div>`;
+
+        html += `</div>`;
+      }
+
+      wlogContent.innerHTML = html;
+
+      // Load comments for all days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        loadDayComments(wlogClientId, dateStr);
+      }
+    }
+
+    async function loadDayComments(clientId, date) {
+      const listEl = document.getElementById(`wlog-comments-list-${date}`);
+      if (!listEl) return;
+      try {
+        const data = await api('zona-admin', { action: 'get-workout-comments', clientId, date });
+        const comments = data.comments || [];
+        if (comments.length === 0) {
+          listEl.innerHTML = '';
+          return;
+        }
+        listEl.innerHTML = comments.map(c => {
+          const t = new Date(c.createdAt);
+          const timeStr = t.toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+          return `<div class="wlog-comment">
+            <span class="wlog-comment-text">${esc(c.text)}</span>
+            <span class="wlog-comment-meta">${timeStr}</span>
+            <button class="wlog-comment-del" onclick="deleteWorkoutComment('${clientId}','${date}','${c.id}')" title="Smazat">✕</button>
+          </div>`;
+        }).join('');
+      } catch { }
+    }
+
+    window.submitWorkoutComment = async function(clientId, date) {
+      const input = document.getElementById(`wlog-ci-${date}`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      input.disabled = true;
+      try {
+        await api('zona-admin', { action: 'save-workout-comment', clientId, date, text });
+        input.value = '';
+        await loadDayComments(clientId, date);
+        toast('💬 Komentář uložen');
+      } catch (err) {
+        toast('❌ ' + err.message);
+      } finally {
+        input.disabled = false;
+        input.focus();
+      }
+    };
+
+    window.deleteWorkoutComment = async function(clientId, date, commentId) {
+      try {
+        await api('zona-admin', { action: 'delete-workout-comment', clientId, date, commentId });
+        await loadDayComments(clientId, date);
+      } catch (err) {
+        toast('❌ ' + err.message);
+      }
+    };
+
+    // Enter key to submit comment
+    document.getElementById('tab-workout-logs').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.classList.contains('wlog-comment-input')) {
+        const dateStr = e.target.id.replace('wlog-ci-', '');
+        submitWorkoutComment(wlogClientId, dateStr);
+      }
+    });
+  })();
 
   // ===== Start =====
   init();

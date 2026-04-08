@@ -1,7 +1,7 @@
 const { verifySession, jsonResponse, parseAuth } = require('./lib/zona-auth');
 const {
-  getClientById, getPlan, getNutrition, getProgress, addProgressEntry,
-  getWorkoutLog, saveWorkoutLog, getOnboarding, saveOnboarding,
+  getClientById, getPlan, getWeekPlan, getNutrition, getProgress, addProgressEntry,
+  getWorkoutLog, saveWorkoutLog, getWorkoutComments, getOnboarding, saveOnboarding,
   getMessages, addMessage,
   getNutritionLog, saveNutritionLog,
   getCheckins, addCheckin,
@@ -41,8 +41,16 @@ exports.handler = async (event) => {
 
   // --- Get my training plan ---
   if (action === 'get-plan') {
-    const plan = await getPlan(clientId);
-    return jsonResponse(200, { plan });
+    // Check for week-specific plan first, fall back to base plan
+    const { weekKey } = body;
+    let plan = null;
+    if (weekKey) {
+      plan = await getWeekPlan(clientId, weekKey);
+    }
+    if (!plan) {
+      plan = await getPlan(clientId);
+    }
+    return jsonResponse(200, { plan, isWeekPlan: !!weekKey && plan?.weekKey === weekKey });
   }
 
   // --- Get my nutrition plan ---
@@ -226,8 +234,9 @@ exports.handler = async (event) => {
     nextMonday.setDate(nextMonday.getDate() + 7);
     const nextWeekKey = calcWeekKey(nextMonday);
 
-    const [plan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog, checkins, thisWeekSessions, nextWeekSessions] = await Promise.all([
+    const [basePlan, weekPlan, nutrition, progressEntries, todayLog, onboarding, messages, todayNutritionLog, checkins, thisWeekSessions, nextWeekSessions] = await Promise.all([
       getPlan(clientId),
+      getWeekPlan(clientId, thisWeekKey),
       getNutrition(clientId),
       getProgress(clientId),
       getWorkoutLog(clientId, today),
@@ -238,6 +247,9 @@ exports.handler = async (event) => {
       getSchedule(thisWeekKey),
       getSchedule(nextWeekKey),
     ]);
+
+    // Use week-specific plan if available, otherwise base plan
+    const plan = weekPlan || basePlan;
 
     // Filter schedule to this client's future sessions only
     const mySessions = [...thisWeekSessions, ...nextWeekSessions]
@@ -258,6 +270,15 @@ exports.handler = async (event) => {
 
     const { passwordHash, ...safeClient } = client;
 
+    // Load workout comments for recent logs (trainer feedback)
+    const recentComments = {};
+    for (const dateStr of Object.keys(recentLogs)) {
+      const comments = await getWorkoutComments(clientId, dateStr);
+      if (comments.length > 0) {
+        recentComments[dateStr] = comments;
+      }
+    }
+
     return jsonResponse(200, {
       client: safeClient,
       plan,
@@ -270,6 +291,7 @@ exports.handler = async (event) => {
       checkins: checkins.slice(-20),
       schedule: mySessions,
       recentLogs,
+      recentComments,
     });
   }
 

@@ -3,12 +3,14 @@ const { verifyAdmin, jsonResponse, parseAuth, hashPassword } = require('./lib/zo
 const {
   getAllClients, saveAllClients,
   getPlan, savePlan,
+  getWeekPlan, saveWeekPlan, deleteWeekPlan,
   getNutrition, saveNutrition,
   getProgress,
   getTemplates, saveTemplates,
   getOnboarding,
   getMessages, addMessage,
   getWorkoutLog,
+  getWorkoutComments, saveWorkoutComments,
   getSchedule, saveSchedule,
   getPayments, savePayments,
   getCheckins,
@@ -154,6 +156,94 @@ exports.handler = async (event) => {
 
     await savePlan(clientId, plan);
     return jsonResponse(200, { success: true });
+  }
+
+  // =====================
+  // WEEK-SPECIFIC PLANS
+  // =====================
+
+  if (action === 'get-week-plan') {
+    const { clientId, weekKey } = body;
+    if (!clientId || !weekKey) {
+      return jsonResponse(400, { error: 'clientId a weekKey jsou povinné' });
+    }
+    const weekPlan = await getWeekPlan(clientId, weekKey);
+    return jsonResponse(200, { plan: weekPlan });
+  }
+
+  if (action === 'save-week-plan') {
+    const { clientId, weekKey, plan } = body;
+    if (!clientId || !weekKey || !plan) {
+      return jsonResponse(400, { error: 'clientId, weekKey a plan jsou povinné' });
+    }
+    await saveWeekPlan(clientId, weekKey, plan);
+    return jsonResponse(200, { success: true });
+  }
+
+  if (action === 'delete-week-plan') {
+    const { clientId, weekKey } = body;
+    if (!clientId || !weekKey) {
+      return jsonResponse(400, { error: 'clientId a weekKey jsou povinné' });
+    }
+    await deleteWeekPlan(clientId, weekKey);
+    return jsonResponse(200, { success: true });
+  }
+
+  // =====================
+  // WORKOUT LOGS & COMMENTS (admin viewing)
+  // =====================
+
+  if (action === 'get-workout-logs-range') {
+    const { clientId, dateFrom, dateTo } = body;
+    if (!clientId || !dateFrom || !dateTo) {
+      return jsonResponse(400, { error: 'clientId, dateFrom a dateTo jsou povinné' });
+    }
+    const logs = {};
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const log = await getWorkoutLog(clientId, dateStr);
+      if (log) {
+        logs[dateStr] = log;
+      }
+    }
+    return jsonResponse(200, { logs });
+  }
+
+  if (action === 'get-workout-comments') {
+    const { clientId, date } = body;
+    if (!clientId || !date) {
+      return jsonResponse(400, { error: 'clientId a date jsou povinné' });
+    }
+    const comments = await getWorkoutComments(clientId, date);
+    return jsonResponse(200, { comments });
+  }
+
+  if (action === 'save-workout-comment') {
+    const { clientId, date, text } = body;
+    if (!clientId || !date || !text) {
+      return jsonResponse(400, { error: 'clientId, date a text jsou povinné' });
+    }
+    const comments = await getWorkoutComments(clientId, date);
+    comments.push({
+      id: `wc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      text: text.trim().slice(0, 1000),
+      createdAt: new Date().toISOString(),
+    });
+    await saveWorkoutComments(clientId, date, comments);
+    return jsonResponse(200, { success: true, comments });
+  }
+
+  if (action === 'delete-workout-comment') {
+    const { clientId, date, commentId } = body;
+    if (!clientId || !date || !commentId) {
+      return jsonResponse(400, { error: 'clientId, date a commentId jsou povinné' });
+    }
+    const comments = await getWorkoutComments(clientId, date);
+    const filtered = comments.filter(c => c.id !== commentId);
+    await saveWorkoutComments(clientId, date, filtered);
+    return jsonResponse(200, { success: true, comments: filtered });
   }
 
   // =====================

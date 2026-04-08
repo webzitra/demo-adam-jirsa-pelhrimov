@@ -1677,6 +1677,148 @@
   }
 }
 
+/* ===== WORKOUT LOGS TAB ===== */
+
+.wlog-day-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.6rem;
+  border-left: 3px solid var(--border);
+  transition: border-color 0.2s;
+}
+
+.wlog-day-card.wlog-today {
+  border-left-color: var(--accent);
+}
+
+.wlog-day-card.wlog-completed {
+  border-left-color: #34d399;
+}
+
+.wlog-day-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.wlog-day-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+.wlog-exercises {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wlog-exercise {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+}
+
+.wlog-exercise.wlog-ex-done {
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.wlog-ex-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.wlog-ex-check {
+  font-size: 0.85rem;
+}
+
+.wlog-ex-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.wlog-ex-plan {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.wlog-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  margin-top: 0.3rem;
+  padding-left: 1.5rem;
+}
+
+.wlog-set {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.wlog-set strong {
+  color: var(--accent);
+}
+
+.wlog-ex-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+  padding-left: 1.5rem;
+}
+
+.wlog-comments {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.wlog-comment {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(86, 200, 224, 0.08);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.3rem;
+  font-size: 0.82rem;
+}
+
+.wlog-comment-text {
+  flex: 1;
+}
+
+.wlog-comment-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.wlog-comment-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.15rem;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.wlog-comment-del:hover {
+  opacity: 1;
+  color: #f87171;
+}
+
 /* ===== ENGAGEMENT REPORT TAB ===== */
 
 /* Summary grid */

@@ -287,6 +287,122 @@ exports.handler = async (event) => {
     return jsonResponse(200, { entries });
   }
 
+  // --- Get check-ins for admin ---
+  if (action === 'get-checkins') {
+    const { clientId } = body;
+    if (!clientId) {
+      return jsonResponse(400, { error: 'clientId je povinné' });
+    }
+    const entries = await getCheckins(clientId);
+    return jsonResponse(200, { entries });
+  }
+
+  // --- Exercise strength history (progressive overload) ---
+  if (action === 'get-strength-history') {
+    const { clientId, days } = body;
+    if (!clientId) {
+      return jsonResponse(400, { error: 'clientId je povinné' });
+    }
+    const lookbackDays = Math.min(days || 60, 90);
+    const now = new Date();
+    const exerciseMap = {}; // name -> [{ date, sets: [{weight, reps}] }]
+
+    for (let i = 0; i < lookbackDays; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const log = await getWorkoutLog(clientId, dateStr);
+      if (!log?.exercises) continue;
+
+      // Get plan for this day to resolve exercise names
+      const plan = await getPlan(clientId);
+      const dayKey = log.day;
+      const planExercises = plan?.days?.[dayKey]?.exercises || [];
+
+      for (const entry of log.exercises) {
+        if (!entry.done) continue;
+        const planEx = planExercises[entry.index];
+        const exName = planEx?.name;
+        if (!exName) continue;
+
+        const filledSets = (entry.sets || []).filter(s => s.weight || s.reps);
+        if (filledSets.length === 0 && !entry.actualWeight) continue;
+
+        if (!exerciseMap[exName]) exerciseMap[exName] = [];
+        exerciseMap[exName].push({
+          date: dateStr,
+          sets: filledSets.length > 0 ? filledSets : [{ weight: entry.actualWeight, reps: entry.actualReps }],
+        });
+      }
+    }
+
+    // Sort entries per exercise by date
+    for (const name of Object.keys(exerciseMap)) {
+      exerciseMap[name].sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    return jsonResponse(200, { exercises: exerciseMap });
+  }
+
+  // --- Training adherence stats ---
+  if (action === 'get-adherence') {
+    const { clientId, days } = body;
+    if (!clientId) {
+      return jsonResponse(400, { error: 'clientId je povinné' });
+    }
+    const lookbackDays = Math.min(days || 28, 90);
+    const now = new Date();
+    const plan = await getPlan(clientId);
+
+    // Count planned training days per week
+    let plannedPerWeek = 0;
+    if (plan?.days) {
+      for (const dayData of Object.values(plan.days)) {
+        if (!dayData.rest && dayData.exercises && dayData.exercises.length > 0) {
+          plannedPerWeek++;
+        }
+      }
+    }
+
+    let completedCount = 0;
+    let partialCount = 0;
+    const weeklyData = {}; // weekKey -> { completed, planned }
+
+    for (let i = 0; i < lookbackDays; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const log = await getWorkoutLog(clientId, dateStr);
+
+      // Calc week key for this date
+      const mon = new Date(d);
+      const dow = mon.getDay();
+      mon.setDate(mon.getDate() - dow + (dow === 0 ? -6 : 1));
+      const wk = `${mon.getFullYear()}-W${String(Math.ceil(((mon - new Date(mon.getFullYear(), 0, 4)) / 86400000 + new Date(mon.getFullYear(), 0, 4).getDay()) / 7)).padStart(2, '0')}`;
+
+      if (!weeklyData[wk]) weeklyData[wk] = { completed: 0, planned: plannedPerWeek };
+
+      if (log?.completedAt) {
+        completedCount++;
+        weeklyData[wk].completed++;
+      } else if (log?.exercises?.some(e => e.done)) {
+        partialCount++;
+      }
+    }
+
+    const totalPlanned = Math.round((lookbackDays / 7) * plannedPerWeek);
+    const adherencePercent = totalPlanned > 0 ? Math.round((completedCount / totalPlanned) * 100) : null;
+
+    return jsonResponse(200, {
+      plannedPerWeek,
+      completedCount,
+      partialCount,
+      totalPlanned,
+      adherencePercent,
+      weeks: weeklyData,
+    });
+  }
+
   // =====================
   // PLAN TEMPLATES
   // =====================
@@ -662,6 +778,19 @@ exports.handler = async (event) => {
 
       const workoutsPerWeek = workoutCount / 2; // 14 days = 2 weeks
 
+      // Training adherence: planned vs actual
+      const plan = await getPlan(client.id);
+      let plannedPerWeek = 0;
+      if (plan?.days) {
+        for (const dayData of Object.values(plan.days)) {
+          if (!dayData.rest && dayData.exercises && dayData.exercises.length > 0) {
+            plannedPerWeek++;
+          }
+        }
+      }
+      const totalPlanned14d = plannedPerWeek * 2;
+      const adherencePercent = totalPlanned14d > 0 ? Math.min(100, Math.round((workoutCount / totalPlanned14d) * 100)) : null;
+
       // Engagement status
       let status;
       const trainedRecently = daysSinceLastActivity <= 3;
@@ -681,6 +810,8 @@ exports.handler = async (event) => {
         id: client.id,
         name: client.name,
         workoutsPerWeek,
+        plannedPerWeek,
+        adherencePercent,
         dietAdherence,
         responseRate,
         daysSinceLastActivity,

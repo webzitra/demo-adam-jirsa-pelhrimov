@@ -6,8 +6,8 @@
   <title>Admin — Adam Jirsa</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
-  <link rel="stylesheet" href="/zona/style.css?v=16">
-  <link rel="stylesheet" href="admin.css?v=10">
+  <link rel="stylesheet" href="/zona/style.css?v=17">
+  <link rel="stylesheet" href="admin.css?v=11">
   <script>
     (function(){var t=localStorage.getItem('zona_theme');if(t)document.documentElement.setAttribute('data-theme',t)})();
   </script>
@@ -560,6 +560,18 @@
     </div>
   </div>
 
+  <!-- Check-in modal -->
+  <div id="checkin-modal" class="modal" hidden>
+    <div class="modal-backdrop" onclick="closeCheckinModal()"></div>
+    <div class="modal-content" style="max-width: 600px; background: var(--bg-card); border-radius: var(--radius-md); padding: 1.5rem; max-height: 85vh; overflow-y: auto;">
+      <button class="modal-close" onclick="closeCheckinModal()">✕</button>
+      <h3 style="margin-bottom: 1rem;">📋 Check-iny: <span id="checkin-modal-name" style="color: var(--accent);"></span></h3>
+      <div id="checkin-modal-content">
+        <p class="text-muted">Načítám...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Chat modal -->
   <div id="chat-modal" class="modal" hidden>
     <div class="modal-backdrop" onclick="closeChatModal()"></div>
@@ -612,6 +624,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

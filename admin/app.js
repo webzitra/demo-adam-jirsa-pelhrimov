@@ -518,6 +518,7 @@
           <button class="btn-icon" onclick="viewWorkoutLogs('${c.id}')" title="Tréninky (logy)">🏋️</button>
           <button class="btn-icon" onclick="showProgress('${c.id}')" title="Progres">📈</button>
           <button class="btn-icon" onclick="showOnboarding('${c.id}')" title="Dotazník">🎯</button>
+          <button class="btn-icon" onclick="showCheckins('${c.id}')" title="Check-iny">📋</button>
           <button class="btn-icon" onclick="openChatModal('${c.id}')" title="Chat">💬</button>
           <button class="btn-icon" onclick="generateReport('${c.id}')" title="Měsíční report">📄</button>
           <button class="btn-icon" onclick="duplicateFrom('${c.id}')" title="Kopírovat plán od jiného klienta">📥</button>
@@ -2216,11 +2217,95 @@
       });
       html += '</div>';
 
+      // --- Strength / Progressive overload section ---
+      html += `<h4 style="margin:1.5rem 0 0.6rem;font-size:1rem;color:var(--text-primary);">💪 Síla (Progressive Overload)</h4>`;
+      html += `<div id="strength-charts-container"><p class="text-muted" style="font-size:0.85rem;">Načítám historii cviků...</p></div>`;
+
       modalContent.innerHTML = html;
+
+      // Load strength data async
+      loadStrengthCharts(clientId);
+
     } catch (err) {
       modalContent.innerHTML = `<p style="color: #f87171;">Chyba: ${err.message}</p>`;
     }
   };
+
+  async function loadStrengthCharts(clientId) {
+    const container = document.getElementById('strength-charts-container');
+    if (!container) return;
+
+    try {
+      const data = await api('zona-admin', { action: 'get-strength-history', clientId, days: 60 });
+      const exercises = data.exercises || {};
+      const names = Object.keys(exercises);
+
+      if (names.length === 0) {
+        container.innerHTML = '<p class="text-muted" style="font-size:0.85rem;">Zatím žádné záznamy vah.</p>';
+        return;
+      }
+
+      const COLORS = ['#56C8E0', '#34d399', '#f87171', '#fb923c', '#a78bfa', '#fbbf24', '#f472b6', '#818cf8', '#22d3ee', '#4ade80'];
+
+      let html = '';
+      names.forEach((exName, ci) => {
+        const entries = exercises[exName];
+        if (entries.length < 1) return;
+
+        // Extract max weight per session
+        const dataPoints = entries.map(e => {
+          const maxW = Math.max(...e.sets.map(s => parseFloat(s.weight) || 0));
+          return { date: e.date, weight: maxW };
+        }).filter(p => p.weight > 0);
+
+        if (dataPoints.length === 0) return;
+
+        const color = COLORS[ci % COLORS.length];
+        const first = dataPoints[0];
+        const last = dataPoints[dataPoints.length - 1];
+        const diff = last.weight - first.weight;
+        const diffSign = diff > 0 ? '+' : '';
+        const diffColor = diff > 0 ? '#34d399' : diff < 0 ? '#f87171' : 'var(--text-muted)';
+
+        html += `<div class="strength-card" style="background:var(--bg-elevated);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;">`;
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">`;
+        html += `<span style="font-weight:700;font-size:0.88rem;">${esc(exName)}</span>`;
+        html += `<span style="font-size:0.78rem;font-weight:600;color:${diffColor};">${last.weight}kg ${dataPoints.length > 1 ? `(${diffSign}${diff.toFixed(1)})` : ''}</span>`;
+        html += `</div>`;
+
+        // Mini chart if 2+ points
+        if (dataPoints.length >= 2) {
+          const W = 400, H = 60, PL = 5, PR = 5, PT = 5, PB = 5;
+          const pW = W - PL - PR, pH = H - PT - PB;
+          const vals = dataPoints.map(p => p.weight);
+          const mn = Math.min(...vals) - 1, mx = Math.max(...vals) + 1, rng = mx - mn || 1;
+          const xp = (i) => PL + (i / (dataPoints.length - 1)) * pW;
+          const yp = (v) => PT + pH - ((v - mn) / rng) * pH;
+
+          let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;">`;
+          // Line
+          const pts = dataPoints.map((p, i) => ({ x: xp(i), y: yp(p.weight) }));
+          svg += `<path d="${pts.map((p, i) => `${i ? 'L' : 'M'}${p.x},${p.y}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>`;
+          // Dots
+          pts.forEach(p => { svg += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${color}"/>`; });
+          svg += '</svg>';
+          html += svg;
+        }
+
+        // Per-session details
+        html += '<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.3rem;">';
+        dataPoints.forEach(p => {
+          const d = new Date(p.date + 'T00:00:00');
+          html += `<span style="font-size:0.7rem;background:var(--bg-card);padding:0.15rem 0.4rem;border-radius:var(--radius-sm);color:var(--text-muted);">${d.getDate()}.${d.getMonth() + 1}. <strong style="color:${color};">${p.weight}kg</strong></span>`;
+        });
+        html += '</div></div>';
+      });
+
+      container.innerHTML = html || '<p class="text-muted" style="font-size:0.85rem;">Zatím žádné záznamy vah.</p>';
+    } catch (err) {
+      container.innerHTML = `<p style="color:#f87171;font-size:0.85rem;">Chyba: ${err.message}</p>`;
+    }
+  }
 
   window.closeProgressModal = function() {
     document.getElementById('progress-modal').hidden = true;
@@ -2273,6 +2358,111 @@
 
   window.closeOnboardingModal = function() {
     document.getElementById('onboarding-modal').hidden = true;
+    document.body.style.overflow = '';
+  };
+
+  // ===== Check-in viewer modal =====
+  const ENERGY_LABELS = { low: '😴 Nízká', ok: '😐 OK', good: '😊 Dobrá', great: '🔥 Skvělá' };
+
+  window.showCheckins = async function(clientId) {
+    const client = clients.find(c => c.id === clientId);
+    const modal = document.getElementById('checkin-modal');
+    const modalName = document.getElementById('checkin-modal-name');
+    const modalContent = document.getElementById('checkin-modal-content');
+
+    modalName.textContent = client?.name || clientId;
+    modalContent.innerHTML = '<p class="text-muted">Načítám...</p>';
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    try {
+      const [ciData, adhData] = await Promise.all([
+        api('zona-admin', { action: 'get-checkins', clientId }),
+        api('zona-admin', { action: 'get-adherence', clientId, days: 28 }),
+      ]);
+      const entries = ciData.entries || [];
+      const adherence = adhData;
+
+      if (entries.length === 0 && !adherence.adherencePercent) {
+        modalContent.innerHTML = '<p class="text-muted" style="text-align:center;padding:2rem 0;">Zatím žádné check-iny.</p>';
+        return;
+      }
+
+      let html = '';
+
+      // Adherence summary
+      if (adherence.adherencePercent != null) {
+        const adhColor = adherence.adherencePercent >= 80 ? '#34d399' : adherence.adherencePercent >= 50 ? '#fbbf24' : '#f87171';
+        html += `<div class="ci-adherence-bar" style="display:flex;align-items:center;gap:1rem;padding:0.75rem;background:var(--bg-elevated);border-radius:var(--radius-md);margin-bottom:1rem;flex-wrap:wrap;">`;
+        html += `<div style="text-align:center;"><span style="font-size:1.8rem;font-weight:800;color:${adhColor};">${adherence.adherencePercent}%</span><br><span style="font-size:0.75rem;color:var(--text-muted);">dodržování plánu</span></div>`;
+        html += `<div style="flex:1;font-size:0.82rem;color:var(--text-secondary);">`;
+        html += `Plán: <strong>${adherence.plannedPerWeek}×</strong>/týden · `;
+        html += `Splněno: <strong>${adherence.completedCount}</strong>/${adherence.totalPlanned} za 4 týdny`;
+        if (adherence.partialCount > 0) html += ` · Rozpracováno: ${adherence.partialCount}`;
+        html += `</div></div>`;
+
+        // Weekly breakdown
+        const weeks = Object.entries(adherence.weeks || {}).sort((a, b) => a[0].localeCompare(b[0]));
+        if (weeks.length > 0) {
+          html += '<div style="display:flex;gap:0.3rem;margin-bottom:1rem;flex-wrap:wrap;">';
+          weeks.forEach(([wk, wd]) => {
+            const pct = wd.planned > 0 ? Math.round((wd.completed / wd.planned) * 100) : 0;
+            const bg = pct >= 80 ? 'rgba(52,211,153,0.15)' : pct >= 50 ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)';
+            const col = pct >= 80 ? '#34d399' : pct >= 50 ? '#fbbf24' : '#f87171';
+            html += `<div style="flex:1;min-width:60px;text-align:center;padding:0.4rem;background:${bg};border-radius:var(--radius-sm);">`;
+            html += `<div style="font-size:0.7rem;color:var(--text-muted);">${wk.split('-')[1]}</div>`;
+            html += `<div style="font-weight:700;color:${col};font-size:0.9rem;">${wd.completed}/${wd.planned}</div>`;
+            html += `</div>`;
+          });
+          html += '</div>';
+        }
+      }
+
+      // Check-in entries
+      if (entries.length > 0) {
+        html += '<h4 style="font-size:0.95rem;margin-bottom:0.5rem;">📋 Check-in historie</h4>';
+        const sorted = [...entries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        html += sorted.map(ci => {
+          const date = new Date(ci.createdAt);
+          const dateStr = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+          const stars = '★'.repeat(ci.trainingRating || 0) + '☆'.repeat(5 - (ci.trainingRating || 0));
+
+          let inner = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">`;
+          inner += `<span style="font-weight:700;font-size:0.88rem;">${dateStr}</span>`;
+          inner += `</div>`;
+
+          inner += `<div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;font-size:0.82rem;">`;
+          inner += `<span>Trénink: <span style="color:#fbbf24;letter-spacing:1px;">${stars}</span></span>`;
+          inner += `<span>Dieta: <strong style="color:var(--accent);">${ci.dietAdherence || 0}%</strong></span>`;
+          if (ci.weight) inner += `<span>Váha: <strong>${ci.weight} kg</strong></span>`;
+          if (ci.energy) inner += `<span>Energie: ${ENERGY_LABELS[ci.energy] || ci.energy}</span>`;
+          inner += `</div>`;
+
+          if (ci.notes) {
+            inner += `<div style="margin-top:0.3rem;font-size:0.82rem;color:var(--text-secondary);font-style:italic;">„${esc(ci.notes)}"</div>`;
+          }
+
+          // Measurements
+          if (ci.measurements) {
+            const M_LABELS = { belly:'Břicho', waist:'Pas', neck:'Krk', chest:'Hrudník', biceps:'Biceps', forearm:'Předloktí', thigh:'Stehna', calf:'Lýtka', glutes:'Zadek' };
+            const measParts = Object.entries(ci.measurements).filter(([, v]) => v != null).map(([k, v]) => `${M_LABELS[k] || k}: ${v} cm`);
+            if (measParts.length > 0) {
+              inner += `<div style="margin-top:0.3rem;font-size:0.75rem;color:var(--text-muted);">📐 ${measParts.join(' · ')}</div>`;
+            }
+          }
+
+          return `<div style="padding:0.65rem 0.75rem;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:0.4rem;border-left:3px solid var(--accent);">${inner}</div>`;
+        }).join('');
+      }
+
+      modalContent.innerHTML = html;
+    } catch (err) {
+      modalContent.innerHTML = `<p style="color:#f87171;">Chyba: ${err.message}</p>`;
+    }
+  };
+
+  window.closeCheckinModal = function() {
+    document.getElementById('checkin-modal').hidden = true;
     document.body.style.overflow = '';
   };
 
@@ -2595,7 +2785,11 @@
           </div>
           <div class="eng-client-metrics">
             <div class="eng-metric">
-              <span class="eng-metric-value">${c.workoutsPerWeek != null ? c.workoutsPerWeek.toFixed(1) : '—'}</span>
+              <span class="eng-metric-value">${c.adherencePercent != null ? c.adherencePercent + '%' : '—'}</span>
+              <span class="eng-metric-label">plnění plánu</span>
+            </div>
+            <div class="eng-metric">
+              <span class="eng-metric-value">${c.workoutsPerWeek != null ? c.workoutsPerWeek.toFixed(1) + (c.plannedPerWeek ? '/' + c.plannedPerWeek : '') : '—'}</span>
               <span class="eng-metric-label">tréninky/týden</span>
             </div>
             <div class="eng-metric">
@@ -2603,17 +2797,13 @@
               <span class="eng-metric-label">dieta</span>
             </div>
             <div class="eng-metric">
-              <span class="eng-metric-value">${c.responseRate != null ? c.responseRate + '%' : '—'}</span>
-              <span class="eng-metric-label">odpovědi</span>
-            </div>
-            <div class="eng-metric">
               <span class="eng-metric-value">${daysSinceText}</span>
               <span class="eng-metric-label">aktivita</span>
             </div>
           </div>
-          ${c.dietAdherence != null ? `
+          ${c.adherencePercent != null ? `
           <div class="eng-progress-bar">
-            <div class="eng-progress-fill" style="width: ${adherenceWidth}%; background: ${adherenceColor};"></div>
+            <div class="eng-progress-fill" style="width: ${Math.min(c.adherencePercent, 100)}%; background: ${c.adherencePercent >= 80 ? 'var(--accent)' : c.adherencePercent >= 50 ? '#fbbf24' : '#f87171'};"></div>
           </div>` : ''}
         </div>`;
       }).join('');
@@ -3211,33 +3401,54 @@
     let planData = null;
     let nutritionData = null;
     let checkinEntries = [];
+    let strengthData = {};
+    let adherenceData = null;
 
     try {
-      const pData = await api('zona-admin', { action: 'get-progress', clientId });
+      const [pData, plData, nData, ciData, strData, adhData] = await Promise.all([
+        api('zona-admin', { action: 'get-progress', clientId }),
+        api('zona-admin', { action: 'get-plan', clientId }),
+        api('zona-admin', { action: 'get-nutrition', clientId }),
+        api('zona-admin', { action: 'get-checkins', clientId }),
+        api('zona-admin', { action: 'get-strength-history', clientId, days: 30 }),
+        api('zona-admin', { action: 'get-adherence', clientId, days: 30 }),
+      ]);
       progressEntries = pData.entries || [];
-    } catch {}
-
-    try {
-      const plData = await api('zona-admin', { action: 'get-plan', clientId });
       planData = plData.plan || null;
-    } catch {}
-
-    try {
-      const nData = await api('zona-admin', { action: 'get-nutrition', clientId });
       nutritionData = nData.nutrition || null;
+      checkinEntries = ciData.entries || [];
+      strengthData = strData.exercises || {};
+      adherenceData = adhData;
     } catch {}
 
-    // Filter progress to last 30 days
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
     const recentProgress = progressEntries.filter(e => new Date(e.createdAt).getTime() >= thirtyDaysAgo)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const recentCheckins = checkinEntries.filter(e => new Date(e.createdAt).getTime() >= thirtyDaysAgo)
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
     const now = new Date();
     const dateFrom = new Date(thirtyDaysAgo).toLocaleDateString('cs-CZ');
     const dateTo = now.toLocaleDateString('cs-CZ');
 
-    // Weight progress
-    let weightHtml = '<p style="color:#888;">Žádné záznamy váhy za posledních 30 dní.</p>';
+    // === Adherence summary ===
+    let adherenceHtml = '';
+    if (adherenceData && adherenceData.adherencePercent != null) {
+      const pct = adherenceData.adherencePercent;
+      const col = pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
+      adherenceHtml = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Plnění plánu</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;color:${col};">${pct}%</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Plánováno tréninků</td><td style="padding:0.4rem;border:1px solid #ddd;">${adherenceData.totalPlanned} (${adherenceData.plannedPerWeek}×/týden)</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Dokončeno</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${adherenceData.completedCount}</td></tr>
+          ${adherenceData.partialCount > 0 ? `<tr><td style="padding:0.4rem;border:1px solid #ddd;">Rozpracováno</td><td style="padding:0.4rem;border:1px solid #ddd;">${adherenceData.partialCount}</td></tr>` : ''}
+        </table>`;
+    } else {
+      adherenceHtml = '<p style="color:#888;">Žádná data o tréninku.</p>';
+    }
+
+    // === Weight progress ===
+    let weightHtml = '<p style="color:#888;">Žádné záznamy váhy.</p>';
     if (recentProgress.length > 0) {
       const first = recentProgress[0];
       const last = recentProgress[recentProgress.length - 1];
@@ -3245,48 +3456,53 @@
       const diffSign = diff > 0 ? '+' : '';
       weightHtml = `
         <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
-          <tr>
-            <td style="padding:0.4rem;border:1px solid #ddd;">Počáteční váha</td>
-            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${first.weight} kg</td>
-          </tr>
-          <tr>
-            <td style="padding:0.4rem;border:1px solid #ddd;">Aktuální váha</td>
-            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${last.weight} kg</td>
-          </tr>
-          <tr>
-            <td style="padding:0.4rem;border:1px solid #ddd;">Změna</td>
-            <td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;color:${diff <= 0 ? '#16a34a' : '#ea580c'};">${diffSign}${diff.toFixed(1)} kg</td>
-          </tr>
-          <tr>
-            <td style="padding:0.4rem;border:1px solid #ddd;">Počet záznamů</td>
-            <td style="padding:0.4rem;border:1px solid #ddd;">${recentProgress.length}</td>
-          </tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Počáteční</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${first.weight} kg</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Aktuální</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${last.weight} kg</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Změna</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;color:${diff <= 0 ? '#16a34a' : '#ea580c'};">${diffSign}${diff.toFixed(1)} kg</td></tr>
         </table>`;
     }
 
-    // Training plan overview
-    let planHtml = '<p style="color:#888;">Žádný tréninkový plán.</p>';
-    if (planData && planData.days) {
-      const dayEntries = Object.entries(planData.days)
-        .filter(([, d]) => !d.rest && d.exercises && d.exercises.length > 0);
-      if (dayEntries.length > 0) {
-        planHtml = dayEntries.map(([dayKey, d]) => {
-          const label = DAY_LABELS[dayKey] || dayKey;
-          const name = d.name ? ` — ${esc(d.name)}` : '';
-          const exList = d.exercises.map((ex, i) =>
-            `<tr><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;text-align:center;">${i + 1}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.name || '-')}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.sets || '-')}</td><td style="padding:0.25rem 0.4rem;border:1px solid #ddd;">${esc(ex.reps || '-')}</td></tr>`
-          ).join('');
-          return `
-            <h4 style="margin:0.75rem 0 0.3rem;">${esc(label)}${name}</h4>
-            <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-              <thead><tr style="background:#f3f4f6;"><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">#</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Cvik</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Série</th><th style="padding:0.25rem 0.4rem;border:1px solid #ddd;">Opakování</th></tr></thead>
-              <tbody>${exList}</tbody>
-            </table>`;
-        }).join('');
-      }
+    // === Strength progress ===
+    let strengthHtml = '';
+    const exNames = Object.keys(strengthData);
+    if (exNames.length > 0) {
+      strengthHtml = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f3f4f6;"><th style="padding:0.3rem 0.4rem;border:1px solid #ddd;text-align:left;">Cvik</th><th style="padding:0.3rem 0.4rem;border:1px solid #ddd;">První</th><th style="padding:0.3rem 0.4rem;border:1px solid #ddd;">Poslední</th><th style="padding:0.3rem 0.4rem;border:1px solid #ddd;">Změna</th></tr></thead><tbody>';
+      exNames.forEach(name => {
+        const entries = strengthData[name];
+        if (entries.length < 1) return;
+        const firstMax = Math.max(...entries[0].sets.map(s => parseFloat(s.weight) || 0));
+        const lastMax = Math.max(...entries[entries.length - 1].sets.map(s => parseFloat(s.weight) || 0));
+        const diff = lastMax - firstMax;
+        const diffSign = diff > 0 ? '+' : '';
+        const col = diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#666';
+        strengthHtml += `<tr><td style="padding:0.3rem 0.4rem;border:1px solid #ddd;">${esc(name)}</td><td style="padding:0.3rem 0.4rem;border:1px solid #ddd;text-align:center;">${firstMax}kg</td><td style="padding:0.3rem 0.4rem;border:1px solid #ddd;text-align:center;font-weight:700;">${lastMax}kg</td><td style="padding:0.3rem 0.4rem;border:1px solid #ddd;text-align:center;color:${col};font-weight:700;">${entries.length > 1 ? diffSign + diff.toFixed(1) + 'kg' : '—'}</td></tr>`;
+      });
+      strengthHtml += '</tbody></table>';
+    } else {
+      strengthHtml = '<p style="color:#888;">Žádné záznamy síly.</p>';
     }
 
-    // Nutrition overview
+    // === Check-in summary ===
+    let checkinHtml = '';
+    if (recentCheckins.length > 0) {
+      const avgTraining = (recentCheckins.reduce((s, c) => s + (c.trainingRating || 0), 0) / recentCheckins.length).toFixed(1);
+      const avgDiet = Math.round(recentCheckins.reduce((s, c) => s + (Number(c.dietAdherence) || 0), 0) / recentCheckins.length);
+      checkinHtml = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Počet check-inů</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${recentCheckins.length}</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Prům. hodnocení tréninku</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${avgTraining}/5</td></tr>
+          <tr><td style="padding:0.4rem;border:1px solid #ddd;">Prům. dieta</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${avgDiet}%</td></tr>
+        </table>`;
+      checkinHtml += recentCheckins.map(ci => {
+        const d = new Date(ci.createdAt).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+        const stars = '\u2605'.repeat(ci.trainingRating || 0) + '\u2606'.repeat(5 - (ci.trainingRating || 0));
+        return `<div style="padding:0.3rem 0;font-size:0.85rem;border-bottom:1px solid #eee;"><strong>${d}</strong> — ${stars} — Dieta: ${ci.dietAdherence || 0}%${ci.notes ? ' — <em>' + esc(ci.notes) + '</em>' : ''}</div>`;
+      }).join('');
+    } else {
+      checkinHtml = '<p style="color:#888;">Žádné check-iny.</p>';
+    }
+
+    // === Nutrition ===
     let nutritionHtml = '<p style="color:#888;">Žádný nutriční plán.</p>';
     if (nutritionData) {
       const cal = nutritionData.calories || 0;
@@ -3294,57 +3510,50 @@
       const c = nutritionData.carbs || 0;
       const f = nutritionData.fat || 0;
       nutritionHtml = `
-        <table style="width:100%;border-collapse:collapse;margin-bottom:0.5rem;">
+        <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:0.4rem;border:1px solid #ddd;">Kalorie</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${cal} kcal</td></tr>
           <tr><td style="padding:0.4rem;border:1px solid #ddd;">Bílkoviny</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${p} g</td></tr>
           <tr><td style="padding:0.4rem;border:1px solid #ddd;">Sacharidy</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${c} g</td></tr>
           <tr><td style="padding:0.4rem;border:1px solid #ddd;">Tuky</td><td style="padding:0.4rem;border:1px solid #ddd;font-weight:700;">${f} g</td></tr>
         </table>`;
-      if (nutritionData.meals && nutritionData.meals.length > 0) {
-        nutritionHtml += '<h4 style="margin:0.5rem 0 0.3rem;">Jídla</h4><ul style="margin:0;padding-left:1.2rem;">';
-        nutritionData.meals.forEach(m => {
-          const mCal = m.calories || 0;
-          nutritionHtml += `<li style="margin-bottom:0.2rem;"><strong>${esc(m.name || 'Jídlo')}</strong>${m.time ? ' (' + esc(m.time) + ')' : ''} — ${mCal} kcal</li>`;
-        });
-        nutritionHtml += '</ul>';
-      }
     }
 
-    // Build the HTML report
     const reportHtml = `<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>M\u011bs\xed\u010dn\xed report — ${esc(client.name)}</title>
+  <title>M\u011bs\xed\u010dn\xed report \u2014 ${esc(client.name)}</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; color: #1a1a1a; }
     h1 { font-size: 1.6rem; border-bottom: 2px solid #10b981; padding-bottom: 0.5rem; }
     h2 { font-size: 1.15rem; color: #10b981; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-    h3 { font-size: 1rem; margin: 1rem 0 0.3rem; }
     table { font-size: 0.9rem; }
     .report-meta { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
     .report-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; color: #aaa; font-size: 0.8rem; }
-    @media print {
-      body { padding: 0; }
-      .no-print { display: none !important; }
-    }
+    @media print { body { padding: 0; } .no-print { display: none !important; } }
   </style>
 </head>
 <body>
-  <h1>\ud83d\udcc4 M\u011bs\xed\u010dn\xed report — ${esc(client.name)}</h1>
+  <h1>\ud83d\udcc4 M\u011bs\xed\u010dn\xed report \u2014 ${esc(client.name)}</h1>
   <div class="report-meta">Obdob\xed: ${dateFrom} \u2013 ${dateTo} &nbsp;|&nbsp; Vygenerov\xe1no: ${now.toLocaleDateString('cs-CZ')} ${now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</div>
+
+  <h2>\ud83c\udfaf Pln\u011bn\xed pl\xe1nu</h2>
+  ${adherenceHtml}
 
   <h2>\u2696\ufe0f V\xe1hov\xfd progres</h2>
   ${weightHtml}
 
-  <h2>\ud83c\udfcb\ufe0f Tr\xe9ninkov\xfd pl\xe1n</h2>
-  ${planHtml}
+  <h2>\ud83d\udcaa S\xedla (progressive overload)</h2>
+  ${strengthHtml}
 
-  <h2>\ud83e\udd57 V\xfd\u017eiva (makra)</h2>
+  <h2>\ud83d\udccb Check-iny &amp; zp\u011btn\xe1 vazba</h2>
+  ${checkinHtml}
+
+  <h2>\ud83e\udd57 V\xfd\u017eiva</h2>
   ${nutritionHtml}
 
-  <div class="report-footer">Vygenerov\xe1no z administrace — Adam Jirsa Fitness</div>
+  <div class="report-footer">Vygenerov\xe1no z administrace \u2014 Adam Jirsa Fitness</div>
 
   <script>window.onload = function() { window.print(); }<\/script>
 </body>

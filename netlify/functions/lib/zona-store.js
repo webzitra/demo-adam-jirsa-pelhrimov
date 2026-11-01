@@ -7,7 +7,7 @@ const { getStore } = require('@netlify/blobs');
 //   nutrition:{clientId} → { nutrition object }
 //   progress:{clientId}  → { entries: [...] }
 
-const STORE_NAME = 'zona-data';
+const STORE_NAME = process.env.ZONA_STORE || 'zona-data';
 
 async function getZonaStore() {
   // Explicit config needed for Functions v1 (manual deploys)

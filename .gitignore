@@ -2,3 +2,7 @@ node_modules/
 .netlify/
 .DS_Store
 img/gdrive-raw/
+dist/
+.vercel
+.env*.local
+.env

@@ -232,7 +232,9 @@
         firstAccordion.style.maxHeight = firstAccordion.scrollHeight + 'px';
     }
 
-    // --- Contact form (Netlify Forms) ---
+    // --- Contact form (WZ-LEADS: poptávka se uloží u WebZítra a přijde Adamovi e-mailem) ---
+    var LEADS_URL = 'https://webzitra.cz/api/client-leads';
+    var LEAD_LABELS = { name: 'Jméno', phone: 'Telefon', email: 'email', service: 'Mám zájem o', goal: 'Cíl', message: 'Zpráva' };
     var form = document.querySelector('.contact-form');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -263,26 +265,31 @@
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
             }
-            var formData = new FormData(form);
-            formData.append('form-name', form.getAttribute('name'));
-            fetch('/', {
+            // email zůstává pod klíčem "email" — podle něj se nastaví odpověď přímo zájemci
+            var payload = { siteId: 'adam-jirsa', page: location.pathname };
+            form.querySelectorAll('input, select, textarea').forEach(function(field) {
+                if (!field.name || !field.value.trim()) return;
+                var value = field.tagName === 'SELECT' ? field.options[field.selectedIndex].text : field.value;
+                payload[LEAD_LABELS[field.name] || field.name] = value.trim().substring(0, 500);
+            });
+            fetch(LEADS_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(formData).toString()
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             }).then(function(response) {
-                if (response.ok) {
-                    if (btn) btn.textContent = 'Odesláno!';
-                    form.reset();
-                    setTimeout(function() {
-                        if (btn) {
-                            btn.textContent = originalText;
-                            btn.disabled = false;
-                            btn.style.opacity = '';
-                        }
-                    }, 4000);
-                } else {
-                    throw new Error('Chyba při odesílání');
-                }
+                return response.json().then(function(data) {
+                    if (!response.ok || !data.success) throw new Error(data.error || 'Chyba při odesílání');
+                });
+            }).then(function() {
+                if (btn) btn.textContent = 'Odesláno!';
+                form.reset();
+                setTimeout(function() {
+                    if (btn) {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                        btn.style.opacity = '';
+                    }
+                }, 4000);
             }).catch(function() {
                 if (btn) {
                     btn.textContent = '✗ Chyba, zkus to znovu';

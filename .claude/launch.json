@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "adam-jirsa-dev",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8094", "--directory", "/Users/domu/Desktop/demo-adam-jirsa-pelhrimov"],
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd /Users/domu/dev/adamjirsa && exec vercel dev --listen 8094 --yes"],
       "port": 8094
     }
   ]

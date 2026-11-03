@@ -24,32 +24,39 @@
   <meta name="twitter:title" content="Online koučink 1:1 — Adam Jirsa | Trénink a výživa na míru">
   <meta name="twitter:description" content="Trénuj odkudkoliv pod mým vedením. Tréninkový plán, výživa a pravidelné kontroly.">
   <meta name="twitter:image" content="https://adamjirsa.cz/img/og-online-koucink.jpg">
-  <meta name="theme-color" content="#56C8E0">
+  <meta name="theme-color" content="#0a0d0f">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="../css/style.css?v=11">
+  <link rel="preload" href="../fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/inter-latinext-cs.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/barlow-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" as="image" type="image/avif" href="../img/web/online-mobil-404.avif" media="(max-width: 768px)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/avif" imagesrcset="../img/web/online-960.avif 960w, ../img/web/online-1280.avif 1280w" imagesizes="100vw" media="(min-width: 769px)" fetchpriority="high">
+  <link rel="stylesheet" href="../css/style.css?v=17">
 </head>
 <body class="page-online">
 
+  <a class="skip-link" href="#obsah">Přeskočit na obsah</a>
+
   <!-- ====== NAVBAR ====== -->
-  <nav class="navbar" role="navigation" aria-label="Hlavní navigace">
+  <nav class="navbar" aria-label="Hlavní navigace">
     <div class="container">
-      <a href="../" class="navbar-logo"><img src="../img/logo-white.png" alt="Adam Jirsa Fitness Trenér" style="height: 44px; width: auto;"></a>
+      <a href="../" class="navbar-logo"><picture><source type="image/webp" srcset="../img/web/logo-bila.webp"><img src="../img/web/logo-bila.png" alt="Adam Jirsa Fitness Trenér" width="265" height="135"></picture></a>
 
       <div class="navbar-links">
-        <a href="../" class="nav-link">← Hlavní stránka</a>
+        <a href="../" class="nav-link">Hlavní stránka</a>
         <a href="#co-dostanes" class="nav-link">Co dostaneš</a>
         <a href="#jak-to-funguje" class="nav-link">Jak to funguje</a>
         <a href="#cenik" class="nav-link">Ceník</a>
         <a href="#faq" class="nav-link">FAQ</a>
-        <a href="#cta" class="btn btn-primary btn-sm navbar-cta">Chci začít</a>
+        <a href="#cta" class="btn btn-primary btn-sm navbar-cta">Domluvit konzultaci</a>
       </div>
 
-      <button class="navbar-toggle" aria-label="Otevřít menu" aria-expanded="false">
+      <button class="navbar-toggle" type="button" aria-label="Otevřít menu" aria-expanded="false" aria-controls="mobilni-menu">
         <span></span>
         <span></span>
         <span></span>
@@ -57,58 +64,69 @@
     </div>
   </nav>
 
-  <!-- Mobile Menu (MIMO nav kvůli z-index stacking context) -->
-  <div class="navbar-mobile" role="dialog" aria-label="Mobilní menu">
-    <a href="../" class="nav-link">← Hlavní stránka</a>
-    <a href="#co-dostanes" class="nav-link">Co dostaneš</a>
-    <a href="#jak-to-funguje" class="nav-link">Jak to funguje</a>
-    <a href="#cenik" class="nav-link">Ceník</a>
-    <a href="#faq" class="nav-link">FAQ</a>
-    <a href="#cta" class="btn btn-primary">Chci začít</a>
+  <!-- Mobilní menu (mimo nav kvůli z-index) -->
+  <div class="navbar-mobile" id="mobilni-menu">
+    <nav class="navbar-mobile-links" aria-label="Mobilní navigace">
+      <a href="../" class="nav-link">Hlavní stránka</a>
+      <a href="#co-dostanes" class="nav-link">Co dostaneš</a>
+      <a href="#jak-to-funguje" class="nav-link">Jak to funguje</a>
+      <a href="#cenik" class="nav-link">Ceník</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </nav>
+    <div class="navbar-mobile-actions">
+      <a href="#cta" class="btn btn-primary btn-lg">Domluvit konzultaci</a>
+    </div>
   </div>
 
+  <main id="obsah">
 
   <!-- ====== HERO ====== -->
-  <section class="hero hero-video" id="hero">
-    <div class="hero-video-bg">
-      <video src="../video/hero2.mp4" autoplay muted loop playsinline poster="../img/adam-training.jpg"></video>
+  <section class="hero" id="hero">
+    <div class="hero-media" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 768px)" type="image/avif" srcset="../img/web/online-mobil-404.avif">
+        <source media="(max-width: 768px)" type="image/webp" srcset="../img/web/online-mobil-404.webp">
+        <source type="image/avif" srcset="../img/web/online-960.avif 960w, ../img/web/online-1280.avif 1280w" sizes="100vw">
+        <img src="../img/web/online-1280.webp" srcset="../img/web/online-960.webp 960w, ../img/web/online-1280.webp 1280w" sizes="100vw" alt="" width="1280" height="720" fetchpriority="high">
+      </picture>
+      <!-- video spouští main.js až po načtení stránky; při omezeném pohybu zůstane jen obrázek -->
+      <video class="hero-video" muted loop playsinline preload="none" disablepictureinpicture disableremoteplayback tabindex="-1">
+        <source src="../video/online-1280.mp4" type="video/mp4" media="(prefers-reduced-motion: no-preference) and (min-width: 769px)">
+        <source src="../video/online-mobil.mp4" type="video/mp4" media="(prefers-reduced-motion: no-preference)">
+      </video>
     </div>
+
+    <button class="hero-video-toggle" type="button" aria-label="Zastavit video" hidden>
+      <svg class="ikona-pauza" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="3" width="5" height="18" rx="1.5"/><rect x="14" y="3" width="5" height="18" rx="1.5"/></svg>
+      <svg class="ikona-prehrat" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 3 21 12 6 21 6 3"/></svg>
+    </button>
 
     <div class="container">
       <div class="hero-content">
-        <div class="hero-badge">
-          <span class="hero-badge-dot"></span>
-          Online koučink 1:1
-        </div>
+        <h1 class="hero-title">Trénuj odkudkoliv<br>pod mým vedením</h1>
 
-        <h1 class="hero-title">
-          Trénuj odkudkoliv<br>pod <span class="accent-underline">mým vedením</span>
-        </h1>
-
-        <p class="hero-description">
-          Kompletní tréninkový plán, stravování, ukázková videa ke&nbsp;cvikům a&nbsp;pravidelné kontroly — vše na&nbsp;míru tobě. Trénuj kde chceš, kdy chceš, pod&nbsp;mým vedením.
-        </p>
+        <p class="hero-description">Kompletní tréninkový plán, stravování, ukázková videa ke&nbsp;cvikům a&nbsp;pravidelné kontroly, vše na&nbsp;míru tobě. Trénuj, kde chceš, kdy chceš, pod&nbsp;mým vedením.</p>
 
         <div class="hero-buttons">
-          <a href="#cta" class="btn btn-primary btn-lg">Chci začít</a>
-          <a href="#co-dostanes" class="btn btn-outline btn-lg">Co dostaneš ↓</a>
-        </div>
-
-        <div class="hero-stats fade-in">
-          <div class="hero-stat">
-            <div class="hero-stat-value" data-count="100" data-suffix="+">0</div>
-            <div class="hero-stat-label">Spokojených klientů</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat-value" data-count="10" data-suffix="+ let">0</div>
-            <div class="hero-stat-label">Zkušeností</div>
-          </div>
-          <div class="hero-stat">
-            <div class="hero-stat-value" data-count="7" data-suffix="/7">0</div>
-            <div class="hero-stat-label">Dní v týdnu tu jsem</div>
-          </div>
+          <a href="#cta" class="btn btn-primary btn-lg">Domluvit konzultaci</a>
+          <a href="#co-dostanes" class="btn btn-secondary btn-lg">Co dostaneš</a>
         </div>
       </div>
+
+      <dl class="hero-stats">
+        <div class="hero-stat">
+          <dt class="hero-stat-label">Spokojených klientů</dt>
+          <dd class="hero-stat-value">100+</dd>
+        </div>
+        <div class="hero-stat">
+          <dt class="hero-stat-label">Zkušeností</dt>
+          <dd class="hero-stat-value">10+ let</dd>
+        </div>
+        <div class="hero-stat">
+          <dt class="hero-stat-label">Dní v týdnu tu jsem</dt>
+          <dd class="hero-stat-value">7/7</dd>
+        </div>
+      </dl>
     </div>
   </section>
 
@@ -116,47 +134,40 @@
   <!-- ====== CO DOSTANEŠ ====== -->
   <section class="benefits" id="co-dostanes">
     <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Co dostaneš</span>
+      <div class="section-header">
         <h2 class="section-title">Vše, co potřebuješ k&nbsp;výsledkům</h2>
-        <p class="section-subtitle">Žádný generický plán z&nbsp;internetu.<br>Všechno stavím od&nbsp;nuly přesně pro tebe.</p>
+        <p class="section-subtitle">Žádný generický plán z&nbsp;internetu. <br>Všechno stavím od&nbsp;nuly přesně pro tebe.</p>
       </div>
 
-      <div class="benefits-grid benefits-grid-3 fade-in-stagger">
+      <div class="benefits-grid benefits-grid-3">
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg></div>
           <h3 class="benefit-title">Týdenní tréninkový plán</h3>
-          <p class="benefit-desc">Každý týden nový plán přizpůsobený tvému progresu. Na&nbsp;míru tvým cílům, kondici a&nbsp;možnostem — vždy aktuální.</p>
+          <p class="benefit-desc">Každý týden nový plán přizpůsobený tvému progresu. Na&nbsp;míru tvým cílům, kondici a&nbsp;možnostem, vždy aktuální.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
           <h3 class="benefit-title">Videa ke&nbsp;cvikům</h3>
           <p class="benefit-desc">Ke&nbsp;každému cviku dostaneš ukázkové video se&nbsp;správnou technikou. Budeš přesně vědět, jak na&nbsp;to.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
           <h3 class="benefit-title">Stravovací plán</h3>
-          <p class="benefit-desc">Jídelníček na&nbsp;míru tvým potřebám a&nbsp;preferencím. Žádné hladovění — funkční plán, který podpoří tvoje výsledky.</p>
+          <p class="benefit-desc">Jídelníček na&nbsp;míru tvým potřebám a&nbsp;preferencím. Žádné hladovění. Funkční plán, který podpoří tvoje výsledky.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
           <h3 class="benefit-title">Suplementační doporučení</h3>
           <p class="benefit-desc">Aby tvé tělo mělo vše pro výkon a&nbsp;regeneraci. Doporučím přesně to, co dává pro tebe smysl.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
           <h3 class="benefit-title">Pravidelné kontroly</h3>
-          <p class="benefit-desc">Probereme tvůj progres, upravíme trénink i&nbsp;stravu. Přes zprávy nebo online hovor — jak ti vyhovuje.</p>
+          <p class="benefit-desc">Probereme tvůj progres, upravíme trénink i&nbsp;stravu. Přes zprávy nebo online hovor, jak ti vyhovuje.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
           <h3 class="benefit-title">Průběžná podpora</h3>
-          <p class="benefit-desc">Máš podporu vždy, když ji potřebuješ. Napíš mi přes WhatsApp nebo Instagram — odpovím ten den.</p>
+          <p class="benefit-desc">Máš podporu vždy, když ji potřebuješ. Napiš mi přes WhatsApp nebo Instagram – odpovím ten den.</p>
         </div>
       </div>
     </div>
@@ -164,73 +175,67 @@
 
 
   <!-- ====== JAK TO FUNGUJE ====== -->
-  <section class="process diagonal-top" id="jak-to-funguje">
+  <section class="process tone" id="jak-to-funguje">
     <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Jak to funguje</span>
+      <div class="section-header">
         <h2 class="section-title">4&nbsp;kroky k&nbsp;online spolupráci</h2>
         <p class="section-subtitle">Jednoduché. Žádná byrokracie, žádné závazky na&nbsp;rok.</p>
       </div>
 
-      <div class="process-timeline fade-in-stagger">
-        <div class="process-step">
-          <div class="process-step-number">1</div>
+      <ol class="process-timeline">
+        <li class="process-step">
+          <span class="process-step-number" aria-hidden="true">1</span>
           <h3 class="process-step-title">Napiš mi</h3>
           <p class="process-step-desc">Vyplň formulář dole nebo mi napiš na&nbsp;Instagram. Řekni mi, co chceš změnit.</p>
-        </div>
+        </li>
 
-        <div class="process-step">
-          <div class="process-step-number">2</div>
+        <li class="process-step">
+          <span class="process-step-number" aria-hidden="true">2</span>
           <h3 class="process-step-title">Vstupní konzultace</h3>
           <p class="process-step-desc">Probereme tvoje cíle, kondici, zkušenosti a&nbsp;časové možnosti. Úplně zdarma.</p>
-        </div>
+        </li>
 
-        <div class="process-step">
-          <div class="process-step-number">3</div>
+        <li class="process-step">
+          <span class="process-step-number" aria-hidden="true">3</span>
           <h3 class="process-step-title">Plán na míru</h3>
           <p class="process-step-desc">Dostaneš kompletní tréninkový a&nbsp;stravovací plán přesně na&nbsp;míru tvým potřebám.</p>
-        </div>
+        </li>
 
-        <div class="process-step">
-          <div class="process-step-number">4</div>
+        <li class="process-step">
+          <span class="process-step-number" aria-hidden="true">4</span>
           <h3 class="process-step-title">Trénuješ &amp; reportuješ</h3>
           <p class="process-step-desc">Trénuješ podle plánu, pravidelně mi posíláš update. Já průběžně upravuji a&nbsp;posouvám tě dál.</p>
-        </div>
-      </div>
+        </li>
+      </ol>
     </div>
   </section>
 
 
   <!-- ====== PRO KOHO ====== -->
   <section class="benefits" id="pro-koho">
-    <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Pro koho</span>
+    <div class="container split">
+      <div class="section-header">
         <h2 class="section-title">Je online koučink pro tebe?</h2>
         <p class="section-subtitle">Online spolupráce je skvělá volba pro všechny, kdo chtějí systematicky pracovat na&nbsp;své postavě, kondici a&nbsp;zdraví, ale zároveň si chtějí zachovat flexibilitu.</p>
       </div>
 
-      <div class="benefits-grid fade-in-stagger">
+      <div class="benefits-grid benefits-grid-2">
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
           <h3 class="benefit-title">Nemůžeš chodit na&nbsp;osobní tréninky</h3>
           <p class="benefit-desc">Preferuješ cvičení samostatně, ale chceš mít jistotu, že postupuješ správně a&nbsp;efektivně.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
           <h3 class="benefit-title">Jsi z&nbsp;jiného města</h3>
           <p class="benefit-desc">Nemusíš bydlet v&nbsp;Pelhřimově. Online spolupráce funguje odkudkoliv v&nbsp;Česku i&nbsp;ve&nbsp;světě.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <h3 class="benefit-title">Chceš trénovat vlastním tempem</h3>
           <p class="benefit-desc">Trénuješ kdy a&nbsp;kde ti to vyhovuje. Dostaneš odborné vedení bez pevných termínů.</p>
         </div>
 
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
           <h3 class="benefit-title">Chceš výsledky jako při osobních trénincích</h3>
           <p class="benefit-desc">Získáš kompletní plán a&nbsp;vedení, které ti pomůže dosahovat výsledků stejně efektivně.</p>
         </div>
@@ -242,31 +247,30 @@
   <!-- ====== PROMĚNY KLIENTŮ ====== -->
   <section class="transformations" id="promeny">
     <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Reálné výsledky</span>
+      <div class="section-header">
         <h2 class="section-title">I&nbsp;online to funguje</h2>
         <p class="section-subtitle">Tyhle proměny jsou důkaz, že se správným plánem a&nbsp;vedením dosáhneš výsledků odkudkoliv.</p>
       </div>
 
-      <div class="transformations-grid fade-in-stagger">
+      <div class="transformations-grid">
         <div class="transformation-card">
           <div class="transformation-image">
-            <span class="transformation-badge">-40 kg</span>
-            <img src="../img/transformations/transformation-2.jpg" alt="Proměna klienta Miloš — 9 měsíců, -40 kg" width="1080" height="1080" loading="lazy">
+            <picture><source type="image/avif" srcset="../img/web/promena-2-480.avif 480w, ../img/web/promena-2-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-2-720.webp" srcset="../img/web/promena-2-480.webp 480w, ../img/web/promena-2-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klienta Miloš, 9 měsíců, −40 kg" width="720" height="720" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">−40 kg</p>
             <h3 class="transformation-name">Miloš</h3>
-            <p class="transformation-result">9 měsíců, -21 cm pas</p>
+            <p class="transformation-result">9 měsíců, −21 cm pas</p>
             <p class="transformation-desc">100% odhodlání, dodržování jídelníčku a&nbsp;tréninku. Výsledek mluví sám za&nbsp;sebe.</p>
           </div>
         </div>
 
         <div class="transformation-card">
           <div class="transformation-image">
-            <span class="transformation-badge">-30 kg</span>
-            <img src="../img/transformations/transformation-4.jpg" alt="Proměna klienta Radek — -30 kg" width="1080" height="1080" loading="lazy">
+            <picture><source type="image/avif" srcset="../img/web/promena-4-480.avif 480w, ../img/web/promena-4-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-4-720.webp" srcset="../img/web/promena-4-480.webp 480w, ../img/web/promena-4-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klienta Radek, −30 kg" width="720" height="720" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">−30 kg</p>
             <h3 class="transformation-name">Radek</h3>
             <p class="transformation-result">Správný plán + tréninky</p>
             <p class="transformation-desc">Nastavili jsme stravovací plán a&nbsp;vrhli se na&nbsp;tréninky. Společně dal dolů 30&nbsp;kg.</p>
@@ -275,10 +279,10 @@
 
         <div class="transformation-card">
           <div class="transformation-image">
-            <span class="transformation-badge">-22 kg</span>
-            <img src="../img/transformations/transformation-5.jpg" alt="Proměna klienta Pavel — -22 kg" width="1080" height="1080" loading="lazy">
+            <picture><source type="image/avif" srcset="../img/web/promena-5-480.avif 480w, ../img/web/promena-5-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-5-720.webp" srcset="../img/web/promena-5-480.webp 480w, ../img/web/promena-5-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klienta Pavel, −22 kg" width="720" height="720" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">−22 kg</p>
             <h3 class="transformation-name">Pavel</h3>
             <p class="transformation-result">Od listopadu, svaly nahoře</p>
             <p class="transformation-desc">Stačilo osekat jídlo a&nbsp;přidat pohyb. Pavel nevynechá ani jeden trénink.</p>
@@ -286,13 +290,13 @@
         </div>
       </div>
 
-      <div class="transformations-grid fade-in-stagger" id="more-transformations" hidden>
+      <div class="transformations-grid transformations-more" id="more-transformations" hidden>
         <div class="transformation-card">
           <div class="transformation-image">
-            <span class="transformation-badge">-4 kg</span>
-            <img src="../img/transformations/transformation-1.jpg" alt="Proměna klienta Martin — 5 měsíců spolupráce" width="1080" height="1080" loading="lazy">
+            <picture><source type="image/avif" srcset="../img/web/promena-1-480.avif 480w, ../img/web/promena-1-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-1-720.webp" srcset="../img/web/promena-1-480.webp 480w, ../img/web/promena-1-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klienta Martin, 5 měsíců spolupráce" width="720" height="720" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">−4 kg</p>
             <h3 class="transformation-name">Martin</h3>
             <p class="transformation-result">5 měsíců spolupráce</p>
             <p class="transformation-desc">Tělo se zpevnilo, nabrala se svalová hmota. Martin je dříč na&nbsp;100&nbsp;%.</p>
@@ -300,23 +304,23 @@
         </div>
 
         <div class="transformation-card">
-          <div class="transformation-image">
-            <span class="transformation-badge">-9 kg</span>
-            <img src="../img/transformations/transformation-3.jpg" alt="Proměna klienta Martin — 2 měsíce, forma před létem" width="1080" height="815" loading="lazy">
+          <div class="transformation-image transformation-image--cela">
+            <picture><source type="image/avif" srcset="../img/web/promena-3-480.avif 480w, ../img/web/promena-3-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-3-720.webp" srcset="../img/web/promena-3-480.webp 480w, ../img/web/promena-3-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klienta Martin, 2 měsíce, forma před létem" width="720" height="543" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">−9 kg</p>
             <h3 class="transformation-name">Martin</h3>
-            <p class="transformation-result">2 měsíce — forma před létem</p>
-            <p class="transformation-desc">Úprava jídelníčku a&nbsp;sekání formy. Po&nbsp;létě lehká nabíračka — krásný progress.</p>
+            <p class="transformation-result">2 měsíce, forma před létem</p>
+            <p class="transformation-desc">Úprava jídelníčku a&nbsp;sekání formy. Po&nbsp;létě lehká nabíračka, krásný progres.</p>
           </div>
         </div>
 
         <div class="transformation-card">
           <div class="transformation-image">
-            <span class="transformation-badge">Od ledna</span>
-            <img src="../img/transformations/transformation-6.png" alt="Proměna klientky Pája" loading="lazy">
+            <picture><source type="image/avif" srcset="../img/web/promena-6-480.avif 480w, ../img/web/promena-6-720.avif 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px"><img src="../img/web/promena-6-720.webp" srcset="../img/web/promena-6-480.webp 480w, ../img/web/promena-6-720.webp 720w" sizes="(max-width: 640px) 84vw, (max-width: 1024px) 46vw, 370px" alt="Proměna klientky Pája" width="720" height="720" loading="lazy" decoding="async"></picture>
           </div>
           <div class="transformation-content">
+            <p class="transformation-badge">Od ledna</p>
             <h3 class="transformation-name">Pája</h3>
             <p class="transformation-result">Nevynechala jediný trénink</p>
             <p class="transformation-desc">Jede naplno, nešetří se a&nbsp;ten progres je fakt znát. Na trénincích vždycky sranda.</p>
@@ -324,75 +328,68 @@
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: var(--space-2xl);" id="show-more-wrap">
-        <button class="btn btn-outline" id="show-more-transformations">Zobrazit všechny proměny →</button>
+      <div class="show-more-wrap" id="show-more-wrap">
+        <button class="btn btn-secondary" type="button" id="show-more-transformations" aria-controls="more-transformations" aria-expanded="false">Zobrazit všechny proměny</button>
       </div>
 
       <!-- Recenze -->
-      <div class="testimonials-inline fade-in" id="recenze">
+      <div class="testimonials-inline" id="recenze">
         <div class="section-header">
-          <span class="section-label">Recenze</span>
           <h2 class="section-title">Co o&nbsp;mně říkají klienti</h2>
         </div>
 
-        <div class="testimonials-slider">
-          <div class="testimonials-track" id="testimonials-track">
+        <div class="testimonials-grid">
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-text">
+              <p>S&nbsp;Adamem chodím cvičit tři čtvrtě roku a&nbsp;jsem moc ráda, že jsem narazila zrovna na&nbsp;něj. Na&nbsp;začátku důkladně vysvětluje a&nbsp;ukazuje techniku, dokáže dobře motivovat, tréninky jsou pestré a&nbsp;sedli jsme si i&nbsp;lidsky, takže je legrace.</p>
+            </blockquote>
+            <figcaption class="testimonial-header">
+              <img src="../img/web/avatar-klara.webp" alt="" class="testimonial-avatar" width="112" height="112" loading="lazy" decoding="async">
+              <span class="testimonial-meta">
+                <span class="testimonial-name">Klára Dvořáková</span>
+                <span class="testimonial-source"><span class="testimonial-stars" role="img" aria-label="Hodnocení 5 z 5"></span>Google</span>
+              </span>
+            </figcaption>
+          </figure>
 
-            <div class="testimonial-card">
-              <div class="testimonial-header">
-                <img src="../img/reviews/avatar-klara.jpg" alt="Klára Dvořáková" class="testimonial-avatar" width="56" height="56" loading="lazy">
-                <div class="testimonial-meta">
-                  <h4 class="testimonial-name">Klára Dvořáková</h4>
-                  <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                  <span class="testimonial-source">Google</span>
-                </div>
-              </div>
-              <p class="testimonial-text">S&nbsp;Adamem chodím cvičit tři čtvrtě roku a&nbsp;jsem moc ráda, že jsem narazila zrovna na&nbsp;něj. Na&nbsp;začátku důkladně vysvětluje a&nbsp;ukazuje techniku, dokáže dobře motivovat, tréninky jsou pestré a&nbsp;sedli jsme si i&nbsp;lidsky, takže je legrace.</p>
-            </div>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-text">
+              <p>Můžu jedině doporučit. Oceňuji jeho profesionální a&nbsp;zároveň lidský přístup – vždy mě dokáže namotivovat, ale zároveň respektuje moje možnosti. Tréninky jsou pestré a&nbsp;dávají smysl, nic není nahodilé.</p>
+            </blockquote>
+            <figcaption class="testimonial-header">
+              <img src="../img/web/avatar-jana.webp" alt="" class="testimonial-avatar" width="112" height="112" loading="lazy" decoding="async">
+              <span class="testimonial-meta">
+                <span class="testimonial-name">Jana Doležalová</span>
+                <span class="testimonial-source"><span class="testimonial-stars" role="img" aria-label="Hodnocení 5 z 5"></span>Google</span>
+              </span>
+            </figcaption>
+          </figure>
 
-            <div class="testimonial-card">
-              <div class="testimonial-header">
-                <img src="../img/reviews/avatar-jana.jpg" alt="Jana Doležalová" class="testimonial-avatar" width="56" height="56" loading="lazy">
-                <div class="testimonial-meta">
-                  <h4 class="testimonial-name">Jana Doležalová</h4>
-                  <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                  <span class="testimonial-source">Google</span>
-                </div>
-              </div>
-              <p class="testimonial-text">Můžu jedině doporučit. Oceňuji jeho profesionální a&nbsp;zároveň lidský přístup — vždy mě dokáže namotivovat, ale zároveň respektuje moje možnosti. Tréninky jsou pestré a&nbsp;dávají smysl, nic není nahodilé.</p>
-            </div>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-text">
+              <p>K&nbsp;Adamovi chodím od&nbsp;ledna a&nbsp;za mě mohu jenom doporučit. Chodím s&nbsp;kamarádkou, takže je i&nbsp;sranda, ale on nás nešetří (a&nbsp;to je dobře). Je dobrej – už jsme si u&nbsp;něj zvýšily s&nbsp;Pájou dávku.</p>
+            </blockquote>
+            <figcaption class="testimonial-header">
+              <img src="../img/web/avatar-pavla-b.webp" alt="" class="testimonial-avatar" width="112" height="112" loading="lazy" decoding="async">
+              <span class="testimonial-meta">
+                <span class="testimonial-name">Pavla Beranová</span>
+                <span class="testimonial-source"><span class="testimonial-stars" role="img" aria-label="Hodnocení 5 z 5"></span>Facebook</span>
+              </span>
+            </figcaption>
+          </figure>
 
-            <div class="testimonial-card">
-              <div class="testimonial-header">
-                <img src="../img/reviews/avatar-pavla-b.jpg" alt="Pavla Beranová" class="testimonial-avatar" width="56" height="56" loading="lazy">
-                <div class="testimonial-meta">
-                  <h4 class="testimonial-name">Pavla Beranová</h4>
-                  <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                  <span class="testimonial-source">Facebook</span>
-                </div>
-              </div>
-              <p class="testimonial-text">K&nbsp;Adamovi chodím od&nbsp;ledna a&nbsp;za mě mohu jenom doporučit. Chodím s&nbsp;kamarádkou, takže je i&nbsp;sranda, ale on nás nešetří (a&nbsp;to je dobře). Je dobrej — už jsme si u&nbsp;něj zvýšily s&nbsp;Pájou dávku.</p>
-            </div>
-
-            <div class="testimonial-card">
-              <div class="testimonial-header">
-                <img src="../img/reviews/avatar-pavlina.jpg" alt="Pavlína Skalová" class="testimonial-avatar" width="56" height="56" loading="lazy">
-                <div class="testimonial-meta">
-                  <h4 class="testimonial-name">Pavlína Skalová</h4>
-                  <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                  <span class="testimonial-source">Facebook</span>
-                </div>
-              </div>
-              <p class="testimonial-text">Nejlepší osobní trenér. Doporučuji — je to srdcař a&nbsp;umí pořádně zamakat. Dovedl mě pravidelným tréninkem ke&nbsp;skvělým výsledkům. Super kondici, zdravotní problémy pryč a&nbsp;navíc 10&nbsp;kg dole.</p>
-            </div>
-
-          </div>
-
-          <div class="testimonials-nav">
-            <button class="testimonials-btn testimonials-prev" aria-label="Předchozí recenze">&#8592;</button>
-            <div class="testimonials-dots" id="testimonials-dots"></div>
-            <button class="testimonials-btn testimonials-next" aria-label="Další recenze">&#8594;</button>
-          </div>
+          <figure class="testimonial-card">
+            <blockquote class="testimonial-text">
+              <p>Nejlepší osobní trenér. Doporučuji – je to srdcař a&nbsp;umí pořádně zamakat. Dovedl mě pravidelným tréninkem ke&nbsp;skvělým výsledkům. Super kondici, zdravotní problémy pryč a&nbsp;navíc 10&nbsp;kg dole.</p>
+            </blockquote>
+            <figcaption class="testimonial-header">
+              <img src="../img/web/avatar-pavlina.webp" alt="" class="testimonial-avatar" width="112" height="112" loading="lazy" decoding="async">
+              <span class="testimonial-meta">
+                <span class="testimonial-name">Pavlína Skalová</span>
+                <span class="testimonial-source"><span class="testimonial-stars" role="img" aria-label="Hodnocení 5 z 5"></span>Facebook</span>
+              </span>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </div>
@@ -400,187 +397,181 @@
 
 
   <!-- ====== O MNĚ ====== -->
-  <section class="about diagonal-top" id="o-adamovi">
+  <section class="about about-online tone" id="o-adamovi">
     <div class="container">
-      <div class="about-text fade-in">
-        <span class="section-label">Kdo tě povede</span>
-        <h2 class="section-title" style="text-align:left;">Adam Jirsa</h2>
+      <div class="about-content">
+        <h2 class="section-title">Adam Jirsa</h2>
         <p class="about-lead">Osobní trenér a&nbsp;výživový poradce s&nbsp;více než 10&nbsp;lety zkušeností. Trénuji v&nbsp;Hypertrophy Gym Pelhřimov a&nbsp;online vedu klienty po&nbsp;celém Česku.</p>
-        <p>Nejsem typ trenéra, co ti pošle generický plán a&nbsp;zmizí. Každý klient je pro mě individuální projekt — chci vědět, co tě baví, co ti nejde, a&nbsp;co tě motivuje.</p>
-        <p>Za&nbsp;10+ let jsem pomohl více než 100&nbsp;lidem dosáhnout jejich cílů — od&nbsp;hubnutí přes nabírání svalové hmoty po&nbsp;celkovou změnu životního stylu.</p>
-        <div class="about-highlights">
-          <div class="about-highlight">
-            <strong>10+</strong>
-            <span>let praxe</span>
+        <p class="about-text">Nejsem typ trenéra, co ti pošle generický plán a&nbsp;zmizí. Každý klient je pro mě individuální projekt. Chci vědět, co tě baví, co ti nejde a&nbsp;co tě motivuje.</p>
+        <p class="about-text">Za&nbsp;10+ let jsem pomohl více než 100&nbsp;lidem dosáhnout jejich cílů: od&nbsp;hubnutí přes nabírání svalové hmoty po&nbsp;celkovou změnu životního stylu.</p>
+        <dl class="about-stats">
+          <div class="about-stat">
+            <dt>let praxe</dt>
+            <dd>10+</dd>
           </div>
-          <div class="about-highlight">
-            <strong>100+</strong>
-            <span>spokojených klientů</span>
+          <div class="about-stat">
+            <dt>spokojených klientů</dt>
+            <dd>100+</dd>
           </div>
-          <div class="about-highlight">
-            <strong>1:1</strong>
-            <span>individuální přístup</span>
+          <div class="about-stat">
+            <dt>individuální přístup</dt>
+            <dd>1:1</dd>
           </div>
-        </div>
+        </dl>
       </div>
-      <div class="about-image fade-in">
-        <img src="../img/adam-training.jpg" alt="Adam Jirsa — osobní trenér" width="600" height="750" loading="lazy">
+      <div class="about-photo">
+        <picture><source type="image/avif" srcset="../img/web/adam-online-500.avif 500w, ../img/web/adam-online-800.avif 800w" sizes="(max-width: 560px) calc(100vw - 40px), (max-width: 860px) 520px, 495px"><img src="../img/web/adam-online-800.webp" srcset="../img/web/adam-online-500.webp 500w, ../img/web/adam-online-800.webp 800w" sizes="(max-width: 560px) calc(100vw - 40px), (max-width: 860px) 520px, 495px" alt="Adam Jirsa, osobní trenér" width="800" height="1000" loading="lazy" decoding="async"></picture>
       </div>
     </div>
   </section>
 
 
   <!-- ====== CENÍK ====== -->
-  <section class="process diagonal-top" id="cenik">
+  <section class="pricing" id="cenik">
     <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Ceník</span>
+      <div class="section-header section-header--center">
         <h2 class="section-title">Jednoduchý a&nbsp;férový</h2>
-        <p class="section-subtitle">Jeden balíček, ve&nbsp;kterém je všechno.<br>Žádné skryté poplatky.</p>
+        <p class="section-subtitle">Jeden balíček, ve&nbsp;kterém je všechno. <br>Žádné skryté poplatky.</p>
       </div>
 
-      <div class="pricing-box fade-in">
-        <div class="pricing-box-label">Online koučink 1:1</div>
-        <div class="pricing-box-price">
+      <div class="pricing-box">
+        <h3 class="pricing-box-label">Online koučink 1:1</h3>
+        <p class="pricing-box-price">
           <span class="pricing-box-amount">2 500 Kč</span>
           <span class="pricing-box-period">/ měsíc</span>
-        </div>
+        </p>
 
         <ul class="pricing-box-features">
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Týdenní tréninkový plán dle progresu</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Ukázková videa ke&nbsp;každému cviku</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Stravovací plán na&nbsp;míru</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Suplementační doporučení</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Pravidelné kontroly a&nbsp;konzultace</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Průběžná podpora přes zprávy i&nbsp;video</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Úpravy plánu dle výsledků</li>
-          <li><span class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Bez závazků — měsíc od&nbsp;měsíce</li>
+          <li><span class="check" aria-hidden="true"></span>Týdenní tréninkový plán dle progresu</li>
+          <li><span class="check" aria-hidden="true"></span>Ukázková videa ke&nbsp;každému cviku</li>
+          <li><span class="check" aria-hidden="true"></span>Stravovací plán na&nbsp;míru</li>
+          <li><span class="check" aria-hidden="true"></span>Suplementační doporučení</li>
+          <li><span class="check" aria-hidden="true"></span>Pravidelné kontroly a&nbsp;konzultace</li>
+          <li><span class="check" aria-hidden="true"></span>Průběžná podpora přes zprávy i&nbsp;video</li>
+          <li><span class="check" aria-hidden="true"></span>Úpravy plánu dle výsledků</li>
+          <li><span class="check" aria-hidden="true"></span>Bez závazků, měsíc od&nbsp;měsíce</li>
         </ul>
 
-        <a href="#cta" class="btn btn-primary btn-lg pricing-box-cta">Chci začít</a>
+        <a href="#cta" class="btn btn-primary btn-lg pricing-box-cta">Domluvit konzultaci</a>
       </div>
     </div>
   </section>
 
 
   <!-- ====== KLIENTSKÁ ZÓNA ====== -->
-  <section class="benefits" id="zona-ukazka">
+  <section class="zona" id="zona-ukazka">
     <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Tvůj vlastní prostor</span>
-        <h2 class="section-title">Klientská zóna — vše na&nbsp;jednom místě</h2>
+      <div class="section-header section-header--center">
+        <h2 class="section-title">Klientská zóna: vše na&nbsp;jednom místě</h2>
         <p class="section-subtitle">Po&nbsp;zahájení spolupráce dostaneš přístup do&nbsp;vlastní online zóny, kde najdeš svůj plán, historii pokroků a&nbsp;přímý kontakt se mnou.</p>
       </div>
 
-      <div class="zona-preview fade-in">
-        <div class="zona-preview-browser">
-          <div class="zona-preview-dots">
-            <span></span><span></span><span></span>
-          </div>
+      <div class="zona-preview">
+        <div class="zona-preview-browser" aria-hidden="true">
           <span class="zona-preview-url">adamjirsa.cz/zona</span>
         </div>
         <div class="zona-preview-content">
           <div class="zona-preview-sidebar">
-            <div class="zona-preview-avatar">AJ</div>
-            <div class="zona-preview-menu-item active" data-tab="trenink"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg> Tréninkový plán</div>
-            <div class="zona-preview-menu-item" data-tab="strava"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Stravovací plán</div>
-            <div class="zona-preview-menu-item" data-tab="progres"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Můj progres</div>
-            <div class="zona-preview-menu-item" data-tab="zpravy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Zprávy</div>
-            <div class="zona-preview-menu-item" data-tab="videa"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Videa ke cvikům</div>
-            <div class="zona-preview-menu-item" data-tab="checkin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Týdenní check-in</div>
+            <div class="zona-preview-avatar" aria-hidden="true">AJ</div>
+            <button type="button" class="zona-preview-menu-item active" data-tab="trenink" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg> Tréninkový plán</button>
+            <button type="button" class="zona-preview-menu-item" data-tab="strava" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Stravovací plán</button>
+            <button type="button" class="zona-preview-menu-item" data-tab="progres" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Můj progres</button>
+            <button type="button" class="zona-preview-menu-item" data-tab="zpravy" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Zprávy</button>
+            <button type="button" class="zona-preview-menu-item" data-tab="videa" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> Videa ke cvikům</button>
+            <button type="button" class="zona-preview-menu-item" data-tab="checkin" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Týdenní check-in</button>
           </div>
           <div class="zona-preview-main">
 
             <!-- TAB: Tréninkový plán -->
             <div class="zona-tab active" id="zona-tab-trenink">
-              <h3>Tento týden — Tréninkový plán</h3>
+              <p class="zona-tab-title">Tento týden: tréninkový plán</p>
               <div class="zona-preview-card">
-                <strong>Pondělí — Hrudník &amp; triceps</strong>
-                <p>Bench press 4×8 · Šikmá lavice 3×10 · Rozpažky 3×12 · French press 3×10 · Kliky na bradlech 3×max</p>
+                <strong>Pondělí · Hrudník &amp; triceps</strong>
+                <p>Bench press 4×8, Šikmá lavice 3×10, Rozpažky 3×12, French press 3×10, Kliky na bradlech 3×max</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Středa — Záda &amp; biceps</strong>
-                <p>Shyby 4×max · Přítahy kladky 3×10 · Jednoruční přítahy 3×12 · Bicepsový zdvih 3×10 · Kladivovky 3×12</p>
+                <strong>Středa · Záda &amp; biceps</strong>
+                <p>Shyby 4×max, Přítahy kladky 3×10, Jednoruční přítahy 3×12, Bicepsový zdvih 3×10, Kladivovky 3×12</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Pátek — Nohy &amp; ramena</strong>
-                <p>Dřepy 4×8 · Leg press 3×12 · Výpady 3×10 · Tlaky na ramena 4×8 · Upažování 3×15</p>
+                <strong>Pátek · Nohy &amp; ramena</strong>
+                <p>Dřepy 4×8, Leg press 3×12, Výpady 3×10, Tlaky na ramena 4×8, Upažování 3×15</p>
               </div>
             </div>
 
             <!-- TAB: Stravovací plán -->
             <div class="zona-tab" id="zona-tab-strava">
-              <h3>Stravovací plán — tento týden</h3>
+              <p class="zona-tab-title">Stravovací plán: tento týden</p>
               <div class="zona-preview-card">
                 <strong>Denní kalorie: 2 400 kcal</strong>
-                <p>Bílkoviny 160g · Sacharidy 260g · Tuky 80g</p>
+                <p>Bílkoviny 160&nbsp;g, Sacharidy 260&nbsp;g, Tuky 80&nbsp;g</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Snídaně — 450 kcal</strong>
-                <p>Ovesné vločky 80g · whey protein 30g · banán 1&nbsp;ks · arašídové máslo 15g</p>
-                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">B: 35g · S: 52g · T: 12g</p>
+                <strong class="zona-radek"><span>Snídaně</span><span class="zona-kcal">450 kcal</span></strong>
+                <p>Ovesné vločky 80&nbsp;g, whey protein 30&nbsp;g, banán 1&nbsp;ks, arašídové máslo 15&nbsp;g</p>
+                <p class="zona-makra">B: 35&nbsp;g, S: 52&nbsp;g, T: 12&nbsp;g</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Oběd — 650 kcal</strong>
-                <p>Kuřecí prsa 180g · basmati rýže 100g (suchá) · brokolice 150g · olivový olej 10g</p>
-                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">B: 48g · S: 72g · T: 16g</p>
+                <strong class="zona-radek"><span>Oběd</span><span class="zona-kcal">650 kcal</span></strong>
+                <p>Kuřecí prsa 180&nbsp;g, basmati rýže 100&nbsp;g (suchá), brokolice 150&nbsp;g, olivový olej 10&nbsp;g</p>
+                <p class="zona-makra">B: 48&nbsp;g, S: 72&nbsp;g, T: 16&nbsp;g</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Svačina — 300 kcal</strong>
-                <p>Cottage sýr 150g · borůvky 80g · vlašské ořechy 20g</p>
-                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">B: 25g · S: 22g · T: 14g</p>
+                <strong class="zona-radek"><span>Svačina</span><span class="zona-kcal">300 kcal</span></strong>
+                <p>Cottage sýr 150&nbsp;g, borůvky 80&nbsp;g, vlašské ořechy 20&nbsp;g</p>
+                <p class="zona-makra">B: 25&nbsp;g, S: 22&nbsp;g, T: 14&nbsp;g</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Večeře — 550 kcal</strong>
-                <p>Losos 150g · sladké brambory 200g · mix salát 100g · olivový olej 5g</p>
-                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">B: 38g · S: 48g · T: 22g</p>
+                <strong class="zona-radek"><span>Večeře</span><span class="zona-kcal">550 kcal</span></strong>
+                <p>Losos 150&nbsp;g, sladké brambory 200&nbsp;g, mix salát 100&nbsp;g, olivový olej 5&nbsp;g</p>
+                <p class="zona-makra">B: 38&nbsp;g, S: 48&nbsp;g, T: 22&nbsp;g</p>
               </div>
               <div class="zona-preview-card">
-                <strong>Před spaním — 200 kcal</strong>
-                <p>Kaseinový protein 35g · mléko 200ml</p>
-                <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">B: 30g · S: 8g · T: 4g</p>
+                <strong class="zona-radek"><span>Před spaním</span><span class="zona-kcal">200 kcal</span></strong>
+                <p>Kaseinový protein 35&nbsp;g, mléko 200&nbsp;ml</p>
+                <p class="zona-makra">B: 30&nbsp;g, S: 8&nbsp;g, T: 4&nbsp;g</p>
               </div>
             </div>
 
             <!-- TAB: Můj progres -->
             <div class="zona-tab" id="zona-tab-progres">
-              <h3>Tvůj progres</h3>
+              <p class="zona-tab-title">Tvůj progres</p>
               <div class="zona-preview-card">
                 <strong>Váha</strong>
-                <div class="zona-progress-bar">
-                  <div class="zona-progress-track">
-                    <div class="zona-progress-fill" style="width: 65%"></div>
-                  </div>
-                  <p>Start: 92 kg → Teď: 84 kg → Cíl: 80 kg</p>
-                </div>
+                <div class="zona-progress-track"><div class="zona-progress-fill" style="width: 65%"></div></div>
+                <dl class="zona-progress-stats">
+                  <div><dt>Start</dt><dd>92 kg</dd></div>
+                  <div><dt>Teď</dt><dd>84 kg</dd></div>
+                  <div><dt>Cíl</dt><dd>80 kg</dd></div>
+                </dl>
               </div>
               <div class="zona-preview-card">
-                <strong>Bench press — osobní rekord</strong>
-                <div class="zona-progress-bar">
-                  <div class="zona-progress-track">
-                    <div class="zona-progress-fill" style="width: 80%"></div>
-                  </div>
-                  <p>Start: 60 kg → Teď: 85 kg → Cíl: 100 kg</p>
-                </div>
+                <strong>Bench press: osobní rekord</strong>
+                <div class="zona-progress-track"><div class="zona-progress-fill" style="width: 80%"></div></div>
+                <dl class="zona-progress-stats">
+                  <div><dt>Start</dt><dd>60 kg</dd></div>
+                  <div><dt>Teď</dt><dd>85 kg</dd></div>
+                  <div><dt>Cíl</dt><dd>100 kg</dd></div>
+                </dl>
               </div>
               <div class="zona-preview-card">
                 <strong>Obvod pasu</strong>
-                <div class="zona-progress-bar">
-                  <div class="zona-progress-track">
-                    <div class="zona-progress-fill" style="width: 75%"></div>
-                  </div>
-                  <p>Start: 98 cm → Teď: 88 cm → Cíl: 85 cm</p>
-                </div>
+                <div class="zona-progress-track"><div class="zona-progress-fill" style="width: 75%"></div></div>
+                <dl class="zona-progress-stats">
+                  <div><dt>Start</dt><dd>98 cm</dd></div>
+                  <div><dt>Teď</dt><dd>88 cm</dd></div>
+                  <div><dt>Cíl</dt><dd>85 cm</dd></div>
+                </dl>
               </div>
             </div>
 
             <!-- TAB: Zprávy -->
             <div class="zona-tab" id="zona-tab-zpravy">
-              <h3>Zprávy s&nbsp;trenérem</h3>
+              <p class="zona-tab-title">Zprávy s&nbsp;trenérem</p>
               <div class="zona-chat">
                 <div class="zona-chat-msg zona-chat-trainer">
                   <strong>Adam</strong>
-                  <p>Čau! Jak šel dnešní trénink? Dával jsi si víc na techniku u dřepů?</p>
+                  <p>Čau! Jak šel dnešní trénink? Dával sis víc pozor na techniku u dřepů?</p>
                   <span class="zona-chat-time">dnes 14:30</span>
                 </div>
                 <div class="zona-chat-msg zona-chat-client">
@@ -590,7 +581,7 @@
                 </div>
                 <div class="zona-chat-msg zona-chat-trainer">
                   <strong>Adam</strong>
-                  <p>Pařádní pokrok! Příští týden přidáme 5 kg. Jídelníček drž, funguje to</p>
+                  <p>Parádní pokrok! Příští týden přidáme 5 kg. Jídelníček drž, funguje to</p>
                   <span class="zona-chat-time">dnes 17:02</span>
                 </div>
               </div>
@@ -598,25 +589,25 @@
 
             <!-- TAB: Videa ke cvikům -->
             <div class="zona-tab" id="zona-tab-videa">
-              <h3>Ukázková videa ke&nbsp;cvikům</h3>
+              <p class="zona-tab-title">Ukázková videa ke&nbsp;cvikům</p>
               <div class="zona-video-grid">
                 <div class="zona-video-card">
-                  <div class="zona-video-thumb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                  <div class="zona-video-thumb" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></div>
                   <strong>Bench press</strong>
                   <p>Správná technika a&nbsp;dýchání</p>
                 </div>
                 <div class="zona-video-card">
-                  <div class="zona-video-thumb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                  <div class="zona-video-thumb" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></div>
                   <strong>Dřepy</strong>
                   <p>Hloubka, pozice kolen, záda</p>
                 </div>
                 <div class="zona-video-card">
-                  <div class="zona-video-thumb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                  <div class="zona-video-thumb" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></div>
                   <strong>Mrtvý tah</strong>
                   <p>Sumo vs. klasický, chyby</p>
                 </div>
                 <div class="zona-video-card">
-                  <div class="zona-video-thumb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                  <div class="zona-video-thumb" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></div>
                   <strong>Shyby</strong>
                   <p>Nadhmat, podhmat, asistence</p>
                 </div>
@@ -625,59 +616,59 @@
 
             <!-- TAB: Týdenní check-in -->
             <div class="zona-tab" id="zona-tab-checkin">
-              <h3>Týdenní check-in</h3>
-              <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 16px;">Vyplň každou neděli — pomůže mi to upravit tvůj plán na&nbsp;další týden.</p>
+              <p class="zona-tab-title">Týdenní check-in</p>
+              <p class="zona-poznamka">Vyplň každou neděli. Pomůže mi to upravit tvůj plán na&nbsp;další týden.</p>
 
               <div id="checkin-preview-form">
                 <div class="zona-preview-card">
-                  <strong>Jak šel trénink tento týden?</strong>
-                  <div class="zona-checkin-stars" id="preview-stars">
-                    <span class="zona-star active" data-star="1"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-                    <span class="zona-star active" data-star="2"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-                    <span class="zona-star active" data-star="3"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-                    <span class="zona-star active" data-star="4"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-                    <span class="zona-star" data-star="5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+                  <strong id="preview-stars-label">Jak šel trénink tento týden?</strong>
+                  <div class="zona-checkin-stars" id="preview-stars" role="group" aria-labelledby="preview-stars-label">
+                    <button type="button" class="zona-star active" data-star="1" aria-label="1 z 5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" class="zona-star active" data-star="2" aria-label="2 z 5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" class="zona-star active" data-star="3" aria-label="3 z 5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" class="zona-star active" data-star="4" aria-label="4 z 5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+                    <button type="button" class="zona-star" data-star="5" aria-label="5 z 5"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
                   </div>
                 </div>
 
                 <div class="zona-preview-card">
-                  <strong>Dodržování jídelníčku</strong>
+                  <label class="zona-label" for="preview-diet-range">Dodržování jídelníčku</label>
                   <div class="zona-checkin-slider">
-                    <input type="range" min="0" max="100" step="5" value="80" id="preview-diet-range" style="width: 100%; accent-color: var(--color-accent); cursor: pointer;">
+                    <input type="range" min="0" max="100" step="5" value="80" id="preview-diet-range" class="zona-range">
                     <span class="zona-slider-value" id="preview-diet-value">80 %</span>
                   </div>
                 </div>
 
                 <div class="zona-preview-card">
-                  <strong>Aktuální váha (kg)</strong>
-                  <input type="number" value="83.5" step="0.1" min="30" max="300" id="preview-weight" style="background: var(--color-bg-secondary, #f0f0f2); border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 12px; font-size: 1.1rem; font-weight: 700; color: var(--color-accent); width: 120px; margin-top: 6px; font-family: inherit;">
+                  <label class="zona-label" for="preview-weight">Aktuální váha (kg)</label>
+                  <input type="number" value="83.5" step="0.1" min="30" max="300" id="preview-weight" class="zona-field zona-field--cislo" inputmode="decimal">
                 </div>
 
                 <div class="zona-preview-card">
-                  <strong>Energie a&nbsp;nálada</strong>
-                  <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;" id="preview-energy-pills">
-                    <span class="zona-energy-pill" data-energy="low" style="cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><line x1="23" y1="13" x2="23" y2="11"/><line x1="5" y1="10" x2="5" y2="14"/></svg> Nízká</span>
-                    <span class="zona-energy-pill" data-energy="ok" style="cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><line x1="23" y1="13" x2="23" y2="11"/><line x1="5" y1="10" x2="5" y2="14"/><line x1="9" y1="10" x2="9" y2="14"/></svg> OK</span>
-                    <span class="zona-energy-pill active" data-energy="good" style="cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><line x1="23" y1="13" x2="23" y2="11"/><line x1="5" y1="10" x2="5" y2="14"/><line x1="9" y1="10" x2="9" y2="14"/><line x1="13" y1="10" x2="13" y2="14"/></svg> Dobrá</span>
-                    <span class="zona-energy-pill" data-energy="great" style="cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skvělá</span>
+                  <strong id="preview-energy-label">Energie a&nbsp;nálada</strong>
+                  <div class="zona-energy" id="preview-energy-pills" role="group" aria-labelledby="preview-energy-label">
+                    <button type="button" class="zona-energy-pill" data-energy="low">Nízká</button>
+                    <button type="button" class="zona-energy-pill" data-energy="ok">OK</button>
+                    <button type="button" class="zona-energy-pill active" data-energy="good">Dobrá</button>
+                    <button type="button" class="zona-energy-pill" data-energy="great">Skvělá</button>
                   </div>
                 </div>
 
                 <div class="zona-preview-card">
-                  <strong>Poznámky pro Adama</strong>
-                  <textarea style="width: 100%; background: var(--color-bg-secondary, #f0f0f2); border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: var(--color-text, #333); resize: vertical; min-height: 60px; font-family: inherit; margin-top: 6px;" placeholder="Jak se cítíš? Co šlo dobře, co ne?">Bolí mě levé koleno při dřepech, jinak super týden. V pátek jsem přidal 5 kg na bench!</textarea>
+                  <label class="zona-label" for="preview-notes">Poznámky pro Adama</label>
+                  <textarea id="preview-notes" class="zona-field" placeholder="Jak se cítíš? Co šlo dobře, co ne?">Bolí mě levé koleno při dřepech, jinak super týden. V pátek jsem přidal 5 kg na bench!</textarea>
                 </div>
 
-                <div style="text-align: center; margin-top: 16px;">
-                  <button type="button" id="preview-checkin-submit" style="display: inline-block; background: var(--color-accent); color: #0a0b10; padding: 12px 36px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; transition: all 0.2s ease; font-family: inherit;">Odeslat check-in <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 4px;"><polyline points="20 6 9 17 4 12"/></svg></button>
+                <div class="zona-checkin-actions">
+                  <button type="button" id="preview-checkin-submit" class="btn btn-primary">Odeslat check-in</button>
                 </div>
               </div>
 
-              <div id="checkin-preview-success" style="display: none; text-align: center; padding: 2rem 1rem;">
-                <div style="margin-bottom: 12px; color: var(--color-accent);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-                <h4 style="font-size: 1.2rem; margin-bottom: 8px;">Check-in odeslán!</h4>
-                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Tvůj check-in si přečtu a&nbsp;upravím tvůj plán na&nbsp;příští týden.</p>
-                <button type="button" id="preview-checkin-reset" style="margin-top: 16px; background: none; border: 1px solid var(--color-border); color: var(--color-text-muted); padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit;">Vyplnit znovu</button>
+              <div class="zona-checkin-success" id="checkin-preview-success" hidden>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <p class="zona-checkin-success-title">Check-in odeslán!</p>
+                <p>Tvůj check-in si přečtu a&nbsp;upravím tvůj plán na&nbsp;příští týden.</p>
+                <button type="button" id="preview-checkin-reset" class="btn btn-secondary btn-sm">Vyplnit znovu</button>
               </div>
             </div>
 
@@ -685,19 +676,16 @@
         </div>
       </div>
 
-      <div class="benefits-grid benefits-grid-3 fade-in-stagger" style="margin-top: var(--space-3xl);">
+      <div class="benefits-grid benefits-grid-3 zona-benefits">
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <h3 class="benefit-title">Soukromý přístup</h3>
-          <p class="benefit-desc">Vlastní login a&nbsp;heslo — tvůj prostor jen pro tebe.</p>
+          <p class="benefit-desc">Přihlášení kódem z&nbsp;e-mailu, žádné heslo. Tvůj prostor jen pro tebe.</p>
         </div>
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
           <h3 class="benefit-title">Funguje na&nbsp;mobilu</h3>
           <p class="benefit-desc">Otevřeš si plán v&nbsp;posilovně přímo v&nbsp;telefonu.</p>
         </div>
         <div class="benefit-card">
-          <div class="benefit-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
           <h3 class="benefit-title">Vždy aktuální</h3>
           <p class="benefit-desc">Plány aktualizuji každý týden podle tvého progresu.</p>
         </div>
@@ -707,108 +695,95 @@
 
 
   <!-- ====== FAQ ====== -->
-  <section class="services no-diagonal" id="faq">
-    <div class="container">
-      <div class="section-header fade-in">
-        <span class="section-label">Časté dotazy</span>
-        <h2 class="section-title">FAQ</h2>
+  <section class="services faq tone" id="faq">
+    <div class="container split">
+      <div class="section-header">
+        <h2 class="section-title">Časté dotazy</h2>
         <p class="section-subtitle">Máš otázku? Tady najdeš odpovědi na&nbsp;ty nejčastější.</p>
       </div>
 
-      <div class="services-accordion fade-in">
+      <div class="services-accordion">
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Jak probíhá online spolupráce?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-1-tlacitko" aria-expanded="false" aria-controls="faq-1">
+              <span class="service-accordion-info"><span class="service-accordion-name">Jak probíhá online spolupráce?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-1" role="region" aria-labelledby="faq-1-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                Po&nbsp;úvodní konzultaci ti sestavím individuální tréninkový a&nbsp;stravovací plán. Každý týden dostaneš aktualizovaný plán přizpůsobený tvému progresu, ke&nbsp;každému cviku ukázkové video se&nbsp;správnou technikou a&nbsp;suplementační doporučení. Pravidelně probereme pokroky a&nbsp;upravím cokoliv bude potřeba. Komunikujeme přes zprávy nebo online hovor — jak ti to vyhovuje.
-              </p>
+              <p class="service-accordion-desc">Po&nbsp;úvodní konzultaci ti sestavím individuální tréninkový a&nbsp;stravovací plán. Každý týden dostaneš aktualizovaný plán přizpůsobený tvému progresu, ke&nbsp;každému cviku ukázkové video se&nbsp;správnou technikou a&nbsp;suplementační doporučení. Pravidelně probereme pokroky a&nbsp;upravím, cokoliv bude potřeba. Komunikujeme přes zprávy nebo online hovor, jak ti to vyhovuje.</p>
             </div>
           </div>
         </div>
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Co potřebuji k&nbsp;tréninku?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-2-tlacitko" aria-expanded="false" aria-controls="faq-2">
+              <span class="service-accordion-info"><span class="service-accordion-name">Co potřebuji k&nbsp;tréninku?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-2" role="region" aria-labelledby="faq-2-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                Záleží na&nbsp;tvých možnostech. Pokud chodíš do&nbsp;posilovny, využijeme to naplno. Pokud trénuješ doma, přizpůsobím plán tomu, co máš — i&nbsp;kdyby to byly jen vlastní váha a&nbsp;karimatka. Čím víc vybavení, tím víc možností, ale zvládneme to i&nbsp;s&nbsp;minimem.
-              </p>
+              <p class="service-accordion-desc">Záleží na&nbsp;tvých možnostech. Pokud chodíš do&nbsp;posilovny, využijeme to naplno. Pokud trénuješ doma, přizpůsobím plán tomu, co máš, i&nbsp;kdyby to byly jen vlastní váha a&nbsp;karimatka. Čím víc vybavení, tím víc možností, ale zvládneme to i&nbsp;s&nbsp;minimem.</p>
             </div>
           </div>
         </div>
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Jak často se budeme bavit?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-3-tlacitko" aria-expanded="false" aria-controls="faq-3">
+              <span class="service-accordion-info"><span class="service-accordion-name">Jak často se budeme bavit?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-3" role="region" aria-labelledby="faq-3-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                Minimálně jednou týdně — kontrola pokroků, úprava plánu, řešení otázek. Ale přes zprávy jsem k&nbsp;dispozici prakticky denně. Pokud potřebuješ poradit, stačí napsat.
-              </p>
+              <p class="service-accordion-desc">Minimálně jednou týdně: kontrola pokroků, úprava plánu, řešení otázek. Ale přes zprávy jsem k&nbsp;dispozici prakticky denně. Pokud potřebuješ poradit, stačí napsat.</p>
             </div>
           </div>
         </div>
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Můžu přejít na&nbsp;osobní tréninky?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-4-tlacitko" aria-expanded="false" aria-controls="faq-4">
+              <span class="service-accordion-info"><span class="service-accordion-name">Můžu přejít na&nbsp;osobní tréninky?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-4" role="region" aria-labelledby="faq-4-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                Jasně! Pokud jsi z&nbsp;Pelhřimova nebo okolí, můžeš kdykoliv přejít na&nbsp;osobní tréninky v&nbsp;Hypertrophy Gym, kombinovat online a&nbsp;osobní, nebo se prostě stavit na&nbsp;konzultaci. Žádný problém.
-              </p>
+              <p class="service-accordion-desc">Jasně! Pokud jsi z&nbsp;Pelhřimova nebo okolí, můžeš kdykoliv přejít na&nbsp;osobní tréninky v&nbsp;Hypertrophy Gym, kombinovat online a&nbsp;osobní, nebo se prostě stavit na&nbsp;konzultaci. Žádný problém.</p>
             </div>
           </div>
         </div>
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Co když mi plán nevyhovuje?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-5-tlacitko" aria-expanded="false" aria-controls="faq-5">
+              <span class="service-accordion-info"><span class="service-accordion-name">Co když mi plán nevyhovuje?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-5" role="region" aria-labelledby="faq-5-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                Plán průběžně upravuji podle tvé zpětné vazby. Pokud ti něco nesedí — jiný cvik, jiné jídlo, jiný rozvrh — stačí říct a&nbsp;změníme to. Spolupráce je bez závazku, platíš měsíc od&nbsp;měsíce.
-              </p>
+              <p class="service-accordion-desc">Plán průběžně upravuji podle tvé zpětné vazby. Pokud ti něco nesedí (jiný cvik, jiné jídlo, jiný rozvrh), stačí říct a&nbsp;změníme to. Spolupráce je bez závazku, platíš měsíc od&nbsp;měsíce.</p>
             </div>
           </div>
         </div>
 
         <div class="service-accordion-item">
-          <div class="service-accordion-header" role="button" tabindex="0" aria-expanded="false">
-            <div class="service-accordion-info">
-              <h3 class="service-accordion-name">Jak rychle uvidím výsledky?</h3>
-            </div>
-            <span class="service-accordion-toggle">+</span>
-          </div>
-          <div class="service-accordion-body">
+          <h3 class="service-accordion-heading">
+            <button type="button" class="service-accordion-header" id="faq-6-tlacitko" aria-expanded="false" aria-controls="faq-6">
+              <span class="service-accordion-info"><span class="service-accordion-name">Jak rychle uvidím výsledky?</span></span>
+              <span class="service-accordion-toggle" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="service-accordion-body" id="faq-6" role="region" aria-labelledby="faq-6-tlacitko">
             <div class="service-accordion-body-inner">
-              <p class="service-accordion-desc">
-                První změny cítíš už po&nbsp;2–3 týdnech — víc energie, lepší spánek, pohyb ti začne dělat radost. Viditelné fyzické výsledky obvykle po&nbsp;4–8 týdnech, záleží na&nbsp;výchozím stavu a&nbsp;dodržování plánu. Nebudu ti slibovat zázraky, ale s&nbsp;konzistencí to prostě funguje.
-              </p>
+              <p class="service-accordion-desc">První změny cítíš už po&nbsp;2–3 týdnech: víc energie, lepší spánek, pohyb ti začne dělat radost. Viditelné fyzické výsledky obvykle po&nbsp;4–8 týdnech, záleží na&nbsp;výchozím stavu a&nbsp;dodržování plánu. Nebudu ti slibovat zázraky, ale s&nbsp;konzistencí to prostě funguje.</p>
             </div>
           </div>
         </div>
@@ -821,64 +796,63 @@
   <!-- ====== CTA + FORMULÁŘ ====== -->
   <section class="contact" id="cta">
     <div class="container">
-      <div class="contact-info fade-in-left">
-        <span class="section-label">Začni teď</span>
+      <div class="contact-info">
         <h2 class="section-title">Ozvi se mi</h2>
         <p class="section-subtitle">Vyplň formulář a&nbsp;ozvu se ti do&nbsp;24&nbsp;hodin. Vstupní konzultace je zdarma a&nbsp;nezávazná.</p>
 
         <div class="contact-details">
-          <div class="contact-detail">
-            <span class="contact-detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-            <div class="contact-detail-text">
+          <a class="contact-detail" href="tel:+420731613480">
+            <span class="contact-detail-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+            <span class="contact-detail-text">
               <span class="contact-detail-label">Telefon</span>
-              <span class="contact-detail-value"><a href="tel:+420731613480">731&nbsp;613&nbsp;480</a></span>
-            </div>
-          </div>
+              <span class="contact-detail-value">731&nbsp;613&nbsp;480</span>
+            </span>
+          </a>
 
-          <div class="contact-detail">
-            <span class="contact-detail-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
-            <div class="contact-detail-text">
+          <a class="contact-detail" href="mailto:jirsafitness@gmail.com">
+            <span class="contact-detail-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+            <span class="contact-detail-text">
               <span class="contact-detail-label">E-mail</span>
-              <span class="contact-detail-value"><a href="mailto:jirsafitness@gmail.com">jirsafitness@gmail.com</a></span>
-            </div>
-          </div>
+              <span class="contact-detail-value">jirsafitness@gmail.com</span>
+            </span>
+          </a>
         </div>
 
         <div class="contact-social-links">
           <a href="https://www.instagram.com/adam.jirsa.fit/" target="_blank" rel="noopener noreferrer" class="contact-ig-link">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
             <span>Instagram</span>
             <span class="contact-ig-handle">@adam.jirsa.fit</span>
           </a>
           <a href="https://www.facebook.com/Adam.Jirsa.Fitness" target="_blank" rel="noopener noreferrer" class="contact-fb-link">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             <span>Facebook</span>
           </a>
         </div>
       </div>
 
-      <div class="contact-form-wrapper fade-in-right">
+      <div class="contact-form-wrapper">
         <form class="contact-form" name="kontakt-online" method="POST" novalidate>
           <div class="form-row">
             <div class="form-group">
               <label for="name">Jméno</label>
-              <input type="text" id="name" name="name" placeholder="Tvoje jméno" required>
+              <input type="text" id="name" name="name" placeholder="Tvoje jméno" autocomplete="name" required>
             </div>
             <div class="form-group">
               <label for="phone">Telefon</label>
-              <input type="tel" id="phone" name="phone" placeholder="+420...">
+              <input type="tel" id="phone" name="phone" placeholder="+420…" autocomplete="tel" required>
             </div>
           </div>
 
           <div class="form-group">
             <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" placeholder="tvuj@email.cz" required>
+            <input type="email" id="email" name="email" placeholder="tvuj@email.cz" autocomplete="email" required>
           </div>
 
           <div class="form-group">
             <label for="goal">Jaký je tvůj cíl?</label>
             <select id="goal" name="goal">
-              <option value="">Vyber cíl...</option>
+              <option value="">Vyber cíl…</option>
               <option value="hubnout">Hubnout</option>
               <option value="nabrat-svaly">Nabrat svaly</option>
               <option value="zlepsit-kondici">Zlepšit kondici</option>
@@ -888,32 +862,35 @@
           </div>
 
           <div class="form-group">
-            <label for="message">Zpráva</label>
-            <textarea id="message" name="message" placeholder="Řekni mi o sobě — tvoje zkušenosti, co trénuješ, co chceš změnit..." rows="3"></textarea>
+            <label for="message">Zpráva <span class="form-optional">(nepovinné)</span></label>
+            <textarea id="message" name="message" placeholder="Řekni mi o sobě: tvoje zkušenosti, co trénuješ, co chceš změnit…" rows="3"></textarea>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-lg">Chci začít trénovat</button>
+          <button type="submit" class="btn btn-primary btn-lg">Domluvit konzultaci</button>
           <p class="form-note">Odpovím do 24 hodin.</p>
-          <p class="form-urgency"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Momentálně nabírám omezený počet online klientů</p>
+          <p class="form-urgency">Momentálně nabírám omezený počet online klientů</p>
+          <p class="form-status" role="status" aria-live="polite"></p>
         </form>
       </div>
     </div>
   </section>
+
+  </main>
 
 
   <!-- ====== FOOTER ====== -->
   <footer class="footer">
     <div class="container">
       <div class="footer-top">
-        <a href="../" class="footer-logo"><img src="../img/logo-white.png" alt="Adam Jirsa Fitness Trenér" style="height: 40px; width: auto;"></a>
+        <a href="../" class="footer-logo"><picture><source type="image/webp" srcset="../img/web/logo-bila.webp"><img src="../img/web/logo-bila.png" alt="Adam Jirsa Fitness Trenér" width="265" height="135" loading="lazy" decoding="async"></picture></a>
 
-        <div class="footer-links">
+        <nav class="footer-links" aria-label="Odkazy v patičce">
           <a href="../">Hlavní stránka</a>
           <a href="../#sluzby">Služby</a>
           <a href="../#o-mne">O&nbsp;mně</a>
           <a href="../#kontakt">Kontakt</a>
           <a href="../zona/">Klientská zóna</a>
-        </div>
+        </nav>
 
         <div class="footer-contact">
           <a href="tel:+420731613480">731&nbsp;613&nbsp;480</a>
@@ -922,10 +899,10 @@
       </div>
 
       <div class="footer-bottom">
-        <p class="footer-copy">&copy; 2026 Adam Jirsa, IČO:&nbsp;07816448 — Osobní trenér, Pelhřimov</p>
+        <p class="footer-copy">&copy; 2026 Adam Jirsa, IČO:&nbsp;07816448 · Osobní trenér, Pelhřimov</p>
         <div class="footer-legal">
           <a href="#ochrana-udaju">Ochrana osobních údajů</a>
-          <span class="footer-sep">·</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
           <a href="https://webzitra.cz" target="_blank" rel="noopener">Web: WebZítra</a>
         </div>
       </div>
@@ -933,16 +910,16 @@
   </footer>
 
 
-  <!-- ====== SCROLL TO TOP ====== -->
-  <button class="scroll-top" aria-label="Nahoru">↑</button>
+  <!-- ====== NAHORU ====== -->
+  <button class="scroll-top" type="button" aria-label="Nahoru"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg></button>
 
 
   <!-- ====== OCHRANA OSOBNÍCH ÚDAJŮ (modal) ====== -->
-  <div class="privacy-modal" id="ochrana-udaju-modal" hidden>
+  <div class="privacy-modal" id="ochrana-udaju-modal" role="dialog" aria-modal="true" aria-labelledby="ochrana-udaju-titulek" hidden>
     <div class="privacy-modal-backdrop"></div>
     <div class="privacy-modal-content">
-      <button class="privacy-modal-close" aria-label="Zavřít">&times;</button>
-      <h2>Ochrana osobních údajů</h2>
+      <button class="privacy-modal-close" type="button" aria-label="Zavřít">&times;</button>
+      <h2 id="ochrana-udaju-titulek">Ochrana osobních údajů</h2>
       <div class="privacy-text">
         <h3>1. Správce údajů</h3>
         <p>Adam Jirsa, IČO:&nbsp;07816448<br>Pelhřimov<br>E-mail: jirsafitness@gmail.com<br>Tel: +420 731 613 480</p>
@@ -969,14 +946,12 @@
   </div>
 
 
-  <!-- ====== FLOATING MOBILE CTA ====== -->
-  <a href="#cta" class="floating-cta" aria-label="Chci začít">
-    Chci začít →
-  </a>
+  <!-- ====== PLOVOUCÍ CTA (mobil) ====== -->
+  <a href="#cta" class="floating-cta">Domluvit konzultaci</a>
 
 
-  <!-- ====== COOKIE BANNER (GDPR compliant) ====== -->
-  <div class="cookie-banner" id="cookie-banner" hidden>
+  <!-- ====== COOKIE LIŠTA ====== -->
+  <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Soukromí a cookies" hidden>
     <div class="container">
       <div class="cookie-content">
         <p class="cookie-title">Soukromí a cookies</p>
@@ -985,15 +960,15 @@
         </p>
       </div>
       <div class="cookie-buttons">
-        <button class="btn btn-primary" id="cookie-accept">Rozumím</button>
-        <button class="btn btn-outline" id="cookie-reject">Odmítnout</button>
+        <button class="btn btn-primary" type="button" id="cookie-accept">Rozumím</button>
+        <button class="btn btn-secondary" type="button" id="cookie-reject">Odmítnout</button>
       </div>
     </div>
   </div>
 
 
   <!-- Scripts -->
-  <script src="../js/main.js?v=9"></script>
+  <script src="../js/main.js?v=11" defer></script>
 
   <!-- Zona preview tabs -->
   <script>
@@ -1001,17 +976,16 @@
     'use strict';
     var menuItems = document.querySelectorAll('.zona-preview-menu-item[data-tab]');
     menuItems.forEach(function(item) {
-      item.style.cursor = 'pointer';
       item.addEventListener('click', function() {
-        // Remove active from all menu items
-        menuItems.forEach(function(m) { m.classList.remove('active'); });
-        // Add active to clicked
+        menuItems.forEach(function(m) {
+          m.classList.remove('active');
+          m.setAttribute('aria-pressed', 'false');
+        });
         item.classList.add('active');
-        // Hide all tabs
+        item.setAttribute('aria-pressed', 'true');
         document.querySelectorAll('.zona-tab').forEach(function(tab) {
           tab.classList.remove('active');
         });
-        // Show target tab
         var target = document.getElementById('zona-tab-' + item.getAttribute('data-tab'));
         if (target) target.classList.add('active');
       });
@@ -1024,21 +998,23 @@
   (function() {
     'use strict';
 
-    // Stars — click to rate
+    // Hvězdičky
     var stars = document.querySelectorAll('#preview-stars .zona-star');
+    function setStars(val) {
+      stars.forEach(function(s) {
+        var on = parseInt(s.getAttribute('data-star'), 10) <= val;
+        s.classList.toggle('active', on);
+        s.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
     stars.forEach(function(star) {
-      star.style.cursor = 'pointer';
       star.addEventListener('click', function() {
-        var val = parseInt(star.getAttribute('data-star'));
-        stars.forEach(function(s) {
-          var sv = parseInt(s.getAttribute('data-star'));
-          if (sv <= val) { s.classList.add('active'); }
-          else { s.classList.remove('active'); }
-        });
+        setStars(parseInt(star.getAttribute('data-star'), 10));
       });
     });
+    setStars(4);
 
-    // Diet range slider
+    // Posuvník jídelníčku
     var dietRange = document.getElementById('preview-diet-range');
     var dietValue = document.getElementById('preview-diet-value');
     if (dietRange && dietValue) {
@@ -1047,16 +1023,20 @@
       });
     }
 
-    // Energy pills
+    // Energie
     var pills = document.querySelectorAll('#preview-energy-pills .zona-energy-pill');
-    pills.forEach(function(pill) {
-      pill.addEventListener('click', function() {
-        pills.forEach(function(p) { p.classList.remove('active'); });
-        pill.classList.add('active');
+    function setPill(active) {
+      pills.forEach(function(p) {
+        p.classList.toggle('active', p === active);
+        p.setAttribute('aria-pressed', p === active ? 'true' : 'false');
       });
+    }
+    pills.forEach(function(pill) {
+      pill.addEventListener('click', function() { setPill(pill); });
     });
+    setPill(document.querySelector('#preview-energy-pills .zona-energy-pill.active'));
 
-    // Submit — fake success
+    // Odeslání naoko
     var submitBtn = document.getElementById('preview-checkin-submit');
     var formEl = document.getElementById('checkin-preview-form');
     var successEl = document.getElementById('checkin-preview-success');
@@ -1064,21 +1044,21 @@
 
     if (submitBtn && formEl && successEl) {
       submitBtn.addEventListener('click', function() {
-        submitBtn.textContent = 'Odesílám...';
-        submitBtn.style.opacity = '0.7';
+        submitBtn.textContent = 'Odesílám…';
+        submitBtn.disabled = true;
         setTimeout(function() {
-          formEl.style.display = 'none';
-          successEl.style.display = 'block';
+          formEl.hidden = true;
+          successEl.hidden = false;
         }, 800);
       });
     }
 
     if (resetBtn && formEl && successEl) {
       resetBtn.addEventListener('click', function() {
-        successEl.style.display = 'none';
-        formEl.style.display = 'block';
-        submitBtn.innerHTML = 'Odeslat check-in <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 4px;"><polyline points="20 6 9 17 4 12"/></svg>';
-        submitBtn.style.opacity = '1';
+        successEl.hidden = true;
+        formEl.hidden = false;
+        submitBtn.textContent = 'Odeslat check-in';
+        submitBtn.disabled = false;
       });
     }
   })();
